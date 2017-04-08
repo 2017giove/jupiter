@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name="src">
+        <in>AboutDialog.cpp</in>
+        <in>ConfigDialog.cpp</in>
+        <in>DOFrame.cpp</in>
+        <in>DOScreen.cpp</in>
+        <in>DRS.cpp</in>
+        <in>DRSOsc.cpp</in>
+        <in>DisplayDialog.cpp</in>
+        <in>EPThread.cpp</in>
+        <in>InfoDialog.cpp</in>
+        <in>MeasureDialog.cpp</in>
+        <in>Measurement.cpp</in>
+        <in>Osci.cpp</in>
+        <in>TriggerDialog.cpp</in>
+        <in>averager.cpp</in>
+        <in>drs_exam.cpp</in>
+        <in>drs_sphere.cpp</in>
+        <in>drs_sub.cpp</in>
+        <in>drscl.cpp</in>
+        <in>main.cpp</in>
+        <in>musbstd.c</in>
+        <in>mxml.c</in>
+        <in>rb.cpp</in>
+        <in>strlcpy.c</in>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+      <itemPath>nbproject/private/launcher.properties</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-O2"/>
+        <element flagsID="1" commonFlags="-g -O2"/>
+        <element flagsID="2" commonFlags="-std=c++14"/>
+      </flagsDictionary>
+      <codeAssistance>
+      </codeAssistance>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>.</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath></executablePath>
+          <cTool>
+            <incDir>
+              <pElem>include</pElem>
+              <pElem>/usr/local/include</pElem>
+              <pElem>.</pElem>
+            </incDir>
+            <preprocessorList>
+              <Elem>HAVE_LIBUSB10</Elem>
+              <Elem>HAVE_USB</Elem>
+              <Elem>OS_LINUX</Elem>
+              <Elem>USE_DRS_MUTEX</Elem>
+            </preprocessorList>
+          </cTool>
+        </makeTool>
+        <preBuild>
+          <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
+          <preBuildCommand></preBuildCommand>
+        </preBuild>
+      </makefileType>
+      <item path="src/AboutDialog.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/ConfigDialog.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/DOFrame.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/DOScreen.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/DRS.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/DRSOsc.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/DisplayDialog.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/EPThread.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/InfoDialog.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/MeasureDialog.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/Measurement.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/Osci.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/TriggerDialog.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/averager.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/drs_exam.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/drs_sphere.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="2">
+        </ccTool>
+      </item>
+      <item path="src/drs_sub.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/drscl.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/main.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/musbstd.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="1">
+        </cTool>
+      </item>
+      <item path="src/mxml.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="1">
+        </cTool>
+      </item>
+      <item path="src/rb.cpp" ex="false" tool="1" flavor2="11">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+            <Elem>WXUSINGDLL</Elem>
+            <Elem>_FILE_OFFSET_BITS=64</Elem>
+            <Elem>__WXGTK__</Elem>
+          </preprocessorList>
+        </ccTool>
+      </item>
+      <item path="src/strlcpy.c" ex="false" tool="0" flavor2="2">
+        <cTool flags="1">
+        </cTool>
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
