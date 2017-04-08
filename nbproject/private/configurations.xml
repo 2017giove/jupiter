@@ -10,6 +10,7 @@
         <in>DRS.h</in>
         <in>DRSOsc.h</in>
         <in>DRSOscInc.h</in>
+        <in>Daq_sphere.h</in>
         <in>DisplayDialog.h</in>
         <in>EPThread.h</in>
         <in>InfoDialog.h</in>
@@ -38,18 +39,23 @@
         <in>Osci.cpp</in>
         <in>TriggerDialog.cpp</in>
         <in>averager.cpp</in>
+        <in>down.xpm</in>
         <in>drs_exam.cpp</in>
+        <in>drs_exam_multi.cpp</in>
         <in>drs_sphere.cpp</in>
         <in>drs_sub.cpp</in>
         <in>drscl.cpp</in>
         <in>drsosc.xpm</in>
+        <in>left.xpm</in>
         <in>main.cpp</in>
         <in>musbstd.c</in>
         <in>mxml.c</in>
         <in>neg.xpm</in>
         <in>pos.xpm</in>
         <in>rb.cpp</in>
+        <in>right.xpm</in>
         <in>strlcpy.c</in>
+        <in>up.xpm</in>
       </df>
     </df>
   </logicalFolder>
