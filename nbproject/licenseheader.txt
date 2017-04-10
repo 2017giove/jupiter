@@ -1,0 +1,11 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}This file is part of the code written for the Jupiter Experiment 2017 at Sapienza University.
+${licensePrefix}Do not modify it unless you know exactly what you are doing.
+${licensePrefix}Otherwise you'll be in trouble.
+${licensePrefix}
+${licensePrefix}It's Boguliubov!
+<#if licenseLast??>
+${licenseLast}
+</#if>

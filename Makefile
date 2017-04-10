@@ -23,8 +23,8 @@ else
 DOS           = OS_LINUX
 endif
 
-CFLAGS        = -g -O2 -Wall -Wuninitialized -fno-strict-aliasing -Iinclude -I/usr/local/include -D$(DOS) -DHAVE_USB -DHAVE_LIBUSB10 -DUSE_DRS_MUTEX
-LIBS          = -lpthread -lutil -lusb-1.0
+CFLAGS        = -g -O2 -Wall -Wuninitialized -fno-strict-aliasing -Iinclude -I/usr/local/include -D$(DOS) -DHAVE_USB -DHAVE_LIBUSB10 -DUSE_DRS_MUTEX #`root-config --cflags`
+LIBS          = -lpthread -lutil -lusb-1.0  #`root-config --glibs`
 
 ifeq ($(OS),Darwin)
 #CFLAGS        += -stdlib=libstdc++
@@ -36,7 +36,7 @@ endif
 WXLIBS        = $(shell wx-config --libs)
 WXFLAGS       = $(shell wx-config --cxxflags)
 
-CPP_OBJ       = DRS.o averager.o ConfigDialog.o DOFrame.o DOScreen.o DRSOsc.o MeasureDialog.o Measurement.o Osci.o InfoDialog.o DisplayDialog.o AboutDialog.o EPThread.o TriggerDialog.o rb.o
+CPP_OBJ       = DRS.o averager.o ConfigDialog.o DOFrame.o DOScreen.o DRSOsc.o MeasureDialog.o Measurement.o Osci.o InfoDialog.o DisplayDialog.o AboutDialog.o EPThread.o TriggerDialog.o rb.o 
 OBJECTS       = musbstd.o mxml.o strlcpy.o
 
 
@@ -45,6 +45,7 @@ all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app drs_sphere
 else
 all: drsosc drscl drs_exam drs_sub drs_exam_multi drs_sphere
 endif
+
 
 DRSOsc.app: drsosc
 	-mkdir DRSOsc.app
@@ -74,7 +75,7 @@ drs_sphere: $(OBJECTS) DRS.o averager.o drs_sphere.o
 
 drs_exam_multi: $(OBJECTS) DRS.o averager.o drs_exam_multi.o
 	$(CXX) $(CFLAGS) $(OBJECTS) DRS.o averager.o drs_exam_multi.o -o drs_exam_multi $(LIBS) $(WXLIBS)
-
+	
 main.o: src/main.cpp include/mxml.h include/DRS.h
 	$(CXX) $(CFLAGS) $(WXFLAGS) -c $<
 
@@ -99,6 +100,7 @@ $(CPP_OBJ): %.o: src/%.cpp include/%.h include/mxml.h include/DRS.h
 $(OBJECTS): %.o: src/%.c include/mxml.h include/DRS.h
 	$(CC) $(CFLAGS) -c $<
 
+	
 clean:
-	rm -f *.o drscl drsosc
+	rm -f *.o 
 

@@ -10,12 +10,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/leopoldo/Desktop/jupiter/src/musbstd.c</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/include/Osci.h</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/src/Osci.cpp</file>
             <file>file:/home/leopoldo/Desktop/jupiter/src/drs_sub.cpp</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/src/DRSOsc.cpp</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/src/drs_exam.cpp</file>
             <file>file:/home/leopoldo/Desktop/jupiter/src/drs_sphere.cpp</file>
-            <file>file:/home/leopoldo/Desktop/jupiter/include/mxml.h</file>
-            <file>file:/home/leopoldo/Desktop/jupiter/src/ConfigDialog.cpp</file>
-            <file>file:/home/leopoldo/Desktop/jupiter/include/musbstd.h</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/Makefile</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/include/DOFrame.h</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/src/DRS.cpp</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/src/drscl.cpp</file>
+            <file>file:/home/leopoldo/Desktop/jupiter/src/main.cpp</file>
         </group>
     </open-files>
 </project-private>
