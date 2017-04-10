@@ -17,12 +17,11 @@
 
 #define NBIN 400
 #define QMIN 0
-#define array_length 1024
+#define N_SAMPLES 1024
 #define MAXCH 4
 #define DELAY 1160 //da cambiare se si usa un rate di acquisizione diverso
 #define RATE 0.7 //da cambiare se si usa un rate di acquisizione diverso
 #define THRESH 25
-#define array_length 1024
 #define QMAX 200
 
 

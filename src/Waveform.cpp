@@ -20,9 +20,9 @@ void Waveform::Loop() {
     TCanvas *c2 = new TCanvas("cB", PLOTS_TITLE, 640, 480);
     //TPad* pad1 = new TPad("pad1","The pad",0.03,0.62,0.50,0.92,21);
 
-    TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", 1024, 0, 1024);
+    TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", 1024, 0, N_SAMPLES);
     TH1F *histo_max = new TH1F("histo_max", "Istogramma dei massimi", 100, 0, 5024);
-    TF1 *gf = new TF1("f1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, 1024);
+    TF1 *gf = new TF1("f1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
 
     TH1F *showHist;
     TF1 *showFit;
@@ -49,7 +49,7 @@ void Waveform::Loop() {
 
 
         TH1F *temp = (TH1F*) histo_ch1->Rebin(8, "FittingHist");
-        temp->Fit(gf, "Q", "", 215, 1024);
+        temp->Fit(gf, "Q", "", 215, N_SAMPLES);
 
 
         if (jentry % 250 == 0) {
@@ -61,18 +61,18 @@ void Waveform::Loop() {
             showHist->GetYaxis()->SetTitle("Qualcosa proporzionale alla corrente");
             showHist->SetMinimum(-800);
             showHist->Draw();
-            showFit->DrawF1(0, 1024, "pl same");
+            showFit->DrawF1(0, N_SAMPLES, "pl same");
             c2->Update();
             std::fflush(stdout);
         }
 
-        minimo = -gf->GetMinimum(215, 1024);
+        minimo = -gf->GetMinimum(215, N_SAMPLES);
         histo_max->Fill(minimo, 1);
     }
 
     c2->cd();
     showHist->Draw();
-    showFit->DrawF1(0, 1024, "pl same");
+    showFit->DrawF1(0, N_SAMPLES, "pl same");
 
 
     c->cd();

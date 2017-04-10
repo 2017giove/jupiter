@@ -111,9 +111,6 @@ void Make(TFile* f, const char* fileIN, int CH) {
 
 void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
-    // const char* fileIN =_fileIN.c_str();
-    // const char* fileOUT =_fileOUT.c_str();
-
     int i, Nentries;
     WaveForm Wave; //definizione di WaveForm e InputData in WaveAnalysis.h
     InputData temp;
@@ -143,9 +140,9 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-        Wave.FillVec(array_length, temp.timeArray[CH], temp.waveArray[CH], -1);
+        Wave.FillVec(N_SAMPLES, temp.timeArray[CH], temp.waveArray[CH], -1);
         Integral = Wave.Integral();
-        BaseIntegral = Wave.BoundIntegral(0, (1024 - (int) (delay * RATE)));
+        BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (delay * RATE)));
         Integral -= BaseIntegral;
         TOut->Fill();
     }

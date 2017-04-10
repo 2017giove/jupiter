@@ -36,183 +36,159 @@
 #include "TMath.h"
 #include "defines.h"
 
-
-struct InputData
-{
-  float waveArray[MAXCH][array_length];
-  float timeArray[MAXCH][array_length];
+struct InputData {
+    float waveArray[MAXCH][N_SAMPLES];
+    float timeArray[MAXCH][N_SAMPLES];
 };
 
-class WaveForm
-{
+class WaveForm {
+public:
+    std::vector<double> _samples;
+    std::vector<double> _times;
+    TF1 *gf;
+    TH1D *h1;
 
- public:
-  std::vector<double> _samples;
-  std::vector<double> _times;
-  TF1 *gf;
-  TH1D *h1;
+    /*Riempie il vettore e riscala i samples con un fattore resc_fact*/
+    void FillVec(int nSamples, float* times, float* samples, float resc_fact) {
 
-  /*Riempie il vettore e riscala i samples con un fattore resc_fact*/
-  void FillVec(int nSamples, float* times, float* samples, float resc_fact)
-  {
+        _samples.resize(nSamples);
+        _times.resize(nSamples);
+        for (unsigned int i(0); i < nSamples; i++) {
 
-    _samples.resize(nSamples);
-    _times.resize(nSamples);
-    for (unsigned int i(0); i<nSamples; i++)
-      {
+            _samples[i] = (double) resc_fact * samples[i];
+            _times[i] = (double) times[i];
 
-	_samples[i]=(double)resc_fact*samples[i];
-	_times[i]=(double)times[i];
-		
-      }
+        }
 
-  };
+    };
 
-  //Sottrae un valore fissato ai samples
-  void offset(std::vector<double> samples, const float& value)
-  {
+    //Sottrae un valore fissato ai samples
 
-    unsigned int i;
+    void offset(std::vector<double> samples, const float& value) {
 
-    for (i=0; i<_samples.size(); ++i)
-      _samples[i]-=value;
-  	
-  };
+        unsigned int i;
 
-  /*Sposta tutti i tempi di un valore fissato*/
-  void shift_time(std::vector<double> times, const float& time_offset)
-  {
+        for (i = 0; i < _samples.size(); ++i)
+            _samples[i] -= value;
 
-    unsigned int i;
+    };
 
-    for (i=0; i<_times.size(); ++i)
-      _times[i]+=time_offset;
+    /*Sposta tutti i tempi di un valore fissato*/
+    void shift_time(std::vector<double> times, const float& time_offset) {
 
-  }; 
-  
-  /*Trova il punto massimo dei samples*/
-  int FindMax()
-  {
-    
-    int i, max;
-    
-    for(i=0; i<_samples.size(); i++)
-      {
-	if(_samples[i]>_samples[max])
-	  {
-	    max = i;
-	  }
-      }
-    return max;
-  };
+        unsigned int i;
 
-  /*Trova il valore massimo di _samples*/
-  float GetMax()
-  {
-    
-    int i; 
-    float  max=0;
-    
-    for(i=0; i<_samples.size(); i++)
-      {
-	if(_samples[i]>max)
-	  {
-	    max = _samples[i];
-	  }
-      }
-    return max;
-  };
+        for (i = 0; i < _times.size(); ++i)
+            _times[i] += time_offset;
+
+    };
+
+    /*Trova il punto massimo dei samples*/
+    int FindMax() {
+
+        int i, max;
+
+        for (i = 0; i < _samples.size(); i++) {
+            if (_samples[i] > _samples[max]) {
+                max = i;
+            }
+        }
+        return max;
+    };
+
+    /*Trova il valore massimo di _samples*/
+    float GetMax() {
+
+        int i;
+        float max = 0;
+
+        for (i = 0; i < _samples.size(); i++) {
+            if (_samples[i] > max) {
+                max = _samples[i];
+            }
+        }
+        return max;
+    };
+
+    /*Restituisce la "media integrale"*/
+    float Integral() {
+
+        float Mean = 0;
+        int i;
+
+        for (i = 0; i < _samples.size(); i++) {
+            Mean += _samples[i];
+        }
+
+        return Mean / _samples.size();
+
+    };
+
+    float BoundIntegral(int min, int max) {
+        float integral = 0;
+        int i;
+
+        for (i = (int) min; i <= (int) max; i++) {
+            integral += _samples[i];
+        }
+        //cout << _samples[min] << "    " << _samples[max] << endl;
+        return integral / ((float) (max - min));
+    };
+
+    /*Esegue un fit con un esponenziale doppio*/
+    void DoubleExpFit(float charge) {
+        int Size = _times.size();
+        double step = 1. / (double) RATE;
+
+        //TCanvas *c1 = new TCanvas();
+        TGraph *g = new TGraph(Size, &(_times[0]), &(_samples[0]));
+        gf = new TF1("f1", "[0]*(TMath::Exp(-[1]*(x-[3])) - TMath::Exp(-[2]*(x-[3])))", Size * step - DELAY, Size * step);
+
+        gf->SetParNames("Amplitude", "tau_1", "tau_2", "shift");
+        gf->SetParameters(charge * 4.6, 0.005, 0.04, Size * step - DELAY);
+        g->Fit("f1", "R", "N");
+        //g->Draw("AL");
 
 
+    };
 
-  /*Restituisce la "media integrale"*/
-  float Integral()
-  {
-	  
-    float Mean = 0;
-    int i;
-		
-    for(i=0; i<_samples.size(); i++)
-      {
-	Mean += _samples[i];
-      }
-		
-    return Mean/_samples.size();
-		
-  };
-  
-  float BoundIntegral(int min, int max)
-  {
-    float integral=0;
-    int i;
-    
-    for(i=(int)min; i<=(int)max; i++)
-      {
-	integral += _samples[i];
-      }
-     //cout << _samples[min] << "    " << _samples[max] << endl;
-    return integral/((float)(max-min));
-  };
+    //Restituisce il massimo di una funzione convessa con cui si fitta la Waveform
 
-  /*Esegue un fit con un esponenziale doppio*/
-  void DoubleExpFit(float charge)
-  {
-    int Size = _times.size();
-    double step = 1./(double)RATE;
-    
-    //TCanvas *c1 = new TCanvas();
-    TGraph *g = new TGraph(Size, &(_times[0]), &(_samples[0]));
-    gf = new TF1("f1", "[0]*(TMath::Exp(-[1]*(x-[3])) - TMath::Exp(-[2]*(x-[3])))", Size*step-DELAY, Size*step);
-    
-    gf->SetParNames("Amplitude" , "tau_1", "tau_2", "shift");
-    gf->SetParameters(charge*4.6, 0.005, 0.04, Size*step-DELAY);
-    g->Fit("f1", "R", "N");
-    //g->Draw("AL");
-    
-	
-  };
+    double Maximum(std::vector<double> x, std::vector<double> y) {
+        int max;
+        max = FindMax();
+        TGraph *mg = new TGraph(x.size(), &(y[0]), &(x[0]));
+        TF1 *mF = new TF1("f2", "pol2", (max - (x.size()) / 20), (max + (x.size()) / 20));
+        mg->Fit("f2", "R,Q,N");
 
-  //Restituisce il massimo di una funzione convessa con cui si fitta la Waveform
-  double Maximum(std::vector<double> x, std::vector<double> y)
-  {
-    int max;    
-    max=FindMax();
-    TGraph *mg = new TGraph(x.size(), &(y[0]), &(x[0]));
-    TF1 *mF = new TF1("f2","pol2",(max-(x.size())/20),(max+(x.size())/20));
-    mg->Fit("f2",  "R,Q,N");
-   
-    return mF->GetMaximum();
-    
-  }
-  
-  bool CheckWave()
-  {
-    int i=0;
-    bool flag=false;       
-    
-    while(flag==false && i<1024)
-      {
-	if(_samples[i] > THRESH)
-	  {
-	    flag=true;	
-	  }
-	  i++;
-      }
-    
-    while(flag==true && i<1024)
-      {
-	if(_samples[i]>=499.0)
-	  {
-	    flag=false;
-	  }
-          i++;
-      }
-  
-    return flag;
-  }
+        return mF->GetMaximum();
+
+    }
+
+    bool CheckWave() {
+        int i = 0;
+        bool flag = false;
+
+        while (flag == false && i < 1024) {
+            if (_samples[i] > THRESH) {
+                flag = true;
+            }
+            i++;
+        }
+
+        while (flag == true && i < 1024) {
+            if (_samples[i] >= 499.0) {
+                flag = false;
+            }
+            i++;
+        }
+
+        return flag;
+    }
 };
 
-/*Esegue un fit definito dall'utente*/
+/*Esegue un fit definito dall'utente
+ (ma di che stiamo a parla*/  
 /*void GeneralFit(std::vector<double> x, std::vector<double> y,char* type, int xmin, int xmax)
 {
     
@@ -228,6 +204,6 @@ class WaveForm
   //cout << gf->GetMaximum() << endl;
   
 };
-*/
+ */
 
 
