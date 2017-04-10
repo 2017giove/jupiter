@@ -41,7 +41,6 @@
         <in>Osci.cpp</in>
         <in>TriggerDialog.cpp</in>
         <in>WaveAnalysis.h</in>
-        <in>Waveform.c</in>
         <in>Waveform.cpp</in>
         <in>Waveform.h</in>
         <in>averager.cpp</in>
@@ -64,6 +63,7 @@
         <in>strlcpy.c</in>
         <in>up.xpm</in>
       </df>
+      <in>ChargeHist_RUN.c</in>
       <in>Waveform_RUN.c</in>
     </df>
   </logicalFolder>
@@ -105,7 +105,8 @@
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}"</runcommand>
+        <runcommand>"${OUTPUT_PATH}"  lorenzo 300 0 1200 1 5000 501</runcommand>
+        <arguments> lorenzo 300 0 1200 1 5000 501</arguments>
         <rundir>.</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>

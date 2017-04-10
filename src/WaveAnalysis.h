@@ -36,10 +36,7 @@
 #include "TMath.h"
 #include "defines.h"
 
-struct InputData {
-    float waveArray[MAXCH][N_SAMPLES];
-    float timeArray[MAXCH][N_SAMPLES];
-};
+
 
 class WaveForm {
 public:
@@ -135,7 +132,8 @@ public:
         return integral / ((float) (max - min));
     };
 
-    /*Esegue un fit con un esponenziale doppio*/
+    /*Esegue un fit con un esponenziale doppio*
+     * Non la faccio e non la chiedo */ 
     void DoubleExpFit(float charge) {
         int Size = _times.size();
         double step = 1. / (double) RATE;
@@ -165,18 +163,19 @@ public:
 
     }
 
+    // non lo faccio e non lo chiedo
     bool CheckWave() {
         int i = 0;
         bool flag = false;
 
-        while (flag == false && i < 1024) {
+        while (flag == false && i < N_SAMPLES) {
             if (_samples[i] > THRESH) {
                 flag = true;
             }
             i++;
         }
 
-        while (flag == true && i < 1024) {
+        while (flag == true && i < N_SAMPLES) {
             if (_samples[i] >= 499.0) {
                 flag = false;
             }

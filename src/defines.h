@@ -14,6 +14,8 @@
  */
 
 #define PLOTS_TITLE "Fisherman's Plot"
+#define TRIGGER_EDGE "neg"
+#define THRESH -25
 
 #define NBIN 400
 #define QMAX 200
@@ -22,9 +24,21 @@
 #define MAXCH 4
 #define DELAY 1160 //da cambiare se si usa un rate di acquisizione diverso
 #define RATE 0.7 //da cambiare se si usa un rate di acquisizione diverso
-#define THRESH 25
 
+#define CRUCIAL_ERROR "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
 
+struct myEvent {
+    int trigId;
+    int channels;
+    int id[MAXCH];
+    float time_array[MAXCH][N_SAMPLES];
+    float wave_array[MAXCH][N_SAMPLES];
+};
+
+struct InputData {
+    float waveArray[MAXCH][N_SAMPLES];
+    float timeArray[MAXCH][N_SAMPLES];
+};
 
 #ifndef DEFINES_H
 #define DEFINES_H

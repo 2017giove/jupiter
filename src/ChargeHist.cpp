@@ -29,7 +29,7 @@ void RawIntegral(const char *, const char *, int);
 
 void ChargeHist() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
-    Make(f, f->GetName(), 0);
+    Make(f, f->GetName(), 0); //Allarme lollo
 
 }
 
@@ -104,14 +104,14 @@ void Make(TFile* f, const char* fileIN, int CH) {
     f = TFile::Open(fileIN);
     t2 = (TTree*) f->Get("tset");
     TFile *hist_file = new TFile(histOUT, "RECREATE");
-    t2->CloneTree();
+     t2->CloneTree();
     h1->Write();
     hist_file->Write();
 }
 
 void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
-    int i, Nentries;
+    int i,j, Nentries;
     WaveForm Wave; //definizione di WaveForm e InputData in WaveAnalysis.h
     InputData temp;
     float Integral, BaseIntegral, Max;
@@ -126,7 +126,8 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     TTree* t1 = (TTree*) f->Get("t1");
     TTree* tset1 = (TTree*) f->Get("tset");
     Nentries = t1->GetEntries();
-
+    printf("Lorenzo dice che sono %d\n\n\n\n",Nentries);
+    
     t1->SetBranchAddress("wave_array", temp.waveArray);
     t1->SetBranchAddress("time_array", temp.timeArray);
     tset1->SetBranchAddress("Delay_ns", &delay);
@@ -136,6 +137,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     //Definisce TTree e TBranch del nuovo file
     TTree *TOut = new TTree("t1", "title");
     TBranch *b_integral = TOut->Branch("Integral", &Integral, "Integral/F");
+
 
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
