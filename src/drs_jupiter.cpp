@@ -1,8 +1,10 @@
 /********************************************************************\
  
-  Name:         drs_sphere.cpp
+  Name:         drs_jupiter.cpp
   Created by:   Stefan Ritt
   Modified by:  Death Star Team
+  Corrected by: JupiTer
+  
  
   Contents:     Simple example application to read out a DRS4 
                 evaluation board and 
@@ -78,7 +80,7 @@ int main(int argc, char* argv[]) {
         cout << "          Voltage  : Voltage of PMT" << endl;
         cout << "          PMT      : ID number of the chrystal" << endl;
 
-        cout << " Example: drs_sphere nomefile 300 0 1200 1 1500 500" << endl;
+        cout << " Example: drs_jupiter nomefile 300 0 1200 1 1500 500" << endl;
         return 0;
     }
 
@@ -124,7 +126,7 @@ int main(int argc, char* argv[]) {
      *  PMT_ID
      *  threshold
      */
-    TTree * Tset = new TTree("tset", "Delay, date, voltage, pmtID, threshold");
+    TTree * Tset = new TTree("tset", "Acquire Settings");
     TBranch * delay = Tset->Branch("Delay_ns", &delayNs, "delay/I");
     TBranch * Date = Tset->Branch("Date", DATE, "date/C");
     TBranch * Volt = Tset->Branch("Voltage", &Voltage, "Voltage/F");
@@ -150,6 +152,10 @@ int main(int argc, char* argv[]) {
      *  time_array[4][N_SAMPLES]
      *  wave_array[4][N_SAMPLES]
      
+     
+     trigID significa in realtà ID univoco evento 
+     channels il numero di canali attivi
+     id contiene quali canali hanno effettivamente registrato l'evento
      
      */
     TTree *tree = new TTree("t1", "title");
@@ -230,31 +236,36 @@ int main(int argc, char* argv[]) {
 
 
 
-
+    // Ciclo Eventi - Acquisizione per un intervallo di tempo deltaT
     j = 0;
     while ((time(0) - t0) < deltaT) {
         /* start board (activate domino wave) */
         b->StartDomino();
 
-        /* wait for trigger */
+        /* wait for trigger - write to console only first time */
         if (j == 0) cout << "Waiting for trigger..." << endl;
-
         //fflush(stdout);
         while (b->IsBusy());
-
         if (j == 0) cout << "Trigger found, reading data..." << endl;
 
-        ev.trigId = j;
+
 
         /* read all waveforms */
         b->TransferWaves(0, 8);
 
         chanToPlot [0] = 1;
-        int currentChannel = 0;
+        chanToPlot [1] = 0;
+        chanToPlot [2] = 0;
+        chanToPlot [3] = 0;
+        
+        ev.trigId = j;
+        ev.channels = 0;
+
         for (int ch = 0; ch < MAXCH; ch++) {
-            
+
             if (chanToPlot[ch] == true) {
-                ev.id[currentChannel] = ch;
+                ev.id[ch] = 1;
+                ev.channels++;
 
                 /* read time (X) array of first channel in ns
                  *    Note: On the evaluation board input #1 is connected to channel 0 and 1 of
@@ -265,13 +276,14 @@ int main(int argc, char* argv[]) {
 
                 /* decode waveform (Y) array of first channel in mV */
                 b->GetWave(0, 2 * ch, ev.wave_array[ch]);
-                currentChannel++;
+
             }
-            
+
         }
-        ev.channels = currentChannel;
+
         /* print some progress indication */
         if (j % 1000 == 0) cout << j << " Eventi misurati, tempo mancante " << deltaT - (time(0) - t0) << " sec" << endl;
+
         tree->Fill();
         j++;
     }

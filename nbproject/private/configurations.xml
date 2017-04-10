@@ -48,7 +48,7 @@
         <in>down.xpm</in>
         <in>drs_exam.cpp</in>
         <in>drs_exam_multi.cpp</in>
-        <in>drs_sphere.cpp</in>
+        <in>drs_jupiter.cpp</in>
         <in>drs_sub.cpp</in>
         <in>drscl.cpp</in>
         <in>drsosc.xpm</in>
@@ -104,6 +104,7 @@
       <runprofile version="9">
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"  lorenzo 300 0 1200 1 5000 501</runcommandpicklistitem>
         </runcommandpicklist>
         <runcommand>"${OUTPUT_PATH}"  lorenzo 300 0 1200 1 5000 501</runcommand>
         <arguments> lorenzo 300 0 1200 1 5000 501</arguments>

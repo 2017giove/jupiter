@@ -21,7 +21,7 @@
         <in>averager.cpp</in>
         <in>drs_exam.cpp</in>
         <in>drs_exam_multi.cpp</in>
-        <in>drs_sphere.cpp</in>
+        <in>drs_jupiter.cpp</in>
         <in>drs_sub.cpp</in>
         <in>drscl.cpp</in>
         <in>main.cpp</in>
@@ -67,6 +67,11 @@
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
           <executablePath></executablePath>
           <cTool>
+            <incDir>
+              <pElem>include</pElem>
+              <pElem>/usr/local/include</pElem>
+              <pElem>.</pElem>
+            </incDir>
             <preprocessorList>
               <Elem>HAVE_LIBUSB10</Elem>
               <Elem>HAVE_USB</Elem>
@@ -358,7 +363,7 @@
           </incDir>
         </ccTool>
       </item>
-      <item path="src/drs_sphere.cpp" ex="false" tool="1" flavor2="8">
+      <item path="src/drs_jupiter.cpp" ex="false" tool="1" flavor2="0">
         <ccTool flags="1">
           <incDir>
             <pElem>include</pElem>
@@ -405,20 +410,10 @@
       </item>
       <item path="src/musbstd.c" ex="false" tool="0" flavor2="3">
         <cTool flags="3">
-          <incDir>
-            <pElem>include</pElem>
-            <pElem>/usr/local/include</pElem>
-            <pElem>.</pElem>
-          </incDir>
         </cTool>
       </item>
       <item path="src/mxml.c" ex="false" tool="0" flavor2="3">
         <cTool flags="3">
-          <incDir>
-            <pElem>include</pElem>
-            <pElem>/usr/local/include</pElem>
-            <pElem>.</pElem>
-          </incDir>
         </cTool>
       </item>
       <item path="src/rb.cpp" ex="false" tool="1" flavor2="8">
@@ -439,11 +434,6 @@
       </item>
       <item path="src/strlcpy.c" ex="false" tool="0" flavor2="3">
         <cTool flags="3">
-          <incDir>
-            <pElem>include</pElem>
-            <pElem>/usr/local/include</pElem>
-            <pElem>.</pElem>
-          </incDir>
         </cTool>
       </item>
     </conf>

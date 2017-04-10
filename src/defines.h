@@ -35,10 +35,6 @@ struct myEvent {
     float wave_array[MAXCH][N_SAMPLES];
 };
 
-struct InputData {
-    float waveArray[MAXCH][N_SAMPLES];
-    float timeArray[MAXCH][N_SAMPLES];
-};
 
 #ifndef DEFINES_H
 #define DEFINES_H

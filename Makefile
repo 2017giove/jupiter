@@ -41,9 +41,9 @@ OBJECTS       = musbstd.o mxml.o strlcpy.o
 
 
 ifeq ($(OS),Darwin)
-all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app drs_sphere
+all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app drs_jupiter
 else
-all: drsosc drscl drs_exam drs_sub drs_exam_multi drs_sphere
+all: drsosc drscl drs_exam drs_sub drs_exam_multi drs_jupiter
 endif
 
 
@@ -70,8 +70,8 @@ drs_exam: $(OBJECTS) DRS.o averager.o drs_exam.o
 drs_sub: $(OBJECTS) DRS.o averager.o drs_sub.o
 	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_sub.o -o drs_sub $(LIBS) `root-config --libs` $(WXLIBS)
 
-drs_sphere: $(OBJECTS) DRS.o averager.o drs_sphere.o
-	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_sphere.o -o drs_sphere $(LIBS) `root-config --libs` $(WXLIBS)
+drs_jupiter: $(OBJECTS) DRS.o averager.o drs_jupiter.o
+	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_jupiter.o -o drs_jupiter $(LIBS) `root-config --libs` $(WXLIBS)
 
 drs_exam_multi: $(OBJECTS) DRS.o averager.o drs_exam_multi.o
 	$(CXX) $(CFLAGS) $(OBJECTS) DRS.o averager.o drs_exam_multi.o -o drs_exam_multi $(LIBS) $(WXLIBS)
@@ -88,7 +88,7 @@ drs_exam.o: src/drs_exam.cpp include/mxml.h include/DRS.h
 drs_sub.o: src/drs_sub.cpp include/mxml.h include/DRS.h
 	$(CXX) $(CFLAGS) `root-config --cflags` -c $<
 
-drs_sphere.o: src/drs_sphere.cpp include/mxml.h include/DRS.h include/Daq_sphere.h
+drs_jupiter.o: src/drs_jupiter.cpp include/mxml.h include/DRS.h include/Daq_sphere.h
 	$(CXX) $(CFLAGS) `root-config --cflags` -c $<
 
 drs_exam_multi.o: src/drs_exam_multi.cpp include/mxml.h include/DRS.h
