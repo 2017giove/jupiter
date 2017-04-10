@@ -1,13 +1,20 @@
 #define Waveform_cxx
 #include "Waveform.h"
-#include <TH2.h>
-#include <TF1.h>
-#include <TStyle.h>
-#include <TCanvas.h>
-#include <TApplication.h>
-#include <iostream>
-#include "TPaveStats.h"
-#include "defines.h"
+
+int Waveform::FittingStartBin(float threshold, TH1F * hist) {
+    int i;
+    if (threshold < 0) {
+        for (i = 0; i < hist->GetSize(); i++) {
+            if (hist->GetBinContent(i) < threshold) return i - 1;
+        }
+        return 0;
+    } else if (threshold >= 0) {
+        for (i = 0; i < hist->GetSize(); i++) {
+            if (hist->GetBinContent(i) > threshold) return i - 1;
+        }
+        return 0;
+    }
+ }
 
 void Waveform::Loop() {
 
@@ -21,13 +28,18 @@ void Waveform::Loop() {
     //TPad* pad1 = new TPad("pad1","The pad",0.03,0.62,0.50,0.92,21);
 
     TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", 1024, 0, N_SAMPLES);
-    TH1F *histo_max = new TH1F("histo_max", "Istogramma dei massimi", 100, 0, 5024);
+    TH1F *histo_max = new TH1F("histo_max", "Istogramma dei massimi", 500, 0, 5024);
     TF1 *gf = new TF1("f1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
 
     TH1F *showHist;
     TF1 *showFit;
 
+    TTree* tset1 = (TTree*) f->Get("tset");
+    float thres;
+    tset1->SetBranchAddress("threshold", &thres);
+    tset1->GetEntry();
 
+    // printf("Lorenzo ha detto %f\n", thres);
 
     for (Long64_t jentry = 0; jentry < nentries; jentry++) {
         Long64_t ientry = LoadTree(jentry);
@@ -48,9 +60,23 @@ void Waveform::Loop() {
         }
 
 
-        TH1F *temp = (TH1F*) histo_ch1->Rebin(8, "FittingHist");
-        temp->Fit(gf, "Q", "", 215, N_SAMPLES);
-
+        TH1F *temp = (TH1F*) histo_ch1->Clone("GrongoHist");
+        temp ->Rebin(16);
+        for (int k = 0; k < 64; k++) {
+            temp->SetBinContent(k, temp->GetBinContent(k) / 16);
+        }
+        
+       // printf("Lorenzo ha detto %f\n", FittingStartBin(thres,temp));
+        temp->Fit(gf, "Q", "", FittingStartBin(thres,histo_ch1), N_SAMPLES);
+        //
+        //
+        //        showHist = (TH1F*) temp->Clone("GrongoWave");
+        //        showFit = (TF1*) gf->Clone("GrongoCurve");
+        //        printf("Pesco un granchio...\n");
+        //        c2->cd();
+        //        showHist->Draw();
+        //        showFit->Draw("same");
+        //        c2->Update();
 
         if (jentry % 250 == 0) {
             showHist = (TH1F*) histo_ch1->Clone("GrongoWave");
@@ -59,21 +85,31 @@ void Waveform::Loop() {
             c2->cd();
             showHist->GetXaxis()->SetTitle("tempo (samples)");
             showHist->GetYaxis()->SetTitle("Qualcosa proporzionale alla corrente");
-            showHist->SetMinimum(-800);
+            //
+            //            showHist->SetMinimum(-800);
+            //            showFit->SetMinimum(-800);
+            //            showHist->SetMaximum(50);
+            //            showFit->SetMaximum(50);
+            //
+
+            //showFit->DrawF1(0, N_SAMPLES, "pl same");
+            // showHist->(0, -800, N_SAMPLES, 50);
+            //showFit->SetRange(0, -800, N_SAMPLES, 50);
+
             showHist->Draw();
-            showFit->DrawF1(0, N_SAMPLES, "pl same");
+            showFit->Draw("same");
             c2->Update();
             std::fflush(stdout);
         }
 
-        minimo = -gf->GetMinimum(215, N_SAMPLES);
+        minimo = -gf->GetMinimum(0, N_SAMPLES);
         histo_max->Fill(minimo, 1);
     }
 
     c2->cd();
     showHist->Draw();
-    showFit->DrawF1(0, N_SAMPLES, "pl same");
-
+    //showFit->DrawF1(0, N_SAMPLES, "pl same");
+    showFit->Draw("pl same");
 
     c->cd();
     histo_max->Rebin(2);
@@ -91,3 +127,5 @@ void Waveform::Loop() {
     //f.Close();
 
 }
+
+

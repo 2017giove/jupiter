@@ -34,7 +34,17 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
-
+#include <TH2.h>
+#include <TF1.h>
+#include <TStyle.h>
+#include <TCanvas.h>
+#include <TApplication.h>
+#include <iostream>
+#include <TH1.h>
+#include <TBranch.h>
+#include <TTree.h>
+#include "TPaveStats.h"
+#include "defines.h"
 // Header file for the classes stored in the TTree if any.
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
@@ -43,7 +53,7 @@ class Waveform {
 public:
     TTree *fChain; //!pointer to the analyzed TTree or TChain
     Int_t fCurrent; //!current Tree number in a TChain
-
+    TFile *f;
     // Declaration of leaf types
     Int_t trigId;
     Int_t channels;
@@ -65,9 +75,11 @@ public:
     virtual Int_t GetEntry(Long64_t entry);
     virtual Long64_t LoadTree(Long64_t entry);
     virtual void Init(TTree *tree);
+    virtual int FittingStartBin(float threshold, TH1F * hist);
     virtual void Loop();
     virtual Bool_t Notify();
     virtual void Show(Long64_t entry = -1);
+
 
 };
 
@@ -81,7 +93,7 @@ Waveform::Waveform(const char *filename) : fChain(0) {
     // if parameter tree is not specified (or zero), connect the file
     // used to generate this class and read the Tree.
     //if (tree == 0) {
-    TFile *f = (TFile*) gROOT->GetListOfFiles()->FindObject(filename);
+    f = (TFile*) gROOT->GetListOfFiles()->FindObject(filename);
     if (!f || !f->IsOpen()) {
         f = new TFile(filename);
     }
@@ -96,7 +108,7 @@ Waveform::Waveform() : fChain(0) {
     // if parameter tree is not specified (or zero), connect the file
     // used to generate this class and read the Tree.
     //if (tree == 0) {
-    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+    f = (TFile*) gROOT->GetListOfFiles()->First();
     f->GetObject("t1", tree);
 
     //}
@@ -172,4 +184,6 @@ Int_t Waveform::Cut(Long64_t entry) {
     // returns -1 otherwise.
     return 1;
 }
+
+
 #endif // #ifdef Waveform_cxx
