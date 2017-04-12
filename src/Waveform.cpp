@@ -79,7 +79,7 @@ void Waveform::Loop() {
         //        showFit->Draw("same");
         //        c2->Update();
 
-        if (jentry % 250 == 0) {
+        if (jentry % 10000 == 0) {
             showHist = (TH1F*) histo_ch1->Clone("GrongoWave");
             showFit = (TF1*) gf->Clone("GrongoCurve");
             printf("Pesco un granchio...\n");

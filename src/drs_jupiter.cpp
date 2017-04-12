@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     float Voltage = atof(argv[6]);
     int PMT = atoi(argv[7]);
     printf("Il libro dice di usare 200");
-    float threshMV = 200;//2*Voltage*THRESH/1200;
+    float threshMV = -100.;//2*Voltage*THRESH/1200;
 
     char* DATE = asctime(localtime(&Current_Time));
     cout << DATE << endl;

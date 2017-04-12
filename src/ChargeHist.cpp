@@ -77,8 +77,9 @@ void Make(TFile* f, const char* fileIN, int CH) {
     } else {
         t1 = (TTree*) f->Get("t1");
     }
-    Nentries = t1->GetEntries();
 
+
+    Nentries = t1->GetEntries();
     t1->SetBranchAddress("Integral", &Integral);
 
     //Crea l'istogramma e lo popola integrando le forme d'onda
@@ -91,7 +92,7 @@ void Make(TFile* f, const char* fileIN, int CH) {
         t1->GetEntry(i);
         h1->Fill(Integral);
     }
-    
+
     h1->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
     h1->GetYaxis()->SetTitle("# eventi");
     h1->Draw();
@@ -104,14 +105,14 @@ void Make(TFile* f, const char* fileIN, int CH) {
     f = TFile::Open(fileIN);
     t2 = (TTree*) f->Get("tset");
     TFile *hist_file = new TFile(histOUT, "RECREATE");
-     t2->CloneTree();
+    t2->CloneTree();
     h1->Write();
     hist_file->Write();
 }
 
 void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
-    int i,j, Nentries;
+    int i, j, Nentries;
     WaveForm Wave; //definizione di WaveForm e InputData in WaveAnalysis.h
     myEvent temp;
     float Integral, BaseIntegral, Max;
@@ -126,10 +127,10 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     TTree* t1 = (TTree*) f->Get("t1");
     TTree* tset1 = (TTree*) f->Get("tset");
     Nentries = t1->GetEntries();
-    printf("Lorenzo dice che sono %d\n\n\n\n",Nentries);
-    
-    t1->SetBranchAddress("wave_array", temp.wave_Array);
-    t1->SetBranchAddress("time_array", temp.time_Array);
+    printf("Lorenzo dice che sono %d\n\n\n\n", Nentries);
+
+    t1->SetBranchAddress("wave_array", temp.wave_array);
+    t1->SetBranchAddress("time_array", temp.time_array);
     tset1->SetBranchAddress("Delay_ns", &delay);
     tset1->GetEntry(0);
     TFile *FOut = new TFile(fileOUT, "RECREATE");
@@ -142,7 +143,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-        Wave.FillVec(N_SAMPLES, temp.time_Array[CH], temp.wave_Array[CH], -1);
+        Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
         Integral = Wave.Integral();
         BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (delay * RATE)));
         Integral -= BaseIntegral;
