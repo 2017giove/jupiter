@@ -66,7 +66,8 @@ void Waveform::Loop() {
             temp->SetBinContent(k, temp->GetBinContent(k) / 16);
         }
         
-       // printf("Lorenzo ha detto %f\n", FittingStartBin(thres,temp));
+        // printf("Lorenzo ha detto %f\n", FittingStartBin(thres,temp));
+        // se vuoi velocizzare parti da start=(N_SAMPLES - (int) (delay * RATE))
         temp->Fit(gf, "Q", "", FittingStartBin(thres,histo_ch1), N_SAMPLES);
         //
         //
@@ -84,7 +85,7 @@ void Waveform::Loop() {
             printf("Pesco un granchio...\n");
             c2->cd();
             showHist->GetXaxis()->SetTitle("tempo (samples)");
-            showHist->GetYaxis()->SetTitle("Qualcosa proporzionale alla corrente");
+            showHist->GetYaxis()->SetTitle("Segnale (mV)");
             //
             //            showHist->SetMinimum(-800);
             //            showFit->SetMinimum(-800);
@@ -112,7 +113,7 @@ void Waveform::Loop() {
     showFit->Draw("pl same");
 
     c->cd();
-    histo_max->Rebin(2);
+    //histo_max->Rebin();
     histo_max->GetXaxis()->SetTitle("Qualcosa proporzionale alla corrente");
     histo_max->GetYaxis()->SetTitle("# eventi");
     //histo_max->SetFillColor(kYellow);

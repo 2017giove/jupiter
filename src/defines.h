@@ -17,7 +17,7 @@
 #define TRIGGER_EDGE "neg"
 #define THRESH -25
 
-#define NBIN 400
+#define NBIN 1000
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024

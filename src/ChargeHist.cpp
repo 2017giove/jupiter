@@ -91,7 +91,7 @@ void Make(TFile* f, const char* fileIN, int CH) {
         t1->GetEntry(i);
         h1->Fill(Integral);
     }
-
+    
     h1->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
     h1->GetYaxis()->SetTitle("# eventi");
     h1->Draw();

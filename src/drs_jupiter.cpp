@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
         cout << argv[0] << " filename nchans" << endl;
         cout << "          deltaT   : time of the experiment in s" << endl;
         cout << "          [chlist] : Optional, list of Channels to be plotted. Example 0,1,3" << endl;
-        cout << "          delay    : Trigger delay in ns" << endl;
+        cout << "          delay    : Trigger delay in ns" << endl;  //<<--- ATTENZIONE: è veramente il tempo morto, o forse il ritardo del trigger (da quando far partire l'acquisizione???
         // cout << "          thresh   : Threshold in mV" << endl;
         // cout << "          edge     : Threshold edge pos=rising edge, neg=falling edge" << endl;
         cout << "          source   : trigger source 1=ch1, 2=ch2, 3=ch1 or ch2" << endl;
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 
     int delayNs = atoi(argv[4]);
 
-    float threshMV = THRESH;
+    //float threshMV = THRESH;
 
     bool triggerEdge;
 
@@ -102,6 +102,8 @@ int main(int argc, char* argv[]) {
     int triggerSource = atoi(argv[5]);
     float Voltage = atof(argv[6]);
     int PMT = atoi(argv[7]);
+    printf("Il libro dice di usare 200");
+    float threshMV = 200;//2*Voltage*THRESH/1200;
 
     char* DATE = asctime(localtime(&Current_Time));
     cout << DATE << endl;
@@ -282,7 +284,7 @@ int main(int argc, char* argv[]) {
         }
 
         /* print some progress indication */
-        if (j % 1000 == 0) cout << j << " Eventi misurati, tempo mancante " << deltaT - (time(0) - t0) << " sec" << endl;
+        if (j % 500 == 0) cout << j << " Eventi misurati, tempo mancante " << deltaT - (time(0) - t0) << " sec" << endl;
 
         tree->Fill();
         j++;

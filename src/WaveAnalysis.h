@@ -80,7 +80,7 @@ public:
 
     };
 
-    /*Trova il punto massimo dei samples*/
+    /*Trova il punto massimo dei samples (X)*/
     int FindMax() {
 
         int i, max;
@@ -93,7 +93,7 @@ public:
         return max;
     };
 
-    /*Trova il valore massimo di _samples*/
+    /*Trova il valore massimo di _samples (Y)*/
     float GetMax() {
 
         int i;
