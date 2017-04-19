@@ -17,13 +17,16 @@
 #define TRIGGER_EDGE "neg"
 #define THRESH -25
 
-#define NBIN 5000
+#define NBIN 2000
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024
 #define MAXCH 4
 #define DELAY 1160 //da cambiare se si usa un rate di acquisizione diverso
 #define RATE 0.7 //da cambiare se si usa un rate di acquisizione diverso
+
+#define ENERGY_CESIO 663.
+#define MASS_ELECTRON 511.
 
 #define CRUCIAL_ERROR "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
 

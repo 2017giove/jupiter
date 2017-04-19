@@ -24,6 +24,8 @@
 
 #include <string.h>
 #include <stdio.h>
+
+
 void Make(TFile* f, const char* fileIN, int CH);
 void RawIntegral(const char *, const char *, int);
 
@@ -95,13 +97,26 @@ void Make(TFile* f, const char* fileIN, int CH) {
 
     h1->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
     h1->GetYaxis()->SetTitle("# eventi");
+    
+    
+  //   h1->Scale(1/ h1->Integral());
+   
+
+     
     h1->Draw();
 
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     //Salva l'istogramma con fit sovrapposto su file root
-
-
     f = TFile::Open(fileIN);
     t2 = (TTree*) f->Get("tset");
     TFile *hist_file = new TFile(histOUT, "RECREATE");

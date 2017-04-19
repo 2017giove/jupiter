@@ -29,6 +29,7 @@
         <in>AboutDialog.cpp</in>
         <in>ChargeHist.cpp</in>
         <in>ConfigDialog.cpp</in>
+        <in>Cs_fit.cpp</in>
         <in>DOFrame.cpp</in>
         <in>DOScreen.cpp</in>
         <in>DRS.cpp</in>
