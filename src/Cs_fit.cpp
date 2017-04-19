@@ -4,16 +4,36 @@
  * Otherwise you'll be in trouble.
  * 
  * It's Boguliubov!
+ * 
+ * Original code written by DeathStar, Sferici 2016
  */
 
 #include "WaveAnalysis.h"
 #include "defines.h"
 #include <stdlib.h>
 #include <stdio.h> 
-
+#include <iostream>
+#include <ostream>
 #include "defines.h"
 
 //Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
+
+int GetMaximumBin(TH1D* hist, int from, int to) {
+    int i;
+    int max = 0;
+    int imax;
+    int currentmax;
+    for (i = from; i < to; i++) {
+        currentmax = hist->GetBinContent(i);
+        if (currentmax > max) {
+            max = currentmax;
+            imax = i;
+        }
+
+    }
+    return imax;
+
+}
 
 void Cs_fit(TH1F* bg_file, TH1F* src_file) {
 
@@ -26,7 +46,9 @@ void Cs_fit(char* bg_file, char* src_name, float MaxGauss) {
 
     int nBins = h1->GetSize() - 2;
     float step = (float) QMAX / nBins;
-    int maxBin = h1->GetMaximumBin();
+
+    int maxBin = GetMaximumBin(h1, 5. / step, nBins);
+    printf("Lorenzo ha detto %d\n", maxBin);
     float Xmax = maxBin*step;
 
     float FDCompton = Xmax * (1 - 1 / (1 + 2 * ENERGY_CESIO / MASS_ELECTRON));
@@ -72,22 +94,22 @@ void Cs_fit(char* bg_file, char* src_name, float MaxGauss) {
 
     fsrc->SetParLimits(0, 0, 10000000);
     fsrc->SetParLimits(1, 0, 1); //OK
-//     fsrc->SetParLimits(2, 0.9 * p1, 1.1 * p1);
-//      fsrc->SetParLimits(3, 0.9 * p2, 1.1 * p2);
+    //     fsrc->SetParLimits(2, 0.9 * p1, 1.1 * p1);
+    //      fsrc->SetParLimits(3, 0.9 * p2, 1.1 * p2);
     fsrc->SetParLimits(4, 0, 20000); //OK?
     fsrc->SetParLimits(5, Xmax * 0.9, Xmax * 1.1);
     fsrc->SetParLimits(7, 0, 10000000);
     fsrc->SetParLimits(8, FDCompton * 0.9, FDCompton * 1.1);
-    printf("Lorenzo ha calcolato %f\n",FDCompton);
+    printf("Lorenzo ha calcolato %f\n", FDCompton);
     fsrc->SetParLimits(10, 0, 1000);
 
     fsrc->SetParLimits(11, 0, 1);
 
-//
-////    Parametri fissati dal fit del rumore
-//        fsrc->FixParameter(1, p3);
-//        fsrc->SetParameter(2, p1);
-//        fsrc->SetParameter(3, p2);
+    //
+    ////    Parametri fissati dal fit del rumore
+    //        fsrc->FixParameter(1, p3);
+    //        fsrc->SetParameter(2, p1);
+    //        fsrc->SetParameter(3, p2);
     fsrc->SetParameter(4, 30);
     fsrc->SetParameter(5, Xmax);
     fsrc->SetParameter(6, sigma);
@@ -100,7 +122,7 @@ void Cs_fit(char* bg_file, char* src_name, float MaxGauss) {
 
     //    printf("%d\t%f\n", maxBin, Xmax);
     TCanvas *c41 = new TCanvas();
-    h1->Fit("fsrc", "", "", 20,60);
+    h1->Fit("fsrc", "", "", 20, 60);
     h1->Draw();
 
 

@@ -135,6 +135,8 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     //Apre il file di dati in input
     TFile *f = TFile::Open(fileIN);
 
+    // AddBranchtoCache , SetCacheSize to speed up
+    
     if (!f || f->IsZombie()) {
         printf("Errore, mancata apertura del file %s\n. E' piu profondo.", fileIN);
     }
