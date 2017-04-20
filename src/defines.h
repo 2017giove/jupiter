@@ -38,6 +38,11 @@ struct myEvent {
     float wave_array[MAXCH][N_SAMPLES];
 };
 
+typedef struct{
+    float resolution;
+    float error;
+}peak;
+
 
 #ifndef DEFINES_H
 #define DEFINES_H

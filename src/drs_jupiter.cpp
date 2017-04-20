@@ -159,6 +159,7 @@ int main(int argc, char* argv[]) {
      channels il numero di canali attivi
      id contiene quali canali hanno effettivamente registrato l'evento
      
+     * è memorizzata nella struttura myevent
      */
     TTree *tree = new TTree("t1", "title");
 
