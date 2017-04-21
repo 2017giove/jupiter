@@ -17,6 +17,9 @@
 #define TRIGGER_EDGE "neg"
 #define THRESH -25
 
+#define EXT_ROOT ".root"
+#define STR_LENGTH 300
+
 #define NBIN 2000
 #define QMAX 200
 #define QMIN 0
@@ -28,20 +31,62 @@
 #define ENERGY_CESIO 663.
 #define MASS_ELECTRON 511.
 
-#define CRUCIAL_ERROR "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
+#define ERROR_CRUCIAL "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
+#define ERROR_DEEPER "THERE IS A PROBLEM AND IT IS DEEPER."
 
-struct myEvent {
+typedef struct {
     int trigId;
     int channels;
     int id[MAXCH];
     float time_array[MAXCH][N_SAMPLES];
     float wave_array[MAXCH][N_SAMPLES];
-};
+} myEvent;
 
-typedef struct{
+typedef struct {
+    char* date;
+    float voltage;
+    int PmtID;
+    float thresh;
+    int delayns;
+} mySetting;
+
+typedef struct {
     float resolution;
     float error;
-}peak;
+} peak;
+
+std::string appendToRootFilename(const char* filename, const char* suffix) {
+    std::string _extension = EXT_ROOT;
+    std::string _filename = filename;
+    std::string _suffix = suffix + _extension;
+    std::string _final = _filename;
+    _final.replace(_filename.find(_extension), _extension.length(), _suffix);
+    return _final;
+}
+
+void printStatus(float progress) {
+    int barWidth = 50;
+
+    std::cout << "[";
+    int pos = barWidth * progress;
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < pos) std::cout << "#";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
+    }
+    std::cout << "] " << int(progress * 100.0) << " %\r";
+    std::cout.flush();
+
+}
+
+
+
+
+
+
+
+
+
 
 
 #ifndef DEFINES_H

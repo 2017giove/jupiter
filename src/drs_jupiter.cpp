@@ -41,6 +41,7 @@
 #include <fstream>      // std::ifstream
 #include <sstream>      // std::ifstream
 #include <ctime>
+#include "time.h" 
 
 #include <math.h>
 #include "TCanvas.h"
@@ -56,7 +57,7 @@
 #include "TFile.h"
 #include "TRint.h"
 #include <TApplication.h>
-#include "time.h" 
+
 #include "strlcpy.h"
 #include "DRS.h"
 
@@ -73,7 +74,7 @@ int main(int argc, char* argv[]) {
         cout << argv[0] << " filename nchans" << endl;
         cout << "          deltaT   : time of the experiment in s" << endl;
         cout << "          [chlist] : Optional, list of Channels to be plotted. Example 0,1,3" << endl;
-        cout << "          delay    : Trigger delay in ns" << endl;  //<<--- ATTENZIONE: è veramente il tempo morto, o forse il ritardo del trigger (da quando far partire l'acquisizione???
+        cout << "          delay    : Trigger delay in ns" << endl; //<<--- ATTENZIONE: è veramente il tempo morto, o forse il ritardo del trigger (da quando far partire l'acquisizione???
         // cout << "          thresh   : Threshold in mV" << endl;
         // cout << "          edge     : Threshold edge pos=rising edge, neg=falling edge" << endl;
         cout << "          source   : trigger source 1=ch1, 2=ch2, 3=ch1 or ch2" << endl;
@@ -83,15 +84,16 @@ int main(int argc, char* argv[]) {
         cout << " Example: drs_jupiter nomefile 300 0 1200 1 1500 500" << endl;
         return 0;
     }
-
+    
+    mySetting cset;
+    
     char *fileName = argv[1];
     time_t t0 = time(0);
     time_t Current_Time;
     time_t deltaT = atoi(argv[2]);
     time(&Current_Time);
 
-    int delayNs = atoi(argv[4]);
-
+    cset.delayns = atoi(argv[4]);
     //float threshMV = THRESH;
 
     bool triggerEdge;
@@ -100,17 +102,16 @@ int main(int argc, char* argv[]) {
     else if (strncmp(TRIGGER_EDGE, "pos", 3) == 0) triggerEdge = false;
 
     int triggerSource = atoi(argv[5]);
-    float Voltage = atof(argv[6]);
-    int PMT = atoi(argv[7]);
-    printf("Il libro dice di usare 200");
-    float threshMV = -100.;//2*Voltage*THRESH/1200;
+    cset.voltage = atof(argv[6]);
+    cset.PmtID = atoi(argv[7]);
+    cset.thresh = -100.; //2*Voltage*THRESH/1200;
 
-    char* DATE = asctime(localtime(&Current_Time));
-    cout << DATE << endl;
+    cset.date = asctime(localtime(&Current_Time));
+    cout << cset.date << endl;
 
     bool chanToPlot[MAXCH];
 
-    struct myEvent ev;
+    myEvent ev;
 
     int i, j, nBoards;
     DRS *drs;
@@ -129,11 +130,11 @@ int main(int argc, char* argv[]) {
      *  threshold
      */
     TTree * Tset = new TTree("tset", "Acquire Settings");
-    TBranch * delay = Tset->Branch("Delay_ns", &delayNs, "delay/I");
-    TBranch * Date = Tset->Branch("Date", DATE, "date/C");
-    TBranch * Volt = Tset->Branch("Voltage", &Voltage, "Voltage/F");
-    TBranch * PmtId = Tset->Branch("PMT_ID", &PMT, "PMT/I");
-    TBranch * Thresh = Tset->Branch("threshold", &threshMV, "thresh/F");
+    TBranch * delay = Tset->Branch("Delay_ns", &cset.delayns, "delay/I");
+    TBranch * Date = Tset->Branch("Date", cset.date, "date/C");
+    TBranch * Volt = Tset->Branch("Voltage", &cset.voltage, "Voltage/F");
+    TBranch * PmtId = Tset->Branch("PMT_ID", &cset.PmtID, "PMT/I");
+    TBranch * Thresh = Tset->Branch("threshold", &cset.thresh, "thresh/F");
 
     char rootFileName[130];
     sprintf(rootFileName, "%s.root", fileName);
@@ -163,7 +164,7 @@ int main(int argc, char* argv[]) {
      */
     TTree *tree = new TTree("t1", "title");
 
-    char branchDef[130];
+    char branchDef[STR_LENGTH];
     TBranch * b_trigId = tree->Branch("trigId", &ev.trigId, "trigId/I");
     TBranch * b_channels = tree->Branch("channels", &ev.channels, "channels/I");
 
@@ -175,9 +176,6 @@ int main(int argc, char* argv[]) {
 
     sprintf(branchDef, "wave_array[%d][1024]/F", MAXCH);
     TBranch * b_wave_array = tree->Branch("wave_array", &ev.wave_array[0][0], branchDef);
-
-
-
 
 
 
@@ -195,7 +193,7 @@ int main(int argc, char* argv[]) {
     /* exit if no board found */
     nBoards = drs->GetNumberOfBoards();
     if (nBoards == 0) {
-        printf("No DRS4 evaluation board found. %s\n", CRUCIAL_ERROR);
+        printf("No DRS4 evaluation board found. %s\n", ERROR_CRUCIAL);
         return 0;
     }
 
@@ -222,17 +220,17 @@ int main(int argc, char* argv[]) {
         b->EnableTrigger(0, 1); // lemo off, analog trigger on
         // b->SetTriggerSource(0); // use CH1 as source  DA TOGLIERE
     }
-    b->SetTriggerLevel(threshMV / 1000.); // threshold is in V
+    b->SetTriggerLevel(cset.thresh / 1000.); // threshold is in V
     b->SetTriggerPolarity(triggerEdge); // positive edge
 
     /* use following lines to set individual trigger elvels */
-    b->SetIndividualTriggerLevel(1, threshMV / 1000.);
-    b->SetIndividualTriggerLevel(2, threshMV / 1000.);
+    b->SetIndividualTriggerLevel(1, cset.thresh / 1000.);
+    b->SetIndividualTriggerLevel(2, cset.thresh / 1000.);
 
     /*setta la sorgente del trigger in codice binario
      es: CH1=1 CH2=2 CH3=4, CH1_OR_CH2 = 3*/
     b->SetTriggerSource(triggerSource); //fallo piu esperto
-    b->SetTriggerDelayNs(delayNs); // ns trigger delay
+    b->SetTriggerDelayNs(cset.delayns); // ns trigger delay
 
     t0 = time(0);
 
@@ -260,7 +258,7 @@ int main(int argc, char* argv[]) {
         chanToPlot [1] = 0;
         chanToPlot [2] = 0;
         chanToPlot [3] = 0;
-        
+
         ev.trigId = j;
         ev.channels = 0;
 

@@ -20,66 +20,50 @@
 
 #include "WaveAnalysis.h"
 
-#include "defines.h"
-
 #include <string.h>
 #include <stdio.h>
 
 
-void Make(TFile* f, const char* fileIN, int CH);
+void Make(const char* fileIN, int CH);
 void RawIntegral(const char *, const char *, int);
 
 void ChargeHist() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
-    Make(f, f->GetName(), 0); //Allarme lollo
+    Make(f->GetName(), 0);
 
 }
 
 void ChargeHist(std::string _fileIN, int CH) {
-    TFile *f;
     const char* fileIN = _fileIN.c_str();
-    Make(f, fileIN, CH);
+    Make(fileIN, CH);
 }
 
-void Make(TFile* f, const char* fileIN, int CH) {
+void Make(const char* fileIN, int CH) {
     int i, Nentries;
     float Integral;
+    TFile* f;
     TFile *g;
     TTree *t1;
     TTree *t2;
     WaveForm Wave;
 
-    const char* fileRAWname;
-    const char *histOUT;
+    char fileRAWname[STR_LENGTH];
+    char histOUT[STR_LENGTH];
 
-    std::string _extension = ".root";
-    std::string _fileIN = fileIN;
-    std::string _fileRAWname;
-    std::string _histOUT;
-
-    _fileRAWname = _fileIN;
-    _fileRAWname.replace(_fileIN.find(_extension), _extension.length(), "RAW.root");
-
-    _histOUT = _fileIN;
-    _histOUT.replace(_fileIN.find(_extension), _extension.length(), "hist.root");
-
-
-    fileRAWname = _fileRAWname.c_str();
-    histOUT = _histOUT.c_str();
+    std::strcpy(fileRAWname, appendToRootFilename(fileIN, "RAW").c_str());
+    std::strcpy(histOUT, appendToRootFilename(fileIN, "hist").c_str());
 
     f = TFile::Open(fileRAWname);
 
     if (!f || f->IsZombie()) {
-        printf("Il file %s non e' stato ancora analizzato.\nInizio creazione del file a partire da %s \n", fileRAWname, fileIN);
-
+        printf("The file is being processed. You may go to sleep in the meanwhile\n");
         RawIntegral(fileIN, fileRAWname, CH);
+                
         g = TFile::Open(fileRAWname);
-
         t1 = (TTree*) g->Get("t1");
     } else {
         t1 = (TTree*) f->Get("t1");
     }
-
 
     Nentries = t1->GetEntries();
     t1->SetBranchAddress("Integral", &Integral);
@@ -97,24 +81,8 @@ void Make(TFile* f, const char* fileIN, int CH) {
 
     h1->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
     h1->GetYaxis()->SetTitle("# eventi");
-    
-    
-  //   h1->Scale(1/ h1->Integral());
-   
 
-     
     h1->Draw();
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
     //Salva l'istogramma con fit sovrapposto su file root
     f = TFile::Open(fileIN);
@@ -136,15 +104,16 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     TFile *f = TFile::Open(fileIN);
 
     // AddBranchtoCache , SetCacheSize to speed up
-    
+
     if (!f || f->IsZombie()) {
-        printf("Errore, mancata apertura del file %s\n. E' piu profondo.", fileIN);
+        printf("%s\nCannot write in %s\n.", ERROR_DEEPER, fileIN);
     }
 
     TTree* t1 = (TTree*) f->Get("t1");
     TTree* tset1 = (TTree*) f->Get("tset");
     Nentries = t1->GetEntries();
-    printf("Lorenzo dice che sono %d\n\n\n\n", Nentries);
+
+    printf("This file contains %d events.\n", Nentries);
 
     t1->SetBranchAddress("wave_array", temp.wave_array);
     t1->SetBranchAddress("time_array", temp.time_array);
@@ -165,10 +134,12 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
         BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (delay * RATE)));
         Integral -= BaseIntegral;
         TOut->Fill();
+        printStatus((float) i / (float) Nentries);
     }
 
 
 
     TOut->Write();
     FOut->Write();
+
 }
