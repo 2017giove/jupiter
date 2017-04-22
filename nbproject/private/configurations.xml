@@ -65,6 +65,7 @@
         <in>right.xpm</in>
         <in>strlcpy.c</in>
         <in>up.xpm</in>
+        <in>volt_fit.cpp</in>
       </df>
       <in>ChargeHist_RUN.c</in>
       <in>Cs_fit_RUN.c</in>

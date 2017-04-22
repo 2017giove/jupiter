@@ -28,12 +28,16 @@
 #include "TTree.h"
 #include "TH1.h"
 #include "TROOT.h"
+#include "TF1.h"
+#include "TMath.h"
 #include "TGraph.h"
 #include <vector>
 #include <algorithm>
 #include <iostream>
-#include "TF1.h"
-#include "TMath.h"
+#include <stdlib.h>
+#include <stdio.h> 
+#include <iostream>
+#include <ostream>
 #include "defines.h"
 
 

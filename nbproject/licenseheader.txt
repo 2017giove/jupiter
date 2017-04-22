@@ -2,10 +2,10 @@
 ${licenseFirst}
 </#if>
 ${licensePrefix}This file is part of the code written for the Jupiter Experiment 2017 at Sapienza University.
-${licensePrefix}Do not modify it unless you know exactly what you are doing.
-${licensePrefix}Otherwise you'll be in trouble.
+${licensePrefix}Every tooth in a man's head is more valuable than a diamond.
+${licensePrefix}You don't have to brush your teeth — just the ones you want to keep.
 ${licensePrefix}
-${licensePrefix}It's Boguliubov!
+${licensePrefix}
 <#if licenseLast??>
 ${licenseLast}
 </#if>

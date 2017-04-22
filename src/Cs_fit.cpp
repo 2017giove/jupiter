@@ -8,19 +8,15 @@
  * Original code written by DeathStar, Sferici 2016
  */
 
+#ifndef JUPITER
 #include "WaveAnalysis.h"
-#include <stdlib.h>
-#include <stdio.h> 
-#include <iostream>
-#include <ostream>
-#include <list>
+#endif
 
 //Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
 int GetMaximumBin(TH1D* hist, int from, int to);
 void Cs_fit();
 peak* Cs_fit(TH1D* h1);
 void Cs_fit(char* src_name);
-
 
 int GetMaximumBin(TH1D* hist, int from, int to) {
     int i;
@@ -36,7 +32,31 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
 
     }
     return imax;
+ 
+}
 
+void Cs_getPeak(char* src_name, char* wheretosave) {
+    TFile *sorgente_file = TFile::Open(src_name);
+    TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
+
+    float voltage;
+    peak mypeak;
+
+    TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+    tset1->SetBranchAddress("Voltage", &voltage);
+    tset1->GetEntry(0);
+
+    mypeak = Cs_fit(h1)[0];
+
+    std::ofstream savefile(wheretosave, std::ios_base::app);
+    savefile << voltage << " " << mypeak.peakpos << " " << 0 << " " << mypeak.err_peakpos << " " << 0 << std::endl;
+}
+
+void Cs_fit(char* src_name) {
+
+    TFile *sorgente_file = TFile::Open(src_name);
+    TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
+    Cs_fit(h1);
 }
 
 void Cs_fit() {
@@ -117,8 +137,8 @@ peak* Cs_fit(TH1D* h1) {
     fsrc->SetParameter(12, 0.95);
 
 
-  //  h1->Fit("fsrc", "", "", 20, 60);
-    h1->Fit("fsrc","","", FDCompton*2/3  , Xmax * 2 );
+    //  h1->Fit("fsrc", "", "", 20, 60);
+    h1->Fit("fsrc", "", "", FDCompton * 2 / 3, Xmax * 2);
     h1->Draw();
 
 
@@ -227,6 +247,7 @@ peak* Cs_fit(TH1D* h1) {
     peak peaks [10];
     peak mypeak;
     mypeak.resolution = fsrc->GetParameter("Peak") / fsrc->GetParameter("sigma");
+    mypeak.peakpos = fsrc->GetParameter("Peak");
 
     peaks[0] = mypeak;
 
@@ -235,11 +256,6 @@ peak* Cs_fit(TH1D* h1) {
 
 }
 
-void Cs_fit(char* src_name) {
 
-    TFile *sorgente_file = TFile::Open(src_name);
-    TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
-    Cs_fit(h1);
-}
 
 

@@ -13,12 +13,19 @@
  * Created on April 9, 2017, 11:43 PM
  */
 
+#define JUPITER "Esperienza GioVe"
 #define PLOTS_TITLE "Fisherman's Plot"
-#define TRIGGER_EDGE "neg"
-#define THRESH -25
+#define ERROR_CRUCIAL "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
+#define ERROR_DEEPER "THERE IS A PROBLEM AND IT IS DEEPER."
 
 #define EXT_ROOT ".root"
 #define STR_LENGTH 300
+
+
+
+
+#define TRIGGER_EDGE "neg"
+#define THRESH -25
 
 #define NBIN 2000
 #define QMAX 200
@@ -31,8 +38,8 @@
 #define ENERGY_CESIO 663.
 #define MASS_ELECTRON 511.
 
-#define ERROR_CRUCIAL "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
-#define ERROR_DEEPER "THERE IS A PROBLEM AND IT IS DEEPER."
+
+
 
 typedef struct {
     int trigId;
@@ -52,7 +59,9 @@ typedef struct {
 
 typedef struct {
     float resolution;
-    float error;
+    float err_resolution;
+    float peakpos;
+    float err_peakpos;
 } peak;
 
 std::string appendToRootFilename(const char* filename, const char* suffix) {
