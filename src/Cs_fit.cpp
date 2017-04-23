@@ -35,6 +35,11 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
  
 }
 
+/**
+ * Salva il picco trovato e la tensione di acquisizione, e i rispettivi errori, in una nuova riga del file specificato
+ * @param nome file hist.root contenente l'istogramma
+ * @param nome file in cui aggiungere la riga 
+ */
 void Cs_getPeak(char* src_name, char* wheretosave) {
     TFile *sorgente_file = TFile::Open(src_name);
     TH1D *h1 = (TH1D*) sorgente_file->Get("h1");

@@ -15,6 +15,7 @@
         <in>Daq_sphere.h</in>
         <in>DisplayDialog.h</in>
         <in>EPThread.h</in>
+        <in>HVPowerSupply.h</in>
         <in>InfoDialog.h</in>
         <in>MeasureDialog.h</in>
         <in>Measurement.h</in>
@@ -38,10 +39,12 @@
         <in>DRSOsc.cpp</in>
         <in>DisplayDialog.cpp</in>
         <in>EPThread.cpp</in>
+        <in>HVPowerSupply.cpp</in>
         <in>InfoDialog.cpp</in>
         <in>MeasureDialog.cpp</in>
         <in>Measurement.cpp</in>
         <in>Osci.cpp</in>
+        <in>PowerExpert.cpp</in>
         <in>TriggerDialog.cpp</in>
         <in>WaveAnalysis.h</in>
         <in>Waveform.cpp</in>

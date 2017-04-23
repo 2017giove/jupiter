@@ -25,6 +25,7 @@ endif
 
 CFLAGS        = -g -O2 -Wall -Wuninitialized -fno-strict-aliasing -Iinclude -I/usr/local/include -D$(DOS) -DHAVE_USB -DHAVE_LIBUSB10 -DUSE_DRS_MUTEX #`root-config --cflags`
 LIBS          = -lpthread -lutil -lusb-1.0  #`root-config --glibs`
+#LIBS	    += lib/libHVPowerSupply.so
 
 ifeq ($(OS),Darwin)
 #CFLAGS        += -stdlib=libstdc++
@@ -41,10 +42,30 @@ OBJECTS       = musbstd.o mxml.o strlcpy.o
 
 
 ifeq ($(OS),Darwin)
-all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app drs_jupiter
+all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app drs_jupiter PowerExpert
 else
-all: drsosc drscl drs_exam drs_sub drs_exam_multi drs_jupiter
+all: drsosc drscl drs_exam drs_sub drs_exam_multi drs_jupiter PowerExpert
 endif
+
+
+CCFLAGS=	-DUNIX -DLINUX
+CLIBS=		-lcaenhvwrapper -lncurses -lpthread -ldl -lm
+CINCLUDEDIR=	-I./$(GLOBALDIR) -I./include/
+INCLUDES=	include/HVPowerSupply.h include/CAENHVWrapper.h 
+
+
+HVPowerSupply.o: src/HVPowerSupply.cpp include/HVPowerSupply.h 
+	g++ $(CFLAGS) $(CINCLUDEDIR) -c $<
+	
+PowerExpert: HVPowerSupply.o PowerExpert.o HVPowerSupply.o
+	g++ $(FLAGS)  $(CINCLUDEDIR)  PowerExpert.o HVPowerSupply.o -o PowerExpert $(CLIBS) 
+
+
+PowerExpert.o: src/PowerExpert.cpp src/HVPowerSupply.cpp  include/HVPowerSupply.h  
+	g++ $(CFLAGS) $(CINCLUDEDIR) -c $<
+
+
+
 
 
 DRSOsc.app: drsosc
@@ -66,6 +87,7 @@ drscl: $(OBJECTS) DRS.o averager.o drscl.o
 
 drs_exam: $(OBJECTS) DRS.o averager.o drs_exam.o
 	$(CXX) $(CFLAGS) $(OBJECTS) DRS.o averager.o drs_exam.o -o drs_exam $(LIBS) $(WXLIBS)
+	
 
 drs_sub: $(OBJECTS) DRS.o averager.o drs_sub.o
 	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_sub.o -o drs_sub $(LIBS) `root-config --libs` $(WXLIBS)
@@ -99,7 +121,6 @@ $(CPP_OBJ): %.o: src/%.cpp include/%.h include/mxml.h include/DRS.h
 
 $(OBJECTS): %.o: src/%.c include/mxml.h include/DRS.h
 	$(CC) $(CFLAGS) -c $<
-
 	
 clean:
 	rm -f *.o 
