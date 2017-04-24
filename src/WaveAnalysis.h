@@ -154,27 +154,27 @@ public:
 
     }
 
-    // non lo faccio e non lo chiedo
-    bool CheckWave() {
-        int i = 0;
-        bool flag = false;
-
-        while (flag == false && i < N_SAMPLES) {
-            if (_samples[i] > THRESH) {
-                flag = true;
-            }
-            i++;
-        }
-
-        while (flag == true && i < N_SAMPLES) {
-            if (_samples[i] >= 499.0) {
-                flag = false;
-            }
-            i++;
-        }
-
-        return flag;
-    }
+//    // non lo faccio e non lo chiedo
+//    bool CheckWave() {
+//        int i = 0;
+//        bool flag = false;
+//
+//        while (flag == false && i < N_SAMPLES) {
+//            if (_samples[i] > THRESH) {
+//                flag = true;
+//            }
+//            i++;
+//        }
+//
+//        while (flag == true && i < N_SAMPLES) {
+//            if (_samples[i] >= 499.0) {
+//                flag = false;
+//            }
+//            i++;
+//        }
+//
+//        return flag;
+//    }
 };
 
 /*Esegue un fit definito dall'utente

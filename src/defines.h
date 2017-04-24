@@ -41,7 +41,7 @@
 
 
 #define TRIGGER_EDGE "neg"
-#define THRESH -25
+//#define THRESH -25 // non ha senso definirlo perche è utile cambiarlo
 
 #define NBIN 2000
 #define QMAX 200
@@ -104,7 +104,7 @@ void printStatus(float progress) {
 void mySetting_print(mySetting st) {
 
     printf("Data captured on %s", st.date);
-    printf("PMT_ID \t\t\t=\t%d\n", st.PmtID);
+    printf("PMT_ID \t\t=\t%d\n", st.PmtID);
     printf("Voltage(V)\t=\t%f\n", st.voltage);
     printf("Threshold(mV)\t=\t%f\n", st.thresh);
     printf("Delay(ns)\t=\t%d\n", st.delayns);

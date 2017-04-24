@@ -5,7 +5,8 @@
 #
 #  Requires wxWidgets 2.8.9 or newer
 #
-#  161211: modified by S. Veneziano to compile drs_sub
+#  161211:  modified by S. Veneziano to compile drs_sub
+#  042017:  modified by J. UpiTer to compile PowerExpert
 #
 ########################################################
 
@@ -25,7 +26,7 @@ endif
 
 CFLAGS        = -g -O2 -Wall -Wuninitialized -fno-strict-aliasing -Iinclude -I/usr/local/include -D$(DOS) -DHAVE_USB -DHAVE_LIBUSB10 -DUSE_DRS_MUTEX #`root-config --cflags`
 LIBS          = -lpthread -lutil -lusb-1.0  #`root-config --glibs`
-#LIBS	    += lib/libHVPowerSupply.so
+
 
 ifeq ($(OS),Darwin)
 #CFLAGS        += -stdlib=libstdc++
@@ -42,9 +43,9 @@ OBJECTS       = musbstd.o mxml.o strlcpy.o
 
 
 ifeq ($(OS),Darwin)
-all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app drs_jupiter PowerExpert
+all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app drs_jupiter PowerExpert drs_expert
 else
-all: drsosc drscl drs_exam drs_sub drs_exam_multi drs_jupiter PowerExpert
+all: drsosc drscl drs_exam drs_sub drs_exam_multi drs_jupiter PowerExpert drs_expert
 endif
 
 
@@ -63,8 +64,6 @@ PowerExpert: HVPowerSupply.o PowerExpert.o HVPowerSupply.o
 
 PowerExpert.o: src/PowerExpert.cpp src/HVPowerSupply.cpp  include/HVPowerSupply.h  
 	g++ $(CFLAGS) $(CINCLUDEDIR) -c $<
-
-
 
 
 
@@ -95,6 +94,9 @@ drs_sub: $(OBJECTS) DRS.o averager.o drs_sub.o
 drs_jupiter: $(OBJECTS) DRS.o averager.o drs_jupiter.o
 	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_jupiter.o -o drs_jupiter $(LIBS) `root-config --libs` $(WXLIBS)
 
+drs_expert: $(OBJECTS) DRS.o averager.o drs_expert.o
+	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_expert.o -o drs_expert $(LIBS) `root-config --libs` $(WXLIBS)
+
 drs_exam_multi: $(OBJECTS) DRS.o averager.o drs_exam_multi.o
 	$(CXX) $(CFLAGS) $(OBJECTS) DRS.o averager.o drs_exam_multi.o -o drs_exam_multi $(LIBS) $(WXLIBS)
 	
@@ -110,7 +112,10 @@ drs_exam.o: src/drs_exam.cpp include/mxml.h include/DRS.h
 drs_sub.o: src/drs_sub.cpp include/mxml.h include/DRS.h
 	$(CXX) $(CFLAGS) `root-config --cflags` -c $<
 
-drs_jupiter.o: src/drs_jupiter.cpp include/mxml.h include/DRS.h include/Daq_sphere.h
+drs_jupiter.o: src/drs_jupiter.cpp include/mxml.h include/DRS.h 
+	$(CXX) $(CFLAGS) `root-config --cflags` -c $<
+
+drs_expert.o: src/drs_expert.cpp include/mxml.h include/DRS.h 
 	$(CXX) $(CFLAGS) `root-config --cflags` -c $<
 
 drs_exam_multi.o: src/drs_exam_multi.cpp include/mxml.h include/DRS.h

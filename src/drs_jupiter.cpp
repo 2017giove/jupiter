@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     cset.PmtID = atoi(argv[7]);
     cset.thresh = -100.; //2*Voltage*THRESH/1200;
 
-    cset.date = asctime(localtime(&Current_Time));
+    sprintf(cset.date ,"%s",  asctime(localtime(&Current_Time)));
     cout << cset.date << endl;
 
     bool chanToPlot[MAXCH];
