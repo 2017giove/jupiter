@@ -8,9 +8,9 @@
  * Original code written by DeathStar, Sferici 2016
  */
 
-#ifndef JUPITER
+
 #include "WaveAnalysis.h"
-#endif
+
 
 //Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
 int GetMaximumBin(TH1D* hist, int from, int to);
@@ -54,8 +54,9 @@ void Cs_getPeak(char* src_name, char* wheretosave) {
     mypeak = Cs_fit(h1)[0];
 
     std::ofstream savefile(wheretosave, std::ios_base::app);
-    savefile << voltage << " " << mypeak.peakpos << " " << 0 << " " << mypeak.err_peakpos << " " << 0 << std::endl;
+    savefile << voltage << " " << mypeak.peakpos << " " << 0 << " " << mypeak.err_peakpos << std::endl;
 }
+
 
 void Cs_fit(char* src_name) {
 
@@ -73,8 +74,7 @@ void Cs_fit() {
 peak* Cs_fit(TH1D* h1) {
 
     int nBins = h1->GetSize() - 2;
-    float step = (float) QMAX / nBins;
-
+    float step = (float) h1->GetXaxis()->GetBinWidth(0) ; //invece di usare QMAX/nBins conviene usare GetBinWidth
     int maxBin = GetMaximumBin(h1, 5. / step, nBins);
     float Xmax = maxBin*step;
     float Xwindow = 3.8; // larghezza su cui eseguire il fit gaussiano rispetto a xmax rilevato

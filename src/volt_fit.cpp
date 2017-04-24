@@ -6,9 +6,9 @@
  * 
  */
 
-#ifndef JUPITER
+
 #include "WaveAnalysis.h"
-#endif
+
 
 /**
  * Esegue il fit lineare di un file nel formato
@@ -18,9 +18,6 @@
  * @param nome del file contenente la lista di misure Tensione-PosizionePicco
  */
 void volt_fit(char * peaksfile) {
-
-    TMatrixD test;
-
 
     std::ifstream myfile1;
     std::string myline;
@@ -32,12 +29,11 @@ void volt_fit(char * peaksfile) {
     Double_t peakpos[n];
     Double_t err_voltage[n];
     Double_t err_peakpos[n];
-    Double_t bin;
     int i = 0;
 
     while (std::getline(myfile1, myline)) {
         std::istringstream strm(myline);
-        if ((strm >> voltage[i] >> peakpos[i] >> err_voltage[i] >> err_peakpos[i] >> bin)) {
+        if ((strm >> voltage[i] >> peakpos[i] >> err_voltage[i] >> err_peakpos[i])) {
             std::cout << i << " " << voltage[i] << " " << peakpos[i] << " " << err_voltage[i] << " " << err_peakpos[i] << std::endl;
             peakpos[i] = TMath::Log10(peakpos[i]);
             err_peakpos[i] = TMath::Log10(err_peakpos[i]);

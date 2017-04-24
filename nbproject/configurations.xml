@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <logicalFolder name="HVPowerSupply"
-                   displayName="HVPowerSupply"
-                   projectFiles="true"
-                   root="../MPPC-Setup/src/HVPowerSupply">
-      <itemPath>../MPPC-Setup/src/HVPowerSupply/HVPowerSupply.cpp</itemPath>
-      <itemPath>../MPPC-Setup/src/HVPowerSupply/HVPowerSupply.h</itemPath>
-    </logicalFolder>
     <df root="." name="0">
       <df name="src">
         <in>AboutDialog.cpp</in>
@@ -92,26 +85,6 @@
           <preBuildCommand></preBuildCommand>
         </preBuild>
       </makefileType>
-      <item path="../MPPC-Setup/src/HVPowerSupply/HVPowerSupply.cpp"
-            ex="false"
-            tool="1"
-            flavor2="11">
-        <ccTool flags="5">
-        </ccTool>
-      </item>
-      <folder path="HVPowerSupply">
-        <ccTool>
-          <incDir>
-            <pElem>/usr/include/c++/4.4.7</pElem>
-            <pElem>/usr/include/c++/4.4.7/bits</pElem>
-            <pElem>/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include</pElem>
-            <pElem>/usr/include/c++/4.4.7/x86_64-redhat-linux/bits</pElem>
-            <pElem>/usr/include/c++/4.4.7/ext</pElem>
-            <pElem>/usr/include/c++/4.4.7/debug</pElem>
-            <pElem>../MPPC-Setup/src/HVPowerSupply</pElem>
-          </incDir>
-        </ccTool>
-      </folder>
       <item path="src/AboutDialog.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="3">
           <incDir>

@@ -65,7 +65,7 @@ void Make(const char* fileIN, int CH) {
     if (!f || f->IsZombie()) {
         printf("The file is being processed. You may go to sleep in the meanwhile\n");
         RawIntegral(fileIN, fileRAWname, CH);
-                
+
         g = TFile::Open(fileRAWname);
         t1 = (TTree*) g->Get("t1");
     } else {
@@ -106,7 +106,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     WaveForm Wave; //definizione di WaveForm e InputData in WaveAnalysis.h
     myEvent temp;
     float Integral, BaseIntegral, Max;
-    int delay;
+
     //Apre il file di dati in input
     TFile *f = TFile::Open(fileIN);
 
@@ -117,15 +117,18 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     }
 
     TTree* t1 = (TTree*) f->Get("t1");
-    TTree* tset1 = (TTree*) f->Get("tset");
     Nentries = t1->GetEntries();
 
     printf("This file contains %d events.\n", Nentries);
 
     t1->SetBranchAddress("wave_array", temp.wave_array);
     t1->SetBranchAddress("time_array", temp.time_array);
-    tset1->SetBranchAddress("Delay_ns", &delay);
-    tset1->GetEntry(0);
+
+    TTree* tset1 = (TTree*) f->Get("tset");
+    mySetting st;
+    mySetting_get(tset1, &st);
+    mySetting_print(st);
+
     TFile *FOut = new TFile(fileOUT, "RECREATE");
 
     //Definisce TTree e TBranch del nuovo file
@@ -138,10 +141,13 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
         t1->GetEntry(i);
         Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
         Integral = Wave.Integral();
-        BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (delay * RATE)));
+        BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
         Integral -= BaseIntegral;
         TOut->Fill();
+        
+        printf("%d/%d\t", i, Nentries);
         printStatus((float) i / (float) Nentries);
+        
     }
 
 

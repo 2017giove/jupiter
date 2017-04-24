@@ -139,9 +139,9 @@ int main(int argc, char* argv[]) {
     char rootFileName[130];
     sprintf(rootFileName, "%s.root", fileName);
     TFile f1(rootFileName, "RECREATE");
-
-    Int_t comp = 0;
+   Int_t comp = 0;
     f1.SetCompressionLevel(comp);
+    
     Tset->Fill();
     Tset->Write();
 

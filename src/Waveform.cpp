@@ -14,7 +14,7 @@ int Waveform::FittingStartBin(float threshold, TH1F * hist) {
         }
         return 0;
     }
- }
+}
 
 void Waveform::Loop() {
 
@@ -65,10 +65,10 @@ void Waveform::Loop() {
         for (int k = 0; k < 64; k++) {
             temp->SetBinContent(k, temp->GetBinContent(k) / 16);
         }
-        
+
         // printf("Lorenzo ha detto %f\n", FittingStartBin(thres,temp));
         // se vuoi velocizzare parti da start=(N_SAMPLES - (int) (delay * RATE))
-        temp->Fit(gf, "Q", "", FittingStartBin(thres,histo_ch1), N_SAMPLES);
+        temp->Fit(gf, "Q", "", FittingStartBin(thres, histo_ch1), N_SAMPLES);
         //
         //
         //        showHist = (TH1F*) temp->Clone("GrongoWave");
@@ -105,6 +105,9 @@ void Waveform::Loop() {
 
         minimo = -gf->GetMinimum(0, N_SAMPLES);
         histo_max->Fill(minimo, 1);
+
+        printf("%d/%d\t", jentry, nentries);
+        printStatus((float(jentry) / (float) nentries));
     }
 
     c2->cd();

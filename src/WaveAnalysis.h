@@ -23,21 +23,8 @@
 //                                             //
 /////////////////////////////////////////////////
 
-#include "TCanvas.h"
-#include "TFile.h"
-#include "TTree.h"
-#include "TH1.h"
-#include "TROOT.h"
-#include "TF1.h"
-#include "TMath.h"
-#include "TGraph.h"
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <stdlib.h>
-#include <stdio.h> 
-#include <iostream>
-#include <ostream>
+#ifndef JUPITER
+
 #include "defines.h"
 
 
@@ -210,3 +197,11 @@ public:
  */
 
 
+
+
+
+
+
+
+
+#endif
