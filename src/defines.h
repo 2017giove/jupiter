@@ -55,6 +55,10 @@
 #define MASS_ELECTRON 511.
 
 typedef struct {
+    /*
+     * Questa va modificata togliendo l'array in [MAXCH] e id[MAXCH] e channels, perchè non servono a nulla
+     * Che altre informazioni servono?
+     */
     int trigId;
     int channels;
     int id[MAXCH];
@@ -68,6 +72,8 @@ typedef struct {
     int PmtID;
     float thresh;
     int delayns;
+    //Aggiungere altri parametri rilevanti come deltaT, descrizione ...
+    
 } mySetting;
 
 typedef struct {
@@ -112,11 +118,11 @@ void mySetting_print(mySetting st) {
 }
 
 void mySetting_get(TTree* tset1, mySetting* st) {
-    tset1->SetBranchAddress("Date", &st->date);
     tset1->SetBranchAddress("PMT_ID", &st->PmtID);
     tset1->SetBranchAddress("Voltage", &st->voltage);
     tset1->SetBranchAddress("threshold", &st->thresh);
     tset1->SetBranchAddress("Delay_ns", &st->delayns);
+    tset1->SetBranchAddress("Date", &st->date);
     tset1->GetEntry(0);
 
 

@@ -49,7 +49,6 @@
         <in>TriggerDialog.cpp</in>
         <in>WaveAnalysis.h</in>
         <in>Waveform.cpp</in>
-        <in>Waveform.h</in>
         <in>averager.cpp</in>
         <in>defines.h</in>
         <in>down.xpm</in>
