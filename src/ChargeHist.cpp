@@ -32,7 +32,11 @@
 
 
 void MakeChargeHist(const char* fileIN, int CH);
-void RawIntegral(const char *, const char *, int);
+void RawIntegral(const char *, const char *);
+
+
+
+
 
 void ChargeHist() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
@@ -68,7 +72,7 @@ void MakeChargeHist(const char* fileIN, int CH) {
 
     if (!f || f->IsZombie()) {
         printf("The file is being processed. You may go to sleep in the meanwhile\n");
-        RawIntegral(fileIN, fileRAWname, CH);
+        RawIntegral(fileIN, fileRAWname);
 
         g = TFile::Open(fileRAWname);
         t1 = (TTree*) g->Get("t1");
@@ -80,6 +84,19 @@ void MakeChargeHist(const char* fileIN, int CH) {
         tset = (TTree*) f->Get("tset");
     }
 
+//        tset->SetBranchAddress("PMT_ID", &st.PmtID);
+//    tset->SetBranchAddress("Voltage", &st.voltage);
+//    tset->SetBranchAddress("threshold", &st.thresh);
+//    tset->SetBranchAddress("Delay_ns", &st.delayns);
+//    tset->SetBranchAddress("Date", st.date);
+//    tset->GetEntry(0);
+//
+//    printf("Data captured on %s", st.date);
+//    printf("PMT_ID \t\t=\t%d\n", st.PmtID);
+//    printf("Voltage(V)\t=\t%f\n", st.voltage);
+//    printf("Threshold(mV)\t=\t%f\n", st.thresh);
+//    printf("Delay(ns)\t=\t%d\n", st.delayns);
+//    printf("\n");
 
     mySetting_get(tset, &st);
     mySetting_print(st);
@@ -121,8 +138,7 @@ void MakeChargeHist(const char* fileIN, int CH) {
     hist_file->Write();
 }
 
-void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
-
+void RawIntegral(const char * fileIN, const char *fileOUT) {
     int i, j, Nentries;
     WaveForm Wave; //definizione di WaveForm e InputData in WaveAnalysis.h
     myEvent temp;
@@ -149,9 +165,22 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     mySetting st;
     mySetting_get(tset1, &st);
     mySetting_print(st);
-
+    
+//        tset1->SetBranchAddress("PMT_ID", &st.PmtID);
+//    tset1->SetBranchAddress("Voltage", &st.voltage);
+//    tset1->SetBranchAddress("threshold", &st.thresh);
+//    tset1->SetBranchAddress("Delay_ns", &st.delayns);
+//    tset1->SetBranchAddress("Date", st.date);
+//    tset1->GetEntry(0);
+//
+//    printf("Data captured on %s", st.date);
+//    printf("PMT_ID \t\t=\t%d\n", st.PmtID);
+//    printf("Voltage(V)\t=\t%f\n", st.voltage);
+//    printf("Threshold(mV)\t=\t%f\n", st.thresh);
+//    printf("Delay(ns)\t=\t%d\n", st.delayns);
+//    printf("\n");
+//    
     TFile *FOut = new TFile(fileOUT, "RECREATE");
-
 
     //Definisce TTree e crea TBranch del nuovo file
     TTree *Tspectrum = new TTree("t1", "spectrum");
@@ -163,9 +192,10 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-        Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
+        Wave.FillVec(N_SAMPLES, temp.time_array, temp.wave_array, -1);
         Integral = Wave.Integral();
         BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
+      //  printf("delay %d\n",st.delayns);
         Integral -= BaseIntegral;
         Tspectrum->Fill();
         Tbaseline->Fill();
@@ -176,8 +206,8 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
 
 
-    Tspectrum->Write();
-    Tbaseline->Write();
+   // Tspectrum->Write();
+  //  Tbaseline->Write();
     tset1->CloneTree();
     FOut->Write();
 

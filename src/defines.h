@@ -54,6 +54,7 @@
 #define ENERGY_CESIO 663.
 #define MASS_ELECTRON 511.
 
+
 typedef struct {
     /*
      * Questa va modificata togliendo l'array in [MAXCH] e id[MAXCH] e channels, perchè non servono a nulla
@@ -62,8 +63,8 @@ typedef struct {
     int trigId;
     int channels;
     int id[MAXCH];
-    float time_array[MAXCH][N_SAMPLES];
-    float wave_array[MAXCH][N_SAMPLES];
+    float time_array[N_SAMPLES];
+    float wave_array[N_SAMPLES];
 } myEvent;
 
 typedef struct {
@@ -73,7 +74,7 @@ typedef struct {
     float thresh;
     int delayns;
     //Aggiungere altri parametri rilevanti come deltaT, descrizione ...
-    
+
 } mySetting;
 
 typedef struct {
@@ -82,6 +83,12 @@ typedef struct {
     float peakpos;
     float err_peakpos;
 } peak;
+
+
+
+
+
+
 
 std::string appendToRootFilename(const char* filename, const char* suffix) {
     std::string _extension = EXT_ROOT;
@@ -122,7 +129,7 @@ void mySetting_get(TTree* tset1, mySetting* st) {
     tset1->SetBranchAddress("Voltage", &st->voltage);
     tset1->SetBranchAddress("threshold", &st->thresh);
     tset1->SetBranchAddress("Delay_ns", &st->delayns);
-    tset1->SetBranchAddress("Date", &st->date);
+    tset1->SetBranchAddress("Date", st->date);
     tset1->GetEntry(0);
 
 

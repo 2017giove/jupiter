@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     }
 
     printf("Loading settings...\n");
-    
+
     int i;
 
     /* Lettura impostazioni     */
@@ -139,15 +139,14 @@ int main(int argc, char* argv[]) {
     /* Apertura files e creazione albero */
     TFile * f1[MAXCH];
     Int_t comp = 0;
-    TTree * tree[maxchan];
+    TTree * tree[MAXCH];
     myEvent ev[MAXCH];
 
 
     for (i = 0; i < maxchan; i++) {
         char rootFileName[130];
         sprintf(rootFileName, "data/%s_%d.root", fileName, PMTs[i]);
-        TFile ff(rootFileName, "RECREATE");
-        f1[i] = &ff;
+        f1[i] = (TFile*) new TFile(rootFileName, "RECREATE");
         f1[i]->SetCompressionLevel(comp);
 
         /*
@@ -160,14 +159,14 @@ int main(int argc, char* argv[]) {
          */
         cset.PmtID = PMTs[i];
         TTree * Tset = new TTree("tset", "Acquire Settings");
-        TBranch * delay = Tset->Branch("Delay_ns", &cset.delayns, "delay/I");
-        TBranch * Date = Tset->Branch("Date", cset.date, "date/C");
-        TBranch * Volt = Tset->Branch("Voltage", &cset.voltage, "Voltage/F");
-        TBranch * PmtId = Tset->Branch("PMT_ID", &cset.PmtID, "PMT/I");
-        TBranch * Thresh = Tset->Branch("threshold", &cset.thresh, "thresh/F");
+        Tset->Branch("Delay_ns", &cset.delayns, "Delay_ns/I");
+        Tset->Branch("Date", cset.date, "date/C");
+        Tset->Branch("Voltage", &cset.voltage, "Voltage/F");
+        Tset->Branch("PMT_ID", &cset.PmtID, "PMT/I");
+        Tset->Branch("threshold", &cset.thresh, "thresh/F");
 
+        f1[i]->cd();
         Tset->Fill();
-        Tset->Write();
 
         /*
         >t1
@@ -183,8 +182,8 @@ int main(int argc, char* argv[]) {
      
          * è memorizzata nella struttura myevent
          */
-        TTree* tt = new TTree("t1", "title");
-        tree[i] = tt;
+
+        tree[i] = (TTree*) new TTree("t1", "title");
 
         char branchDef[STR_LENGTH];
         TBranch * b_trigId = tree[i]->Branch("trigId", &ev[i].trigId, "trigId/I");
@@ -193,17 +192,15 @@ int main(int argc, char* argv[]) {
         sprintf(branchDef, "id[%d]/I", MAXCH);
         TBranch * b_id = tree[i]->Branch("id", ev[i].id, branchDef);
 
-        sprintf(branchDef, "time_array[%d][1024]/F", MAXCH);
-        TBranch * b_time_array = tree[i]->Branch("time_array", &ev[i].time_array[0][0], branchDef);
+        sprintf(branchDef, "time_array[1024]/F", MAXCH);
+        TBranch * b_time_array = tree[i]->Branch("time_array", &ev[i].time_array, branchDef);
 
-        sprintf(branchDef, "wave_array[%d][1024]/F", MAXCH);
-        TBranch * b_wave_array = tree[i]->Branch("wave_array", &ev[i].wave_array[0][0], branchDef);
+        sprintf(branchDef, "wave_array[1024]/F", MAXCH);
+        TBranch * b_wave_array = tree[i]->Branch("wave_array", &ev[i].wave_array, branchDef);
 
 
 
     }
-
-
 
 
     /*  Inizializzazione scheda*/
@@ -294,31 +291,40 @@ int main(int argc, char* argv[]) {
                the DRS chip, input #2 is connected to channel 2 and 3 and so on. So to
                get the input #2 we have to read DRS channel #2, not #1.
              */
-            b->GetTime(0, 2 * ch, b->GetTriggerCell(0), ev[ch].time_array[ch]);
+            b->GetTime(0, 2 * ch, b->GetTriggerCell(0), ev[ch].time_array);
 
             /* decode waveform (Y) array of first channel in mV */
-            b->GetWave(0, 2 * ch, ev[ch].wave_array[ch]);
-
+            b->GetWave(0, 2 * ch, ev[ch].wave_array);
         }
 
+
+
+
         for (i = 0; i < maxchan; i++) {
+            f1[i]->cd();
+
+            // f1[i] = tree[i]->GetCurrentFile();
             tree[i]->Fill();
         }
 
 
         /* print some progress indication */
         printf("%d ev - %d sec rem.", totevents, deltaT - (time(0) - t0));
-        printStatus((time(0) - t0) / deltaT);
+        printStatus(((float) time(0) - (float) t0) / (float) deltaT);
 
         totevents++;
     }
 
 
     for (i = 0; i < maxchan; i++) {
-        tree[i]->Write();
+        f1[i]->cd();
+        //  tree[i]->Write();
+        f1[i]->Write();
+        f1[i]->Close();
     }
-    
+
     printf("\n*** ACQUISITION IS COMPLETE ***\n");
+
     
     /* delete DRS object -> close USB connection */
     delete drs;
