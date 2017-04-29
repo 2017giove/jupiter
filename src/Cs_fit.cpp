@@ -15,7 +15,7 @@
 //Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
 int GetMaximumBin(TH1D* hist, int from, int to);
 void Cs_fit();
-peak* Cs_fit(TH1D* h1);
+struct peak* Cs_fit(TH1D* h1);
 void Cs_fit(char* src_name);
 
 int GetMaximumBin(TH1D* hist, int from, int to) {
@@ -45,7 +45,7 @@ void Cs_getPeak(char* src_name, char* wheretosave) {
     TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
 
     float voltage;
-    peak mypeak;
+    struct peak mypeak;
 
     TTree* tset1 = (TTree*) sorgente_file->Get("tset");
     tset1->SetBranchAddress("Voltage", &voltage);
@@ -71,7 +71,7 @@ void Cs_fit() {
     Cs_fit(h1);
 }
 
-peak* Cs_fit(TH1D* h1) {
+struct * Cs_fit(TH1D* h1) {
 
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0) ; //invece di usare QMAX/nBins conviene usare GetBinWidth
@@ -249,8 +249,8 @@ peak* Cs_fit(TH1D* h1) {
 
 
 
-    peak peaks [10];
-    peak mypeak;
+    struct peak peaks [10];
+    struct peak mypeak;
     mypeak.resolution = fsrc->GetParameter("Peak") / fsrc->GetParameter("sigma");
     mypeak.peakpos = fsrc->GetParameter("Peak");
 

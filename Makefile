@@ -43,9 +43,9 @@ OBJECTS       = musbstd.o mxml.o strlcpy.o
 
 
 ifeq ($(OS),Darwin)
-all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app drs_jupiter PowerExpert drs_expert
+all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app PowerExpert drs_expert
 else
-all: drsosc drscl drs_exam drs_sub drs_exam_multi drs_jupiter PowerExpert drs_expert
+all: drsosc drscl drs_exam drs_sub drs_exam_multi PowerExpert drs_expert
 endif
 
 

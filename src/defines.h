@@ -55,7 +55,7 @@
 #define MASS_ELECTRON 511.
 
 
-typedef struct {
+struct myEvent {
     /*
      * Questa va modificata togliendo l'array in [MAXCH] e id[MAXCH] e channels, perchè non servono a nulla
      * Che altre informazioni servono?
@@ -65,9 +65,9 @@ typedef struct {
     int id[MAXCH];
     float time_array[N_SAMPLES];
     float wave_array[N_SAMPLES];
-} myEvent;
+};
 
-typedef struct {
+struct mySetting {
     char date[STR_LENGTH];
     float voltage;
     int PmtID;
@@ -75,14 +75,13 @@ typedef struct {
     int delayns;
     //Aggiungere altri parametri rilevanti come deltaT, descrizione ...
 
-} mySetting;
-
-typedef struct {
+} ;
+ struct peak{
     float resolution;
     float err_resolution;
     float peakpos;
     float err_peakpos;
-} peak;
+} ;
 
 
 
@@ -125,14 +124,14 @@ void mySetting_print(mySetting st) {
 }
 
 void mySetting_get(TTree* tset1, mySetting* st) {
+    tset1->ResetBranchAddresses();
     tset1->SetBranchAddress("PMT_ID", &st->PmtID);
     tset1->SetBranchAddress("Voltage", &st->voltage);
     tset1->SetBranchAddress("threshold", &st->thresh);
     tset1->SetBranchAddress("Delay_ns", &st->delayns);
     tset1->SetBranchAddress("Date", st->date);
     tset1->GetEntry(0);
-
-
+    tset1->ResetBranchAddresses();
 }
 
 

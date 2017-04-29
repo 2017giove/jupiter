@@ -75,6 +75,10 @@
       <in>ChargeHist_RUN.c</in>
       <in>Cs_fit_RUN.c</in>
       <in>Waveform_RUN.c</in>
+      <in>t1.C</in>
+      <in>t1.h</in>
+      <in>tset.C</in>
+      <in>tset.h</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>

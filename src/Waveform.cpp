@@ -90,12 +90,12 @@ void RawWave(const char * fileIN, const char *fileOUT) {
     TTree* t1 = (TTree*) f->Get("t1");
     TTree* tset = (TTree*) f->Get("tset");
 
-    mySetting st;
+    struct mySetting st;
     mySetting_get(tset, &st);
     mySetting_print(st);
 
 
-    myEvent ev;
+    struct myEvent ev;
     t1->SetBranchAddress("wave_array", &ev.wave_array[0]);
 
     TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
