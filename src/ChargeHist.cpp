@@ -141,8 +141,9 @@ void RawIntegral(const char * fileIN, const char *fileOUT) {
 
     printf("This file contains %d events.\n", Nentries);
 
-    t1->SetBranchAddress("wave_array", temp.wave_array);
-    t1->SetBranchAddress("time_array", temp.time_array);
+    //>>> mettere loop sui canali
+    t1->SetBranchAddress("wave_array", temp.wave_array[0]);
+    t1->SetBranchAddress("time_array", temp.time_array[0]);
 
     TTree* tset1 = (TTree*) f->Get("tset");
     mySetting st;
@@ -161,7 +162,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT) {
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-        Wave.FillVec(N_SAMPLES, temp.time_array, temp.wave_array, -1);
+        Wave.FillVec(N_SAMPLES, temp.time_array[0], temp.wave_array[0], -1);
         Integral = Wave.Integral();
         BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
         //  printf("delay %d\n",st.delayns);

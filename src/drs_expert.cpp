@@ -97,28 +97,30 @@ int main(int argc, char* argv[]) {
 
     int i;
 
+    int maxchan = atoi(argv[3]);
     /* Lettura impostazioni     */
     mySetting cset;
+    allocateSetting(&cset, maxchan);
 
     char *fileName = argv[1];
 
     time_t deltaT = atoi(argv[2]);
 
-    int maxchan = atoi(argv[3]);
 
+    cset.Nchan = maxchan;
     cset.delayns = atoi(argv[4]);
-    cset.thresh = -atof(argv[5]);
+    cset.thresh[0] = -atof(argv[5]);
     //cset.thresh = -100.; //2*Voltage*THRESH/1200;
 
     int triggerSource = atoi(argv[6]);
-    cset.voltage = atof(argv[7]);
-    cset.PmtID = atoi(argv[8]);
+    cset.voltage[0] = atof(argv[7]);
+    cset.PmtID[0] = atoi(argv[8]);
 
     printf("Canali da acquisire\n");
-    int PMTs[MAXCH];
+
     for (i = 0; i < maxchan; i++) {
-        PMTs[i] = atoi(argv[i + 8]);
-        printf("%d\n", PMTs[i]);
+        cset.PmtID[i] = atoi(argv[i + 8]);
+        printf("%d\n", cset.PmtID[i]);
     }
 
 
@@ -137,71 +139,84 @@ int main(int argc, char* argv[]) {
 
 
     /* Apertura files e creazione albero */
-    TFile * f1[MAXCH];
+    TFile * f1;
     Int_t comp = 0;
-    TTree * tree[MAXCH];
-    myEvent ev[MAXCH];
+
+    myEvent ev;
+    allocateEvent(&ev, maxchan);
 
 
-    for (i = 0; i < maxchan; i++) {
-        char rootFileName[130];
-        sprintf(rootFileName, "data/%s_%d.root", fileName, PMTs[i]);
-        f1[i] = (TFile*) new TFile(rootFileName, "RECREATE");
-        f1[i]->SetCompressionLevel(comp);
+    char rootFileName[130];
+    sprintf(rootFileName, "data/%s.root", fileName);
+    f1 = (TFile*) new TFile(rootFileName, "RECREATE");
+    f1->SetCompressionLevel(comp);
 
-        /*
-        >tset
-         *  Delay_ns
-         *  Date
-         *  Voltage
-         *  PMT_ID
-         *  threshold
-         */
 
-        cset.PmtID = PMTs[i];
-        TTree * Tset = new TTree("tset", "Acquire Settings");
-        Tset->Branch("Delay_ns", &cset.delayns, "Delay_ns/I");
-        Tset->Branch("Date", cset.date, "date/C");
-        Tset->Branch("Voltage", &cset.voltage, "Voltage/F");
-        Tset->Branch("PMT_ID", &cset.PmtID, "PMT/I");
-        Tset->Branch("threshold", &cset.thresh, "thresh/F");
+    TTree * tree;
+    tree = (TTree*) new TTree("t1", "title");
 
-        f1[i]->cd();
-        Tset->Fill();
+    /*
+    >tset
+     *  Delay_ns
+     *  Date
+     *  Voltage
+     *  PMT_ID
+     *  threshold
+     */
 
-        /*
-        >t1
-         *  trigID
-         *  channels
-         *  id[4]
-         *  time_array[4][N_SAMPLES]
-         *  wave_array[4][N_SAMPLES]
+    char branchDef[STR_LENGTH];
+
+
+    TTree * Tset = new TTree("tset", "Acquire Settings");
+    Tset->Branch("Nchan", &cset.Nchan, "Nchan/I");
+
+    Tset->Branch("Delay_ns", &cset.delayns, "Delay_ns/I");
+    Tset->Branch("Date", cset.date, "date/C");
+
+    sprintf(branchDef, "Voltage[%d]/F", maxchan);
+    Tset->Branch("Voltage", cset.voltage, branchDef);
+
+    sprintf(branchDef, "PMT_ID[%d]/I", maxchan);
+    Tset->Branch("PMT_ID", cset.PmtID, branchDef);
+
+    sprintf(branchDef, "thresh[%d]/F", maxchan);
+    Tset->Branch("threshold", cset.thresh, branchDef);
+
+    // f1->cd();
+    Tset->Fill();
+
+    /*
+    >t1
+     *  trigID
+     *  channels
+     *  id[4]
+     *  time_array[4][N_SAMPLES]
+     *  wave_array[4][N_SAMPLES]
           
-        trigID significa in realtà ID univoco evento 
-        channels il numero di canali attivi
-        id contiene quali canali hanno effettivamente registrato l'evento
+    trigID significa in realtà ID univoco evento 
+    channels il numero di canali attivi
+    id contiene quali canali hanno effettivamente registrato l'evento
      
-         * è memorizzata nella struttura myevent
-         */
-
-        tree[i] = (TTree*) new TTree("t1", "title");
-
-        char branchDef[STR_LENGTH];
-        TBranch * b_trigId = tree[i]->Branch("trigId", &ev[i].trigId, "trigId/I");
-        TBranch * b_channels = tree[i]->Branch("channels", &ev[i].channels, "channels/I");
-
-        sprintf(branchDef, "id[%d]/I", MAXCH);
-        TBranch * b_id = tree[i]->Branch("id", ev[i].id, branchDef);
-
-        sprintf(branchDef, "time_array[1024]/F", MAXCH);
-        TBranch * b_time_array = tree[i]->Branch("time_array", &ev[i].time_array, branchDef);
-
-        sprintf(branchDef, "wave_array[1024]/F", MAXCH);
-        TBranch * b_wave_array = tree[i]->Branch("wave_array", &ev[i].wave_array, branchDef);
+     * è memorizzata nella struttura myevent
+     */
 
 
 
-    }
+
+    TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
+    TBranch * b_eventId = tree->Branch("eventID", &ev.eventID, "eventID/I");
+
+
+
+    sprintf(branchDef, "time_array[%d][1024]/F", maxchan);
+    TBranch * b_time_array = tree->Branch("time_array", &ev.time_array[0][0], branchDef);
+
+    sprintf(branchDef, "wave_array[%d][1024]/F", maxchan);
+    TBranch * b_wave_array = tree->Branch("wave_array", &ev.wave_array[0][0], branchDef);
+
+
+
+
 
 
     /*  Inizializzazione scheda*/
@@ -249,12 +264,12 @@ int main(int argc, char* argv[]) {
         b->EnableTrigger(0, 1); // lemo off, analog trigger on
         // b->SetTriggerSource(0); // use CH1 as source  DA TOGLIERE
     }
-    b->SetTriggerLevel(cset.thresh / 1000.); // threshold is in V
+    b->SetTriggerLevel(cset.thresh[0] / 1000.); // threshold is in V
     b->SetTriggerPolarity(triggerEdge); // positive edge
 
     /* use following lines to set individual trigger elvels */
-    b->SetIndividualTriggerLevel(1, cset.thresh / 1000.);
-    b->SetIndividualTriggerLevel(2, cset.thresh / 1000.);
+    b->SetIndividualTriggerLevel(1, cset.thresh[0] / 1000.);
+    b->SetIndividualTriggerLevel(2, cset.thresh[0] / 1000.);
 
     /*setta la sorgente del trigger in codice binario
      es: CH1=1 CH2=2 CH3=4, CH1_OR_CH2 = 3*/
@@ -282,31 +297,30 @@ int main(int argc, char* argv[]) {
 
         for (int ch = 0; ch < maxchan; ch++) {
 
-            ev[ch].trigId = totevents;
-            ev[ch].channels = 0;
-            ev[ch].id[ch] = 1;
-            ev[ch].channels++;
+            ev.eventID = totevents;
+
+            //mettere TRIGch IN QUALCHE MODO <<<<<
 
             /* read time (X) array of first channel in ns
              *    Note: On the evaluation board input #1 is connected to channel 0 and 1 of
                the DRS chip, input #2 is connected to channel 2 and 3 and so on. So to
                get the input #2 we have to read DRS channel #2, not #1.
              */
-            b->GetTime(0, 2 * ch, b->GetTriggerCell(0), ev[ch].time_array);
+            b->GetTime(0, 2 * ch, b->GetTriggerCell(0), ev.time_array[ch]);
 
             /* decode waveform (Y) array of first channel in mV */
-            b->GetWave(0, 2 * ch, ev[ch].wave_array);
+            b->GetWave(0, 2 * ch, ev.wave_array[ch]);
         }
 
 
 
 
-        for (i = 0; i < maxchan; i++) {
-            f1[i]->cd();
 
-            // f1[i] = tree[i]->GetCurrentFile();
-            tree[i]->Fill();
-        }
+
+
+        // f1[i] = tree[i]->GetCurrentFile();
+        tree->Fill();
+
 
 
         /* print some progress indication */
@@ -317,16 +331,14 @@ int main(int argc, char* argv[]) {
     }
 
 
-    for (i = 0; i < maxchan; i++) {
-        f1[i]->cd();
-        //  tree[i]->Write();
-        f1[i]->Write();
-        f1[i]->Close();
-    }
+
+    f1->Write();
+    f1->Close();
+
 
     printf("\n*** ACQUISITION IS COMPLETE ***\n");
 
-    
+
     /* delete DRS object -> close USB connection */
     delete drs;
 }

@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     TTree *tree = new TTree("t1", "title");
 
     char branchDef[STR_LENGTH];
-    TBranch * b_trigId = tree->Branch("trigId", &ev.trigId, "trigId/I");
+    TBranch * b_trigId = tree->Branch("trigId", &ev.eventID, "trigId/I");
     TBranch * b_channels = tree->Branch("channels", &ev.channels, "channels/I");
 
     sprintf(branchDef, "id[%d]/I", MAXCH);
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
         chanToPlot [2] = 0;
         chanToPlot [3] = 0;
 
-        ev.trigId = j;
+        ev.eventID = j;
         ev.channels = 0;
 
         for (int ch = 0; ch < MAXCH; ch++) {

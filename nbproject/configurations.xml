@@ -61,7 +61,8 @@
         <element flagsID="1" commonFlags="-O2 -m64"/>
         <element flagsID="2" commonFlags="-O2 -std=c++11 -m64"/>
         <element flagsID="3" commonFlags="-g -O2"/>
-        <element flagsID="4" commonFlags="-std=c++14"/>
+        <element flagsID="4" commonFlags="-std=c++11"/>
+        <element flagsID="5" commonFlags="-std=c++14"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -111,7 +112,7 @@
         </ccTool>
       </item>
       <item path="src/ChargeHist.cpp" ex="false" tool="1" flavor2="11">
-        <ccTool flags="4">
+        <ccTool flags="5">
           <incDir>
             <pElem>../../root/include</pElem>
             <pElem>../../root/lib</pElem>
@@ -492,19 +493,13 @@
         </ccTool>
       </item>
       <item path="src/drs_jupiter.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="1">
+        <ccTool flags="4">
           <incDir>
+            <pElem>src</pElem>
             <pElem>include</pElem>
-            <pElem>/usr/local/include</pElem>
-            <pElem>/usr/local/include/root</pElem>
+            <pElem>/usr/local/include/libusb-1.0</pElem>
             <pElem>.</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>HAVE_LIBUSB10</Elem>
-            <Elem>HAVE_USB</Elem>
-            <Elem>OS_LINUX</Elem>
-            <Elem>USE_DRS_MUTEX</Elem>
-          </preprocessorList>
         </ccTool>
       </item>
       <item path="src/drs_sub.cpp" ex="false" tool="1" flavor2="8">
@@ -591,7 +586,7 @@
         </cTool>
       </item>
       <item path="src/volt_fit.cpp" ex="false" tool="1" flavor2="11">
-        <ccTool flags="4">
+        <ccTool flags="5">
           <incDir>
             <pElem>../../root/include</pElem>
           </incDir>

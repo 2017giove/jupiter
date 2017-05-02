@@ -36,6 +36,7 @@
 #define ERROR_CRUCIAL "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
 #define ERROR_DEEPER "THERE IS A PROBLEM AND IT IS DEEPER."
 
+
 #define EXT_ROOT ".root"
 #define STR_LENGTH 300
 
@@ -54,40 +55,72 @@
 #define ENERGY_CESIO 663.
 #define MASS_ELECTRON 511.
 
-
 struct myEvent {
     /*
      * Questa va modificata togliendo l'array in [MAXCH] e id[MAXCH] e channels, perchè non servono a nulla
      * Che altre informazioni servono?
      */
-    int trigId;
-    int channels;
-    int id[MAXCH];
-    float time_array[N_SAMPLES];
-    float wave_array[N_SAMPLES];
+    int eventID;
+    int trigCH;
+    float** time_array;
+    float** wave_array;
 };
 
 struct mySetting {
     char date[STR_LENGTH];
-    float voltage;
-    int PmtID;
-    float thresh;
+    int Nchan;
+    int deltaT;
+    float * voltage;
+    int * PmtID;
+    float * thresh;
+    int triggerSetting;
     int delayns;
+    int description[10 * STR_LENGTH];
     //Aggiungere altri parametri rilevanti come deltaT, descrizione ...
 
-} ;
- struct peak{
+};
+
+struct peak {
     float resolution;
     float err_resolution;
     float peakpos;
     float err_peakpos;
-} ;
+};
 
+void allocateSetting(struct mySetting* st, int NCHAN) {
 
+    st->voltage = (float*) malloc(NCHAN * sizeof (st->voltage));
+    st->PmtID = (int*) malloc(NCHAN * sizeof (st->PmtID));
+    st->thresh = (float*) malloc(NCHAN * sizeof (st->thresh));
 
+    if (st->voltage == NULL || st->PmtID == NULL || st->thresh == NULL) {
+        printf("Errore allocazione memoria setting. %s\n", ERROR_CRUCIAL);
+        exit(-1);
+    }
 
+}
 
+void allocateEvent(struct myEvent* ev, int NCHAN) {
 
+    ev->time_array = (float**) malloc(NCHAN * sizeof (float*));
+    ev->wave_array = (float**) malloc(NCHAN * sizeof (float*));
+
+    int i;
+    for (i = 0; i < NCHAN; i++) {
+        ev->time_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
+        ev->wave_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
+    }
+
+    if (ev->time_array == NULL || ev->wave_array == NULL) {
+        printf("Errore allocazione memoria event. %s\n", ERROR_CRUCIAL);
+        exit(-1);
+    }
+//    int fotodilollo[4][1024];
+//        int fotodilollo2[4][1024];
+//    ev->time_array = (float**)fotodilollo;
+//    ev->wave_array =  (float**)fotodilollo2;
+    
+}
 
 std::string appendToRootFilename(const char* filename, const char* suffix) {
     std::string _extension = EXT_ROOT;
@@ -115,23 +148,23 @@ void printStatus(float progress) {
 
 void mySetting_print(mySetting st) {
 
-    printf("Data captured on %s", st.date);
-    printf("PMT_ID \t\t=\t%d\n", st.PmtID);
-    printf("Voltage(V)\t=\t%f\n", st.voltage);
-    printf("Threshold(mV)\t=\t%f\n", st.thresh);
-    printf("Delay(ns)\t=\t%d\n", st.delayns);
-    printf("\n");
+//    printf("Data captured on %s", st.date);
+//    printf("PMT_ID \t\t=\t%d\n", st.PmtID);
+//    printf("Voltage(V)\t=\t%f\n", st.voltage);
+//    printf("Threshold(mV)\t=\t%f\n", st.thresh);
+//    printf("Delay(ns)\t=\t%d\n", st.delayns);
+//    printf("\n");
 }
 
 void mySetting_get(TTree* tset1, mySetting* st) {
-    tset1->ResetBranchAddresses();
-    tset1->SetBranchAddress("PMT_ID", &st->PmtID);
-    tset1->SetBranchAddress("Voltage", &st->voltage);
-    tset1->SetBranchAddress("threshold", &st->thresh);
-    tset1->SetBranchAddress("Delay_ns", &st->delayns);
-    tset1->SetBranchAddress("Date", st->date);
-    tset1->GetEntry(0);
-    tset1->ResetBranchAddresses();
+//    tset1->ResetBranchAddresses();
+//    tset1->SetBranchAddress("PMT_ID", &st->PmtID);
+//    tset1->SetBranchAddress("Voltage", &st->voltage);
+//    tset1->SetBranchAddress("threshold", &st->thresh);
+//    tset1->SetBranchAddress("Delay_ns", &st->delayns);
+//    tset1->SetBranchAddress("Date", st->date);
+//    tset1->GetEntry(0);
+//    tset1->ResetBranchAddresses();
 }
 
 

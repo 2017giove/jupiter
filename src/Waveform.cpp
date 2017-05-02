@@ -96,7 +96,7 @@ void RawWave(const char * fileIN, const char *fileOUT) {
 
 
     struct myEvent ev;
-    t1->SetBranchAddress("wave_array", &ev.wave_array[0]);
+    t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
     TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
     TCanvas *c2 = new TCanvas("cB", PLOTS_TITLE, 640, 480);
@@ -127,7 +127,7 @@ void RawWave(const char * fileIN, const char *fileOUT) {
         gf->SetParameter(5, 220);
 
         for (int k = 0; k < 1024; k++) {
-            histo_ch1->SetBinContent(k, ev.wave_array[k]);
+            histo_ch1->SetBinContent(k, ev.wave_array[0][k]);
         }
 
         TH1F *temp = (TH1F*) histo_ch1->Clone("GrongoHist");
