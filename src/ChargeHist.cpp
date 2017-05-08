@@ -32,7 +32,7 @@
 
 
 void MakeChargeHist(const char* fileIN, int CH);
-void RawIntegral(const char *, const char *);
+void RawIntegral(const char *, const char *, int CH);
 
 void ChargeHist() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
@@ -68,8 +68,8 @@ void MakeChargeHist(const char* fileIN, int CH) {
 
     if (!f || f->IsZombie()) {
         printf("The file is being processed. You may go to sleep in the meanwhile\n");
-        RawIntegral(fileIN, fileRAWname);
-
+        RawIntegral(fileIN, fileRAWname, 0);
+  
         g = TFile::Open(fileRAWname);
         t1 = (TTree*) g->Get("t1");
         tbase = (TTree*) g->Get("tbase");
@@ -79,7 +79,6 @@ void MakeChargeHist(const char* fileIN, int CH) {
         tbase = (TTree*) f->Get("tbase");
         tset = (TTree*) f->Get("tset");
     }
-
 
     mySetting_get(tset, &st);
     mySetting_print(st);
@@ -121,36 +120,39 @@ void MakeChargeHist(const char* fileIN, int CH) {
     hist_file->Write();
 }
 
-void RawIntegral(const char * fileIN, const char *fileOUT) {
+void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     int i, j, Nentries;
     WaveForm Wave; //definizione di WaveForm e InputData in WaveAnalysis.h
-    struct myEvent temp;
-    float Integral, BaseIntegral, Max;
 
+    float Integral, BaseIntegral, Max;
+    char branchDef[STR_LENGTH];
     //Apre il file di dati in input
     TFile *f = TFile::Open(fileIN);
-
+    TFile *FOut = new TFile(fileOUT, "RECREATE");
     // AddBranchtoCache , SetCacheSize to speed up
 
     if (!f || f->IsZombie()) {
         printf("%s\nCannot write in %s\n.", ERROR_DEEPER, fileIN);
     }
 
-    TTree* t1 = (TTree*) f->Get("t1");
-    Nentries = t1->GetEntries();
-
-    printf("This file contains %d events.\n", Nentries);
-
-    //>>> mettere loop sui canali
-    t1->SetBranchAddress("wave_array", temp.wave_array[0]);
-    t1->SetBranchAddress("time_array", temp.time_array[0]);
-
     TTree* tset1 = (TTree*) f->Get("tset");
     mySetting st;
+ 
     mySetting_get(tset1, &st);
     mySetting_print(st);
 
-    TFile *FOut = new TFile(fileOUT, "RECREATE");
+    struct myEvent temp;
+    allocateEvent(&temp,st.Nchan);
+
+    TTree* t1 = (TTree*) f->Get("t1");
+    Nentries = t1->GetEntries();
+
+
+    //>>> mettere loop sui canali
+    t1->SetBranchAddress("wave_array", temp.wave_array);
+    t1->SetBranchAddress("time_array", temp.time_array);
+       
+    printf("This file contains %d events.\n", Nentries);
 
     //Definisce TTree e crea TBranch del nuovo file
     TTree *Tspectrum = new TTree("t1", "spectrum");
@@ -159,10 +161,13 @@ void RawIntegral(const char * fileIN, const char *fileOUT) {
     TBranch *b_integral = Tspectrum->Branch("Integral", &Integral, "Integral/F");
     TBranch *b_baseline = Tbaseline->Branch("Baseline", &BaseIntegral, "Baseline/F");
 
+ 
+    
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-        Wave.FillVec(N_SAMPLES, temp.time_array[0], temp.wave_array[0], -1);
+        printf("Lorenzo ha detto %d\n",i);
+        Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
         Integral = Wave.Integral();
         BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
         //  printf("delay %d\n",st.delayns);

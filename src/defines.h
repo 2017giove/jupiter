@@ -75,7 +75,7 @@ struct mySetting {
     float * thresh;
     int triggerSetting;
     int delayns;
-    int description[10 * STR_LENGTH];
+    char description[10 * STR_LENGTH];
     //Aggiungere altri parametri rilevanti come deltaT, descrizione ...
 
 };
@@ -115,11 +115,11 @@ void allocateEvent(struct myEvent* ev, int NCHAN) {
         printf("Errore allocazione memoria event. %s\n", ERROR_CRUCIAL);
         exit(-1);
     }
-//    int fotodilollo[4][1024];
-//        int fotodilollo2[4][1024];
-//    ev->time_array = (float**)fotodilollo;
-//    ev->wave_array =  (float**)fotodilollo2;
-    
+    //    int fotodilollo[4][1024];
+    //        int fotodilollo2[4][1024];
+    //    ev->time_array = (float**)fotodilollo;
+    //    ev->wave_array =  (float**)fotodilollo2;
+
 }
 
 std::string appendToRootFilename(const char* filename, const char* suffix) {
@@ -148,23 +148,32 @@ void printStatus(float progress) {
 
 void mySetting_print(mySetting st) {
 
-//    printf("Data captured on %s", st.date);
-//    printf("PMT_ID \t\t=\t%d\n", st.PmtID);
-//    printf("Voltage(V)\t=\t%f\n", st.voltage);
-//    printf("Threshold(mV)\t=\t%f\n", st.thresh);
-//    printf("Delay(ns)\t=\t%d\n", st.delayns);
-//    printf("\n");
+    //    printf("Data captured on %s", st.date);
+    //    printf("PMT_ID \t\t=\t%d\n", st.PmtID);
+    //    printf("Voltage(V)\t=\t%f\n", st.voltage);
+    //    printf("Threshold(mV)\t=\t%f\n", st.thresh);
+    //    printf("Delay(ns)\t=\t%d\n", st.delayns);
+    //    printf("\n");
 }
 
 void mySetting_get(TTree* tset1, mySetting* st) {
-//    tset1->ResetBranchAddresses();
-//    tset1->SetBranchAddress("PMT_ID", &st->PmtID);
-//    tset1->SetBranchAddress("Voltage", &st->voltage);
-//    tset1->SetBranchAddress("threshold", &st->thresh);
-//    tset1->SetBranchAddress("Delay_ns", &st->delayns);
-//    tset1->SetBranchAddress("Date", st->date);
-//    tset1->GetEntry(0);
-//    tset1->ResetBranchAddresses();
+
+    char branchDef[STR_LENGTH];
+
+    tset1->SetBranchAddress("Nchan", &st->Nchan);
+    tset1->SetBranchAddress("deltaT", &st->deltaT);
+    tset1->GetEntry(0);
+
+    allocateSetting(st, st->Nchan);
+
+    tset1->SetBranchAddress("Voltage", &st->voltage);
+    tset1->SetBranchAddress("PMT_ID", &st->PmtID);
+    tset1->SetBranchAddress("threshold", &st->thresh);
+    tset1->SetBranchAddress("Delay_ns", &st->delayns);
+    tset1->SetBranchAddress("Date", st->date);
+    tset1->SetBranchAddress("description", st->description);
+
+    tset1->GetEntry(0);
 }
 
 

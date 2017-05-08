@@ -173,13 +173,17 @@ int main(int argc, char* argv[]) {
     Tset->Branch("Delay_ns", &cset.delayns, "Delay_ns/I");
     Tset->Branch("Date", cset.date, "date/C");
 
+    Tset->Branch("deltaT", &cset.deltaT, "deltaT/I");
+
+    Tset->Branch("description", cset.description, "description/C");
+
     sprintf(branchDef, "Voltage[%d]/F", maxchan);
     Tset->Branch("Voltage", cset.voltage, branchDef);
 
     sprintf(branchDef, "PMT_ID[%d]/I", maxchan);
     Tset->Branch("PMT_ID", cset.PmtID, branchDef);
 
-    sprintf(branchDef, "thresh[%d]/F", maxchan);
+    sprintf(branchDef, "threshold[%d]/F", maxchan);
     Tset->Branch("threshold", cset.thresh, branchDef);
 
     // f1->cd();
@@ -325,7 +329,7 @@ int main(int argc, char* argv[]) {
 
         /* print some progress indication */
         printf("%d ev - %d sec rem.", totevents, deltaT - (time(0) - t0));
-        printStatus(((float) time(0) - (float) t0) / (float) deltaT);
+        printStatus(((float) time(0) - (float) t0) / ((float) deltaT));
 
         totevents++;
     }
