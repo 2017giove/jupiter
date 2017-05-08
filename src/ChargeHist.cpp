@@ -40,7 +40,7 @@ void ChargeHist() {
 
 }
 
-void ChargeHist(std::string _fileIN, int CH) {
+void ChargeHist(std::string _fileIN) {
     const char* fileIN = _fileIN.c_str();
     MakeChargeHist(fileIN);
 }
@@ -57,6 +57,7 @@ void MakeChargeHist(const char* fileIN) {
     WaveForm Wave;
     struct mySetting st;
 
+    char tname [STR_LENGTH];
     char fileRAWname[STR_LENGTH];
     char histOUT[STR_LENGTH];
 
@@ -68,7 +69,9 @@ void MakeChargeHist(const char* fileIN) {
     if (!f || f->IsZombie()) {
         printf("The file is being processed. You may go to sleep in the meanwhile\n");
 
+
         TFile *fin = TFile::Open(fileIN);
+
         tset = (TTree*) fin->Get("tset");
         mySetting_get(tset, &st);
         mySetting_print(st);
@@ -76,19 +79,15 @@ void MakeChargeHist(const char* fileIN) {
         for (ii = 0; ii < st.Nchan; ii++) {
             RawIntegral(fileIN, fileRAWname, ii);
         }
+        f = TFile::Open(fileRAWname);
     }
 
 
-
-    f = TFile::Open(fileRAWname);
     tset = (TTree*) f->Get("tset");
-
     mySetting_get(tset, &st);
     mySetting_print(st);
+
     int CH;
-
-    char tname [STR_LENGTH];
-
     TFile *hist_file = new TFile(histOUT, "UPDATE");
 
 
@@ -97,7 +96,6 @@ void MakeChargeHist(const char* fileIN) {
         t1 = (TTree*) f->Get(tname);
         sprintf(tname, "tbase%d", CH);
         tbase = (TTree*) f->Get(tname);
-
 
         //Definisce TTree e crea TBranch del nuovo file
 
@@ -108,7 +106,7 @@ void MakeChargeHist(const char* fileIN) {
         //Crea l'istogramma e lo popola integrando le forme d'onda
         sprintf(tname, "h%d", CH);
         TH1D *h1 = new TH1D(tname, "Istogramma energia", NBIN, QMIN, QMAX);
-        
+
         sprintf(tname, "hbase%d", CH);
         TH1D *hbase = new TH1D(tname, "Istogramma baseline", NBIN, QMIN, QMAX);
 
@@ -121,35 +119,38 @@ void MakeChargeHist(const char* fileIN) {
         }
 
 
+        TCanvas *c40 = new TCanvas("c40", PLOTS_TITLE, 640, 480);
+        h1->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
+        h1->GetYaxis()->SetTitle("# eventi");
+        h1->Write();
 
-
-                TCanvas *c40 = new TCanvas("c40", PLOTS_TITLE, 640, 480);
-                h1->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
-                h1->GetYaxis()->SetTitle("# eventi");
-                h1->Write();
-
-
-                TCanvas *c42 = new TCanvas("c42", PLOTS_TITLE, 640, 480);
-                hbase->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
-                hbase->GetYaxis()->SetTitle("# eventi");
-                hbase->Write();
-
-
-        //Salva l'istogramma con fit sovrapposto su file root
-        if (hist_file->Get("tset") == NULL) {
-            tset->CloneTree();
-        }
-       // h1->Write();
-       // hbase->Write();
-        hist_file->Write();
+        TCanvas *c42 = new TCanvas("c42", PLOTS_TITLE, 640, 480);
+        hbase->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
+        hbase->GetYaxis()->SetTitle("# eventi");
+        hbase->Write();
 
     }
+
+    //Salva l'istogramma con fit sovrapposto su file root
+
+    hist_file->cd();
+    TTree* newtree = tset->CloneTree(0);
+    newtree->Fill();
+    newtree->Write("", TObject::kOverwrite);
+    //  tset->CloneTree();
+
+    // h1->Write();
+    // hbase->Write();
+
+    //hist_file->Write();
+    hist_file->Close();
+
 }
 
 void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     int i, j, Nentries;
-    WaveForm Wave; //definizione di WaveForm e InputData in WaveAnalysis.h
-
+    WaveForm Wave; //definizione di WaveForm in WaveAnalysis.h
+    char tname [STR_LENGTH];
     float Integral, BaseIntegral, Max;
     char branchDef[STR_LENGTH];
     //Apre il file di dati in input
@@ -169,54 +170,46 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
     struct myEvent temp;
     //allocateEvent(&temp,st.Nchan);
-
-
-
-
     TTree* t1 = (TTree*) f->Get("t1");
     Nentries = t1->GetEntries();
 
-
-    //>>> mettere loop sui canali
     t1->SetBranchAddress("wave_array", temp.wave_array);
     t1->SetBranchAddress("time_array", temp.time_array);
 
     printf("This file contains %d events.\n", Nentries);
-    char tname [STR_LENGTH];
+
     sprintf(tname, "t%d", CH);
-    //Definisce TTree e crea TBranch del nuovo file
     TTree *Tspectrum = new TTree(tname, "spectrum");
     sprintf(tname, "tbase%d", CH);
     TTree *Tbaseline = new TTree(tname, "baseline");
 
-    TBranch *b_integral = Tspectrum->Branch("Integral", &Integral, "Integral/F");
-    TBranch *b_baseline = Tbaseline->Branch("Baseline", &BaseIntegral, "Baseline/F");
-
+    Tspectrum->Branch("Integral", &Integral, "Integral/F");
+    Tbaseline->Branch("Baseline", &BaseIntegral, "Baseline/F");
 
 
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-        printf("Lorenzo ha detto %d\n", CH);
         Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
         Integral = Wave.Integral();
         BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
-        //  printf("delay %d\n",st.delayns);
         Integral -= BaseIntegral;
+
         Tspectrum->Fill();
         Tbaseline->Fill();
+
         printf("%d/%d\t", i, Nentries);
         printStatus((float) i / (float) Nentries);
-
     }
 
 
+    FOut->cd();
+    Tspectrum->Write();
+    Tbaseline->Write();
 
-    //Tspectrum->Write();
-    //  Tbaseline->Write();
-    if (FOut->Get("tset") == NULL) {
-        tset1->CloneTree();
-    }
-    FOut->Write();
+    TTree* newtree = tset1->CloneTree(0);
+    newtree->Fill();
+    newtree->Write("", TObject::kOverwrite);
+
     FOut->Close();
 }
