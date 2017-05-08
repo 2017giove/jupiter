@@ -15,8 +15,8 @@
 //Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
 int GetMaximumBin(TH1D* hist, int from, int to);
 void Cs_fit();
-struct peak* Cs_fit(TH1D* h1);
-void Cs_fit(char* src_name);
+struct peak Cs_fit(TH1D* h1);
+//void Cs_fit(char* src_name);
 
 int GetMaximumBin(TH1D* hist, int from, int to) {
     int i;
@@ -32,7 +32,7 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
 
     }
     return imax;
- 
+
 }
 
 /**
@@ -40,47 +40,86 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
  * @param nome file hist.root contenente l'istogramma
  * @param nome file in cui aggiungere la riga 
  */
-void Cs_getPeak(char* src_name, char* wheretosave) {
+void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     TFile *sorgente_file = TFile::Open(src_name);
-    TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
-
-    float voltage;
-    struct peak mypeak;
-
+    TCanvas *c41 = new TCanvas();
+    peak mypeak;
+    mySetting st;
     TTree* tset1 = (TTree*) sorgente_file->Get("tset");
-    tset1->SetBranchAddress("Voltage", &voltage);
-    tset1->GetEntry(0);
+    mySetting_get(tset1, &st);
 
-    mypeak = Cs_fit(h1)[0];
+    char tname[STR_LENGTH];
+
+    int CH = PMTtoCH(PMTid, &st);
+
+    sprintf(tname, "h%d", PMTid);
+    TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
+
+    mypeak = Cs_fit(h1);
 
     std::ofstream savefile(wheretosave, std::ios_base::app);
-    savefile << voltage << " " << mypeak.peakpos << " " << 0 << " " << mypeak.err_peakpos << std::endl;
+    savefile << st.voltage[CH] << " " << mypeak.peakpos << " " << 0 << " " << mypeak.err_peakpos << std::endl;
+    
+    delete c41;
 }
 
 
-void Cs_fit(char* src_name) {
-
-    TFile *sorgente_file = TFile::Open(src_name);
-    TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
-    Cs_fit(h1);
-}
+// non implementato
+//void Cs_fit(char* src_name) {
+//
+//    TFile *sorgente_file = TFile::Open(src_name);
+//    TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
+//    Cs_fit(h1);
+//}
 
 void Cs_fit() {
     TFile* sorgente_file = (TFile*) gROOT->GetListOfFiles()->First();
-    TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
-    Cs_fit(h1);
+
+    TIter next(sorgente_file->GetListOfKeys());
+    TKey *key;
+    TH1D *h1;
+
+    char tname[STR_LENGTH];
+    TCanvas *c41 = new TCanvas();
+    char fileOUT[STR_LENGTH];
+    std::strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
+    TFile *FOut = new TFile(fileOUT, "UPDATE");
+
+
+    while ((key = (TKey*) next())) {
+        TClass *cl = gROOT->GetClass(key->GetClassName());
+        if (cl -> InheritsFrom("TH1D")) {
+            h1 = (TH1D*) key->ReadObj();
+            std::string myname = h1->GetName();
+            std::string pmtname = myname.substr(myname.length() - 3);
+            int PMTid = atoi(pmtname.c_str());
+            sprintf(tname, "h%d", PMTid);
+            if (myname.compare(tname)) {
+                printf("Fit per il PMT %d\n", PMTid);
+                Cs_fit(h1);
+                h1->Write();
+                sprintf(tname, "img/%s_csfit%d.eps", filenameFromPath(sorgente_file->GetName()).c_str(), PMTid);
+                h1->Draw("");
+                c41->SaveAs(tname);
+            }
+        }
+
+    }
+
+    FOut->Close();
+
 }
 
-struct * Cs_fit(TH1D* h1) {
+struct peak Cs_fit(TH1D* h1) {
 
     int nBins = h1->GetSize() - 2;
-    float step = (float) h1->GetXaxis()->GetBinWidth(0) ; //invece di usare QMAX/nBins conviene usare GetBinWidth
+    float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
     int maxBin = GetMaximumBin(h1, 5. / step, nBins);
     float Xmax = maxBin*step;
     float Xwindow = 3.8; // larghezza su cui eseguire il fit gaussiano rispetto a xmax rilevato
     float Ymax = h1->GetBinContent(maxBin);
 
-    TCanvas *c41 = new TCanvas();
+
     gROOT->SetStyle("Plain");
     gStyle->SetOptFit(1111);
 
@@ -146,10 +185,6 @@ struct * Cs_fit(TH1D* h1) {
     h1->Fit("fsrc", "", "", FDCompton * 2 / 3, Xmax * 2);
     h1->Draw();
 
-
-
-
-
     //Replot senza doppio esponenziale
     TF1 *wow = new TF1("wow", "[4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)   +[12]/(TMath::Exp((x-[5])*[13])*[14]+1)  ", Xmax * 0.3, Xmax * 1.6);
 
@@ -182,10 +217,6 @@ struct * Cs_fit(TH1D* h1) {
     BG->SetLineStyle(2);
 
     BG->Draw("same");
-
-
-
-
 
     //Replot Fermi-Dirac2  (Compton Edge)
 
@@ -228,39 +259,17 @@ struct * Cs_fit(TH1D* h1) {
 
     G1->Draw("same");
 
-
-
-
-
-
-
-
-
-
-
     h1->SetTitle("Spettro del Cs137");
     h1->SetName("Risultati del Fit");
     h1->GetXaxis()->SetTitle("adc Counts");
     h1->GetYaxis()->SetTitle("Eventi");
     gPad->SetGrid();
 
-
-
-
-
-
-    struct peak peaks [10];
     struct peak mypeak;
     mypeak.resolution = fsrc->GetParameter("Peak") / fsrc->GetParameter("sigma");
     mypeak.peakpos = fsrc->GetParameter("Peak");
 
-    peaks[0] = mypeak;
-
-    printf("RISOLUZIONE = %f\n", peaks[0].resolution);
-    return peaks;
+    printf("RISOLUZIONE = %f\n", mypeak.resolution);
+    return mypeak;
 
 }
-
-
-
-

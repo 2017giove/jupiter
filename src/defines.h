@@ -35,8 +35,9 @@
 #define PLOTS_TITLE "Fisherman's Plot"
 #define ERROR_CRUCIAL "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
 #define ERROR_DEEPER "THERE IS A PROBLEM AND IT IS DEEPER."
-
-
+#define NOT_FOUND_INT -241
+#define NOT_CARING_INT 433
+#define NOT_CARING_STRING "Blessed are they who hold lively conversations with the helplessly mute, for they shall be called dentists."
 #define EXT_ROOT ".root"
 #define STR_LENGTH 300
 
@@ -72,8 +73,8 @@ struct mySetting {
     char date[STR_LENGTH];
     int Nchan;
     int deltaT;
-    float  voltage[SANTA_MAX];
-    int  PmtID[SANTA_MAX];
+    float voltage[SANTA_MAX];
+    int PmtID[SANTA_MAX];
     float thresh[SANTA_MAX];
     int triggerSetting;
     int delayns;
@@ -90,40 +91,55 @@ struct peak {
 };
 
 void allocateSetting(struct mySetting* st, int NCHAN) {
-//
-//    st->voltage = (float*) malloc(NCHAN * sizeof (st->voltage));
-//    st->PmtID = (int*) malloc(NCHAN * sizeof (st->PmtID));
-//    st->thresh = (float*) malloc(NCHAN * sizeof (st->thresh));
-//
-//    if (st->voltage == NULL || st->PmtID == NULL || st->thresh == NULL) {
-//        printf("Errore allocazione memoria setting. %s\n", ERROR_CRUCIAL);
-//        exit(-1);
-//    }
-// Santizzato
-    
-    
+    int i;
+    for (i = 0; i < SANTA_MAX; i++) {
+        st->voltage[i] = NOT_CARING_INT;
+        st->PmtID[i] = NOT_CARING_INT;
+        st->thresh[i] = NOT_CARING_INT;
+        sprintf(st->description,"%s",NOT_CARING_STRING );
+    }
+    //
+    //    st->voltage = (float*) malloc(NCHAN * sizeof (st->voltage));
+    //    st->PmtID = (int*) malloc(NCHAN * sizeof (st->PmtID));
+    //    st->thresh = (float*) malloc(NCHAN * sizeof (st->thresh));
+    //
+    //    if (st->voltage == NULL || st->PmtID == NULL || st->thresh == NULL) {
+    //        printf("Errore allocazione memoria setting. %s\n", ERROR_CRUCIAL);
+    //        exit(-1);
+    //    }
+    // Santizzato
+
+
 }
 
 void allocateEvent(struct myEvent* ev, int NCHAN) {
 
-//    ev->time_array = (float**) malloc(NCHAN * sizeof (float*));
-//    ev->wave_array = (float**) malloc(NCHAN * sizeof (float*));
-//
-//    int i;
-//    for (i = 0; i < NCHAN; i++) {
-//        ev->time_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
-//        ev->wave_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
-//    }
-//
-//    if (ev->time_array == NULL || ev->wave_array == NULL) {
-//        printf("Errore allocazione memoria event. %s\n", ERROR_CRUCIAL);
-//        exit(-1);
-//    }
-//    //    int fotodilollo[4][1024];
-//    //        int fotodilollo2[4][1024];
-//    //    ev->time_array = (float**)fotodilollo;
-//    //    ev->wave_array =  (float**)fotodilollo2;
-//    Santizzato
+    int i, j;
+    for (i = 0; i < SANTA_MAX; i++) {
+        for (j = 0; j < N_SAMPLES; j++) {
+            ev->time_array[i][j] = NOT_CARING_INT;
+            ev->wave_array[i][j] = NOT_CARING_INT;
+        }
+    }
+
+    //    ev->time_array = (float**) malloc(NCHAN * sizeof (float*));
+    //    ev->wave_array = (float**) malloc(NCHAN * sizeof (float*));
+    //
+    //    int i;
+    //    for (i = 0; i < NCHAN; i++) {
+    //        ev->time_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
+    //        ev->wave_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
+    //    }
+    //
+    //    if (ev->time_array == NULL || ev->wave_array == NULL) {
+    //        printf("Errore allocazione memoria event. %s\n", ERROR_CRUCIAL);
+    //        exit(-1);
+    //    }
+    //    //    int fotodilollo[4][1024];
+    //    //        int fotodilollo2[4][1024];
+    //    //    ev->time_array = (float**)fotodilollo;
+    //    //    ev->wave_array =  (float**)fotodilollo2;
+    //    Santizzato
 }
 
 std::string appendToRootFilename(const char* filename, const char* suffix) {
@@ -135,8 +151,17 @@ std::string appendToRootFilename(const char* filename, const char* suffix) {
     return _final;
 }
 
+std::string filenameFromPath(const char*filename) {
+    std::string _final = filename;
+    std::string _extension = EXT_ROOT;
+    _final = _final.substr(_final.find_last_of("/") + 1);
+    _final = _final.replace(_final.find(_extension), _extension.length(), "");
+    return _final;
+
+}
+
 void printStatus(float progress) {
-    int barWidth = 50;
+    int barWidth = 40;
 
     std::cout << "[";
     int pos = barWidth * progress;
@@ -180,6 +205,18 @@ void mySetting_get(TTree* tset1, mySetting* st) {
     tset1->GetEntry(0);
 }
 
+int PMTtoCH(int PMT, mySetting* st) {
+    int CH;
+    int i;
+    for (i = 0; i < st->Nchan; i++) {
+        if (st->PmtID[i] == PMT) return i;
+    }
+    return NOT_FOUND_INT;
+}
+
+int CHtoPMT(int CH, mySetting* st) {
+    return st->PmtID[CH];
+}
 
 
 

@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     int maxchan = atoi(argv[3]);
     /* Lettura impostazioni     */
     mySetting cset;
-  //  allocateSetting(&cset, maxchan);
+    allocateSetting(&cset, maxchan);
 
     char *fileName = argv[1];
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     Int_t comp = 0;
 
     myEvent ev;
-  //  allocateEvent(&ev, maxchan);
+    allocateEvent(&ev, maxchan);
 
 
     char rootFileName[130];
