@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     int maxchan = atoi(argv[3]);
     /* Lettura impostazioni     */
     mySetting cset;
-    allocateSetting(&cset, maxchan);
+  //  allocateSetting(&cset, maxchan);
 
     char *fileName = argv[1];
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     Int_t comp = 0;
 
     myEvent ev;
-    allocateEvent(&ev, maxchan);
+  //  allocateEvent(&ev, maxchan);
 
 
     char rootFileName[130];
@@ -177,13 +177,13 @@ int main(int argc, char* argv[]) {
 
     Tset->Branch("description", cset.description, "description/C");
 
-    sprintf(branchDef, "Voltage[%d]/F", maxchan);
+    sprintf(branchDef, "Voltage[%d]/F", SANTA_MAX);
     Tset->Branch("Voltage", cset.voltage, branchDef);
 
-    sprintf(branchDef, "PMT_ID[%d]/I", maxchan);
+    sprintf(branchDef, "PMT_ID[%d]/I", SANTA_MAX);
     Tset->Branch("PMT_ID", cset.PmtID, branchDef);
 
-    sprintf(branchDef, "threshold[%d]/F", maxchan);
+    sprintf(branchDef, "threshold[%d]/F", SANTA_MAX);
     Tset->Branch("threshold", cset.thresh, branchDef);
 
     // f1->cd();
@@ -212,10 +212,10 @@ int main(int argc, char* argv[]) {
 
 
 
-    sprintf(branchDef, "time_array[%d][1024]/F", maxchan);
+    sprintf(branchDef, "time_array[%d][1024]/F", SANTA_MAX);
     TBranch * b_time_array = tree->Branch("time_array", &ev.time_array[0][0], branchDef);
 
-    sprintf(branchDef, "wave_array[%d][1024]/F", maxchan);
+    sprintf(branchDef, "wave_array[%d][1024]/F", SANTA_MAX);
     TBranch * b_wave_array = tree->Branch("wave_array", &ev.wave_array[0][0], branchDef);
 
 

@@ -48,6 +48,8 @@
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024
+#define SANTA_MAX 50
+
 #define MAXCH 4
 #define DELAY 1160 //da cambiare se si usa un rate di acquisizione diverso
 #define RATE 0.7 //da cambiare se si usa un rate di acquisizione diverso
@@ -62,17 +64,17 @@ struct myEvent {
      */
     int eventID;
     int trigCH;
-    float** time_array;
-    float** wave_array;
+    float time_array[SANTA_MAX][N_SAMPLES];
+    float wave_array[SANTA_MAX][N_SAMPLES];
 };
 
 struct mySetting {
     char date[STR_LENGTH];
     int Nchan;
     int deltaT;
-    float * voltage;
-    int * PmtID;
-    float * thresh;
+    float  voltage[SANTA_MAX];
+    int  PmtID[SANTA_MAX];
+    float thresh[SANTA_MAX];
     int triggerSetting;
     int delayns;
     char description[10 * STR_LENGTH];
@@ -88,38 +90,40 @@ struct peak {
 };
 
 void allocateSetting(struct mySetting* st, int NCHAN) {
-
-    st->voltage = (float*) malloc(NCHAN * sizeof (st->voltage));
-    st->PmtID = (int*) malloc(NCHAN * sizeof (st->PmtID));
-    st->thresh = (float*) malloc(NCHAN * sizeof (st->thresh));
-
-    if (st->voltage == NULL || st->PmtID == NULL || st->thresh == NULL) {
-        printf("Errore allocazione memoria setting. %s\n", ERROR_CRUCIAL);
-        exit(-1);
-    }
-
+//
+//    st->voltage = (float*) malloc(NCHAN * sizeof (st->voltage));
+//    st->PmtID = (int*) malloc(NCHAN * sizeof (st->PmtID));
+//    st->thresh = (float*) malloc(NCHAN * sizeof (st->thresh));
+//
+//    if (st->voltage == NULL || st->PmtID == NULL || st->thresh == NULL) {
+//        printf("Errore allocazione memoria setting. %s\n", ERROR_CRUCIAL);
+//        exit(-1);
+//    }
+// Santizzato
+    
+    
 }
 
 void allocateEvent(struct myEvent* ev, int NCHAN) {
 
-    ev->time_array = (float**) malloc(NCHAN * sizeof (float*));
-    ev->wave_array = (float**) malloc(NCHAN * sizeof (float*));
-
-    int i;
-    for (i = 0; i < NCHAN; i++) {
-        ev->time_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
-        ev->wave_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
-    }
-
-    if (ev->time_array == NULL || ev->wave_array == NULL) {
-        printf("Errore allocazione memoria event. %s\n", ERROR_CRUCIAL);
-        exit(-1);
-    }
-    //    int fotodilollo[4][1024];
-    //        int fotodilollo2[4][1024];
-    //    ev->time_array = (float**)fotodilollo;
-    //    ev->wave_array =  (float**)fotodilollo2;
-
+//    ev->time_array = (float**) malloc(NCHAN * sizeof (float*));
+//    ev->wave_array = (float**) malloc(NCHAN * sizeof (float*));
+//
+//    int i;
+//    for (i = 0; i < NCHAN; i++) {
+//        ev->time_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
+//        ev->wave_array[i] = (float*) malloc(N_SAMPLES * sizeof (float));
+//    }
+//
+//    if (ev->time_array == NULL || ev->wave_array == NULL) {
+//        printf("Errore allocazione memoria event. %s\n", ERROR_CRUCIAL);
+//        exit(-1);
+//    }
+//    //    int fotodilollo[4][1024];
+//    //        int fotodilollo2[4][1024];
+//    //    ev->time_array = (float**)fotodilollo;
+//    //    ev->wave_array =  (float**)fotodilollo2;
+//    Santizzato
 }
 
 std::string appendToRootFilename(const char* filename, const char* suffix) {

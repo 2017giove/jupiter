@@ -142,7 +142,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     mySetting_print(st);
 
     struct myEvent temp;
-    allocateEvent(&temp,st.Nchan);
+    //allocateEvent(&temp,st.Nchan);
 
     TTree* t1 = (TTree*) f->Get("t1");
     Nentries = t1->GetEntries();
