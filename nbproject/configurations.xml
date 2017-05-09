@@ -58,10 +58,11 @@
       </toolsSet>
       <flagsDictionary>
         <element flagsID="0" commonFlags="-O2"/>
-        <element flagsID="1" commonFlags="-O2 -std=c++11 -m64"/>
-        <element flagsID="2" commonFlags="-g -O2"/>
-        <element flagsID="3" commonFlags="-std=c++11"/>
-        <element flagsID="4" commonFlags="-std=c++14"/>
+        <element flagsID="1" commonFlags="-O2 -m64"/>
+        <element flagsID="2" commonFlags="-O2 -std=c++11 -m64"/>
+        <element flagsID="3" commonFlags="-g -O2"/>
+        <element flagsID="4" commonFlags="-std=c++11"/>
+        <element flagsID="5" commonFlags="-std=c++14"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -95,8 +96,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -111,7 +112,7 @@
         </ccTool>
       </item>
       <item path="src/ChargeHist.cpp" ex="false" tool="1" flavor2="11">
-        <ccTool flags="4">
+        <ccTool flags="5">
           <incDir>
             <pElem>../../root/include</pElem>
             <pElem>../../root/lib</pElem>
@@ -131,8 +132,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -158,8 +159,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -178,8 +179,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -198,8 +199,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -218,8 +219,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -238,8 +239,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -258,8 +259,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -293,8 +294,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -313,8 +314,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -333,8 +334,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -353,8 +354,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -388,8 +389,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -404,7 +405,7 @@
         </ccTool>
       </item>
       <item path="src/Waveform.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="1">
+        <ccTool flags="2">
           <incDir>
             <pElem>../../root/include</pElem>
             <pElem>../../root/lib</pElem>
@@ -430,8 +431,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -480,7 +481,7 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>../../root/include</pElem>
+            <pElem>/usr/local/include/root</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -492,7 +493,7 @@
         </ccTool>
       </item>
       <item path="src/drs_jupiter.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="3">
+        <ccTool flags="4">
           <incDir>
             <pElem>/usr/local/include/root</pElem>
             <pElem>src</pElem>
@@ -514,7 +515,7 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>../../root/include</pElem>
+            <pElem>/usr/local/include/root</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -545,8 +546,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -561,11 +562,11 @@
         </ccTool>
       </item>
       <item path="src/musbstd.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="2">
+        <cTool flags="3">
         </cTool>
       </item>
       <item path="src/mxml.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="2">
+        <cTool flags="3">
         </cTool>
       </item>
       <item path="src/rb.cpp" ex="false" tool="1" flavor2="8">
@@ -573,8 +574,8 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>/usr/local/include</pElem>
-            <pElem>/usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-3.0</pElem>
-            <pElem>/usr/include/wx-3.0</pElem>
+            <pElem>/usr/local/lib/wx/include/gtk2-unicode-3.0</pElem>
+            <pElem>/usr/local/include/wx-3.0</pElem>
             <pElem>.</pElem>
           </incDir>
           <preprocessorList>
@@ -589,11 +590,11 @@
         </ccTool>
       </item>
       <item path="src/strlcpy.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="2">
+        <cTool flags="3">
         </cTool>
       </item>
       <item path="src/volt_fit.cpp" ex="false" tool="1" flavor2="11">
-        <ccTool flags="4">
+        <ccTool flags="5">
           <incDir>
             <pElem>../../root/include</pElem>
           </incDir>

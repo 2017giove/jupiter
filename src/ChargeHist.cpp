@@ -119,7 +119,7 @@ void MakeChargeHist(const char* fileIN) {
         TH1D *h1 = new TH1D(tname, "Istogramma energia", NBIN, QMIN, QMAX);
 
         sprintf(tname, "hbase%d", cPMT);
-        TH1D *hbase = new TH1D(tname, "Istogramma baseline", NBIN, QMIN, QMAX);
+        TH1D *hbase = new TH1D(tname, "Istogramma baseline", NBIN, -QMAX/10, QMAX/10);
 
         for (i = 0; i < Nentries; i++) {
             t1->GetEntry(i);

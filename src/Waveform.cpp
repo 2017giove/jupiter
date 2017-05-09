@@ -12,10 +12,9 @@
 #include <stdio.h>
 
 int FittingStartBin(float threshold, TH1F * hist);
-void MakeWaveform(const char* fileIN);
 void Waveform();
-void MakeWaveform(const char* fileIN);
-void Waveform(std::string _fileIN);
+void MakeWaveform(const char* fileIN, int PMTid = -1);
+//void Waveform(std::string _fileIN);
 void RawWave(const char * fileIN, const char *fileOUT);
 
 int FittingStartBin(float threshold, TH1F * hist) {
@@ -33,18 +32,18 @@ int FittingStartBin(float threshold, TH1F * hist) {
     }
 }
 
-void Waveform() {
+void Waveform(int PMTid) {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
-    MakeWaveform(f->GetName());
+    MakeWaveform(f->GetName(), PMTid);
 
 }
 
-void Waveform(std::string _fileIN) {
-    const char* fileIN = _fileIN.c_str();
-    MakeWaveform(fileIN);
-}
+//void Waveform(std::string _fileIN) {
+//    const char* fileIN = _fileIN.c_str();
+//    MakeWaveform(fileIN);
+//}
 
-void MakeWaveform(const char* fileIN) {
+void MakeWaveform(const char* fileIN, int PMTid) {
 
     char histOUT[STR_LENGTH];
     std::strcpy(histOUT, appendToRootFilename(fileIN, "wave").c_str());
@@ -52,7 +51,7 @@ void MakeWaveform(const char* fileIN) {
 
     if (!f || f->IsZombie()) {
         printf("The file is being processed. You may go to sleep in the meanwhile\n");
-        RawWave(fileIN, histOUT);
+        RawWave(fileIN, histOUT, PMTid);
         f = TFile::Open(histOUT);
     }
 
@@ -67,7 +66,6 @@ void MakeWaveform(const char* fileIN) {
 
 
     printf("Gli istogrammi sono stati salvati ma non verrano visualizzati ora.\nVedi come cambia l'ottica?\n");
-
 
     //
     //    c2->cd();
@@ -84,9 +82,12 @@ void MakeWaveform(const char* fileIN) {
 
 }
 
-void RawWave(const char * fileIN, const char *fileOUT) {
+void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
+
+    char tname[STR_LENGTH];
 
     TFile* f = TFile::Open(fileIN);
+
     TTree* t1 = (TTree*) f->Get("t1");
     TTree* tset = (TTree*) f->Get("tset");
 
@@ -94,9 +95,14 @@ void RawWave(const char * fileIN, const char *fileOUT) {
     mySetting_get(tset, &st);
     mySetting_print(st);
 
+    int CH = PMTtoCH(PMTid, &st);
+    if (CH == NOT_FOUND_INT) {
+        printf("PMT non nel file. %s\n", ERROR_FISHERMAN);
+    }
+
 
     struct myEvent ev;
-   // allocateEvent(&ev,st.Nchan );
+    // allocateEvent(&ev,st.Nchan );
     t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
     TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
@@ -127,9 +133,9 @@ void RawWave(const char * fileIN, const char *fileOUT) {
         gf->SetParameter(4, 1620);
         gf->SetParameter(5, 220);
 
-        
+
         for (int k = 0; k < 1024; k++) {
-            histo_ch1->SetBinContent(k,  ev.wave_array[0][k]);
+            histo_ch1->SetBinContent(k, ev.wave_array[CH][k]);
         }
 
         TH1F *temp = (TH1F*) histo_ch1->Clone("GrongoHist");
@@ -139,9 +145,9 @@ void RawWave(const char * fileIN, const char *fileOUT) {
         }
 
         // se vuoi velocizzare parti da start=(N_SAMPLES - (int) (delay * RATE))
-        temp->Fit(gf, "Q", "", FittingStartBin(st.thresh[0], histo_ch1), N_SAMPLES);
+        temp->Fit(gf, "Q", "", FittingStartBin(st.thresh[CH], histo_ch1), N_SAMPLES);
 
-        if (jentry % 5000 == 0) {
+        if (jentry % 500 == 0) {
             showHist = (TH1F*) histo_ch1->Clone("GrongoWave");
             showFit = (TF1*) gf->Clone("GrongoCurve");
             printf("Pesco un granchio...\n");

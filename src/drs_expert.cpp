@@ -104,8 +104,7 @@ int main(int argc, char* argv[]) {
 
     char *fileName = argv[1];
 
-    time_t deltaT = atoi(argv[2]);
-
+    cset.deltaT = atoi(argv[2]);
 
     cset.Nchan = maxchan;
     cset.delayns = atoi(argv[4]);
@@ -140,7 +139,7 @@ int main(int argc, char* argv[]) {
 
     /* Apertura files e creazione albero */
     TFile * f1;
-    Int_t comp = 0;
+    Int_t comp = 4;
 
     myEvent ev;
     allocateEvent(&ev, maxchan);
@@ -285,7 +284,7 @@ int main(int argc, char* argv[]) {
 
     // Ciclo Eventi - Acquisizione per un intervallo di tempo deltaT
     totevents = 0;
-    while ((time(0) - t0) < deltaT) {
+    while ((time(0) - t0) < cset.deltaT) {
         /* start board (activate domino wave) */
         b->StartDomino();
 
@@ -328,8 +327,9 @@ int main(int argc, char* argv[]) {
 
 
         /* print some progress indication */
-        printf("%d ev - %d sec rem.", totevents, deltaT - (time(0) - t0));
-        printStatus(((float) time(0) - (float) t0) / ((float) deltaT));
+        printf("%d ev - %d sec rem.", totevents, cset.deltaT - (time(0) - t0));
+        //printf("\n%d %d %f\n",cset.deltaT, (time(0)-t0),(float)((time(0) - t0) / (float)cset.deltaT));
+        printStatus( (float)((time(0) - t0) / (float)cset.deltaT));
 
         totevents++;
     }

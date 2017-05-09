@@ -35,6 +35,7 @@
 #define PLOTS_TITLE "Fisherman's Plot"
 #define ERROR_CRUCIAL "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
 #define ERROR_DEEPER "THERE IS A PROBLEM AND IT IS DEEPER."
+#define ERROR_FISHERMAN "We did not find what you were looking for: the fish escaped the net."
 #define NOT_FOUND_INT -241
 #define NOT_CARING_INT 433
 #define NOT_CARING_STRING "Blessed are they who hold lively conversations with the helplessly mute, for they shall be called dentists."
