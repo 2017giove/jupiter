@@ -9,7 +9,6 @@
 
 #include "WaveAnalysis.h"
 
-
 /**
  * Esegue il fit lineare di un file nel formato
  * TENSIONE     POSIZIONE_PICCO     ERRORE_TENSIONE     ERRORE_POSIZIONE_PICCO
@@ -27,6 +26,7 @@ void volt_fit(char * peaksfile) {
     const int n = 50;
     Double_t voltage[n];
     Double_t peakpos[n];
+    Double_t esfpeakpos[n];
     Double_t err_voltage[n];
     Double_t err_peakpos[n];
     int i = 0;
@@ -35,10 +35,12 @@ void volt_fit(char * peaksfile) {
         std::istringstream strm(myline);
         if ((strm >> voltage[i] >> peakpos[i] >> err_voltage[i] >> err_peakpos[i])) {
             std::cout << i << " " << voltage[i] << " " << peakpos[i] << " " << err_voltage[i] << " " << err_peakpos[i] << std::endl;
+            esfpeakpos[i] = peakpos[i];
             peakpos[i] = TMath::Log10(peakpos[i]);
+
             err_peakpos[i] = TMath::Log10(err_peakpos[i]);
             i++;
-            
+
         } else {
             printf("(riga ignorata)\n");
         }
@@ -67,7 +69,25 @@ void volt_fit(char * peaksfile) {
     fit_function->SetLineWidth(1);
     fit_function->Draw("Same");
     //gROOT->SetStyle("Plain");
-    gStyle->SetOptFit(1111);
+    //gStyle->SetOptFit(1111);
+
+    TCanvas *c401 = new TCanvas("c401", PLOTS_TITLE, 640, 480);
+    TGraph* mygraph2 = new TGraph(i, voltage, esfpeakpos);
+    
+        mygraph2->SetTitle("Calibrazione");
+    mygraph2->GetXaxis()->SetTitle("Tensione PMT [V]");
+    mygraph2->GetYaxis()->SetTitle("Posizione picco[adc count] ");
+
+    mygraph2->SetMarkerColor(4);
+    mygraph2->SetMarkerStyle(20);
+    mygraph2->SetMarkerSize(1);
+    mygraph2->Draw("AP");
+    
+    TF1* fit_function2 = new TF1("rett2", "TMath::Exp([0]*x+[1])", 1000, 2000);
+    fit_function2->SetParameter(0, fit_function->GetParameter(0));
+    fit_function2->SetParameter(1, fit_function->GetParameter(1));
+
+    fit_function2->Draw("Same");
 
     std::cout << fit_function->GetChisquare() << std::endl;
 }

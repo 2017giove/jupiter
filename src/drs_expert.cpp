@@ -74,6 +74,7 @@
 using namespace std;
 
 /*------------------------------------------------------------------*/
+float getTriggerSource(myEvent *ev, mySetting *st );
 
 int main(int argc, char* argv[]) {
 
@@ -108,16 +109,14 @@ int main(int argc, char* argv[]) {
 
     cset.Nchan = maxchan;
     cset.delayns = atoi(argv[4]);
-    cset.thresh[0] = -atof(argv[5]);
-    //cset.thresh = -100.; //2*Voltage*THRESH/1200;
-
     int triggerSource = atoi(argv[6]);
-    cset.voltage[0] = atof(argv[7]);
-    cset.PmtID[0] = atoi(argv[8]);
 
     printf("Canali da acquisire\n");
 
     for (i = 0; i < maxchan; i++) {
+        cset.thresh[i] = -atof(argv[5]);
+        //cset.thresh = -100.; //2*Voltage*THRESH/1200;
+        cset.voltage[i] = atof(argv[7]);
         cset.PmtID[i] = atoi(argv[i + 8]);
         printf("%d\n", cset.PmtID[i]);
     }
@@ -273,10 +272,19 @@ int main(int argc, char* argv[]) {
     /* use following lines to set individual trigger elvels */
     b->SetIndividualTriggerLevel(1, cset.thresh[0] / 1000.);
     b->SetIndividualTriggerLevel(2, cset.thresh[0] / 1000.);
-
+    b->SetIndividualTriggerLevel(3, cset.thresh[0] / 1000.);
     /*setta la sorgente del trigger in codice binario
      es: CH1=1 CH2=2 CH3=4, CH1_OR_CH2 = 3*/
-    b->SetTriggerSource(triggerSource); //fallo piu esperto
+    /*
+       AND  OR
+     * 0000 0000
+     * 
+     *      0001
+     * 0101 0000
+     */
+
+    //  b->SetTriggerSource(triggerSource); //fallo piu esperto
+    b->SetTriggerSource(triggerSource);
     b->SetTriggerDelayNs(cset.delayns); // ns trigger delay
 
     t0 = time(0);
@@ -301,7 +309,6 @@ int main(int argc, char* argv[]) {
         for (int ch = 0; ch < maxchan; ch++) {
 
             ev.eventID = totevents;
-
             //mettere TRIGch IN QUALCHE MODO <<<<<
 
             /* read time (X) array of first channel in ns
@@ -310,9 +317,15 @@ int main(int argc, char* argv[]) {
                get the input #2 we have to read DRS channel #2, not #1.
              */
             b->GetTime(0, 2 * ch, b->GetTriggerCell(0), ev.time_array[ch]);
-
             /* decode waveform (Y) array of first channel in mV */
             b->GetWave(0, 2 * ch, ev.wave_array[ch]);
+//            printf("Lollo voleva dire min %f\n", min_element(ev.wave_array[ch], ev.wave_array[ch] + 1024));
+//            printf("Lollo dice maxmin %f\n", cset.thresh[i]);
+//            float* santanas = (float*)min_element(&ev.wave_array[ch][0], &ev.wave_array[ch][0] + 1024);
+//            if (&santanas < cset.thresh[i]) {
+//                ev.trigCH = ch;
+//            }
+            
         }
 
 
@@ -329,12 +342,17 @@ int main(int argc, char* argv[]) {
         /* print some progress indication */
         printf("%d ev - %d sec rem.", totevents, cset.deltaT - (time(0) - t0));
         //printf("\n%d %d %f\n",cset.deltaT, (time(0)-t0),(float)((time(0) - t0) / (float)cset.deltaT));
-        printStatus( (float)((time(0) - t0) / (float)cset.deltaT));
+        printStatus((float) ((time(0) - t0) / (float) cset.deltaT));
 
         totevents++;
     }
 
-
+//    for (int k=0; k < cset.Nchan; k++) {
+//        
+//        
+//        
+//        ev.trigCH[k] = getTriggerSource(&ev,&cset);
+//    }
 
     f1->Write();
     f1->Close();
@@ -345,4 +363,32 @@ int main(int argc, char* argv[]) {
 
     /* delete DRS object -> close USB connection */
     delete drs;
+}
+
+float getTriggerSource(myEvent *ev, mySetting *st ){
+    int i;
+    int j;
+    float santamax[SANTA_MAX]={0};
+    float santaI[SANTA_MAX]={0};
+    for (i=0;i<st->Nchan;i++ ){
+        j=0;
+        while(santamax[i] > st->thresh[i]){
+            santamax[i] = ev->wave_array[i][j];
+            santaI[i]=j;
+            j++;
+        }
+        //printf("Santa came from %f", santamax[i]);
+        
+    }
+    
+    float nastasiomax = N_SAMPLES;
+    float nastasioI = 0;
+    for (i=0;i<st->Nchan;i++){
+        if (santaI[i]< nastasiomax){
+            nastasiomax = santaI[i];
+            nastasioI= i;
+        }
+    }
+   // printf("Santa came from %f", nastasiomax);
+    return nastasioI;
 }

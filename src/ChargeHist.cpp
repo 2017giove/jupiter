@@ -102,7 +102,7 @@ void MakeChargeHist(const char* fileIN) {
     TCanvas *c40 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
 
     for (CH = 0; CH < st.Nchan; CH++) {
-        cPMT=   CHtoPMT(CH,&st);
+        cPMT = CHtoPMT(CH, &st);
         sprintf(tname, "t%d", cPMT);
         t1 = (TTree*) f->Get(tname);
         sprintf(tname, "tbase%d", cPMT);
@@ -119,7 +119,7 @@ void MakeChargeHist(const char* fileIN) {
         TH1D *h1 = new TH1D(tname, "Istogramma energia", NBIN, QMIN, QMAX);
 
         sprintf(tname, "hbase%d", cPMT);
-        TH1D *hbase = new TH1D(tname, "Istogramma baseline", NBIN, -QMAX/10, QMAX/10);
+        TH1D *hbase = new TH1D(tname, "Istogramma baseline", NBIN, -QMAX / 10, QMAX / 10);
 
         for (i = 0; i < Nentries; i++) {
             t1->GetEntry(i);
@@ -177,10 +177,10 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     TTree* tset1 = (TTree*) f->Get("tset");
     mySetting st;
     mySetting_get(tset1, &st);
-    
-    int cPMT = CHtoPMT(CH,&st);
-    
-    
+
+    int cPMT = CHtoPMT(CH, &st);
+
+
     struct myEvent temp;
     //allocateEvent(&temp,st.Nchan);
     TTree* t1 = (TTree*) f->Get("t1");
@@ -200,18 +200,24 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-        Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
-        Integral = Wave.Integral();
-        BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
-        Integral -= BaseIntegral;
 
-        Tspectrum->Fill();
-        Tbaseline->Fill();
-        printf("CH %d (PMT %d) ", CH,cPMT);
-        printf("%d/%d ", i, Nentries);
-        printStatus((float) i / (float) Nentries);
+//        if (temp.trigCH = i) {
+
+            Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
+            Integral = Wave.Integral();
+            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
+            Integral -= BaseIntegral;
+
+            Tspectrum->Fill();
+            Tbaseline->Fill();
+            printf("CH %d (PMT %d) ", CH, cPMT);
+            printf("%d/%d ", i, Nentries);
+            printStatus((float) i / (float) Nentries);
+
+//        }
+
     }
-    printf("CH %d (PMT %d) completed\n", CH,cPMT);
+    printf("CH %d (PMT %d) completed\n", CH, cPMT);
 
     FOut->cd();
     Tspectrum->Write();

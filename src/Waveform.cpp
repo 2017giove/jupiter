@@ -110,8 +110,11 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
 
 
     TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", 1024, 0, N_SAMPLES);
+    
     TH1F *histo_max = new TH1F("histo_max", "Istogramma dei massimi", 500, 0, 5024);
 
+ //       TH2F *histo_big = new TH2F("histo_big", "Forma dei segnali", 1024, 0, nentries, N_SAMPLES);
+    
     TH1F *showHist;
     TF1 *showFit;
 

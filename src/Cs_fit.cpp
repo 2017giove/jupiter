@@ -115,7 +115,7 @@ struct peak Cs_fit(TH1D* h1) {
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
     int maxBin = GetMaximumBin(h1, 5. / step, nBins);
-    float Xmax = maxBin*step;
+    float Xmax = 80.;//maxBin*step;
     float Xwindow = 3.8; // larghezza su cui eseguire il fit gaussiano rispetto a xmax rilevato
     float Ymax = h1->GetBinContent(maxBin);
 
