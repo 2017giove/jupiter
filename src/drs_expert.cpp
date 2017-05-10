@@ -319,19 +319,8 @@ int main(int argc, char* argv[]) {
             b->GetTime(0, 2 * ch, b->GetTriggerCell(0), ev.time_array[ch]);
             /* decode waveform (Y) array of first channel in mV */
             b->GetWave(0, 2 * ch, ev.wave_array[ch]);
-//            printf("Lollo voleva dire min %f\n", min_element(ev.wave_array[ch], ev.wave_array[ch] + 1024));
-//            printf("Lollo dice maxmin %f\n", cset.thresh[i]);
-//            float* santanas = (float*)min_element(&ev.wave_array[ch][0], &ev.wave_array[ch][0] + 1024);
-//            if (&santanas < cset.thresh[i]) {
-//                ev.trigCH = ch;
-//            }
-            
+
         }
-
-
-
-
-
 
 
         // f1[i] = tree[i]->GetCurrentFile();
@@ -347,13 +336,15 @@ int main(int argc, char* argv[]) {
         totevents++;
     }
 
-//    for (int k=0; k < cset.Nchan; k++) {
-//        
-//        
-//        
-//        ev.trigCH[k] = getTriggerSource(&ev,&cset);
-//    }
-
+    
+    
+    for (i=0;i<tree->GetEntries();i++){
+        tree->GetEntry(i);
+        ev.trigCH = getTriggerSource(ev,cset);
+        b_trigId->Fill();
+    }
+    
+    
     f1->Write();
     f1->Close();
 
@@ -365,6 +356,15 @@ int main(int argc, char* argv[]) {
     delete drs;
 }
 
+
+//da velocizzare utilizzado la funzioen GetMaximum al posto di fare tutti questi loop;
+//            printf("Lollo voleva dire min %f\n", min_element(ev.wave_array[ch], ev.wave_array[ch] + 1024));
+//            printf("Lollo dice maxmin %f\n", cset.thresh[i]);
+//            float* santanas = (float*)min_element(&ev.wave_array[ch][0], &ev.wave_array[ch][0] + 1024);
+//            if (&santanas < cset.thresh[i]) {
+//                ev.trigCH = ch;
+//            }
+            
 float getTriggerSource(myEvent *ev, mySetting *st ){
     int i;
     int j;

@@ -6,16 +6,22 @@
  * 
  */
 
+#ifndef J_WAVEFORM
+
+#define J_WAVEFORM 
+
 #include "WaveAnalysis.h"
 
 #include <string.h>
 #include <stdio.h>
 
 int FittingStartBin(float threshold, TH1F * hist);
-void Waveform();
+void Waveform(int PMTid);
 void MakeWaveform(const char* fileIN, int PMTid = -1);
 //void Waveform(std::string _fileIN);
 void RawWave(const char * fileIN, const char *fileOUT);
+void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid);
+TH1F* plotWaveFromCharge(const char * fileIN, int PMTid, float charge);
 
 int FittingStartBin(float threshold, TH1F * hist) {
     int i;
@@ -52,7 +58,9 @@ void MakeWaveform(const char* fileIN, int PMTid) {
     if (!f || f->IsZombie()) {
         printf("The file is being processed. You may go to sleep in the meanwhile\n");
         RawWave(fileIN, histOUT, PMTid);
-        f = TFile::Open(histOUT);
+
+       // DrawWaveSplot(fileIN, histOUT, PMTid);
+        //f = TFile::Open(histOUT);
     }
 
     //    TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
@@ -79,6 +87,138 @@ void MakeWaveform(const char* fileIN, int PMTid) {
     //    c2->Update();
 
 
+
+}
+
+void plotWaveStepCharge() {
+    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+    char fileOUT[STR_LENGTH];
+    std::strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
+    TFile *FOut = new TFile(fileOUT, "UPDATE");
+    int i, j;
+
+    TH1F *histo_ch1;
+    TTree* tset = (TTree*) f->Get("tset");
+    char tname [STR_LENGTH];
+    struct mySetting st;
+    mySetting_get(tset, &st);
+    mySetting_print(st);
+    for (j = 0; j < st.Nchan; j++) {
+        for (i = 5; i < 150; i += 10) {
+            histo_ch1 = plotWaveFromCharge(f->GetName(), st.PmtID[j], i);
+            sprintf(tname, "cwave%d_%d", j, i);
+            FOut->cd();
+            histo_ch1->SetName(tname);
+            histo_ch1->Write();
+        }
+    }
+    FOut->Close();
+}
+
+void plotWaveFromCharge_show(const char * fileIN, int PMTid, float charge) {
+    TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
+    TH1F *histo_ch1 = plotWaveFromCharge(fileIN, PMTid, charge);
+    histo_ch1->Draw();
+}
+
+TH1F* plotWaveFromCharge(const char * fileIN, int PMTid, float charge) {
+
+    TFile* f = TFile::Open(fileIN);
+
+    TTree* t1 = (TTree*) f->Get("t1");
+    TTree* tset = (TTree*) f->Get("tset");
+
+    struct mySetting st;
+    mySetting_get(tset, &st);
+    mySetting_print(st);
+
+    int CH = PMTtoCH(PMTid, &st);
+    if (CH == NOT_FOUND_INT) {
+        printf("PMT non nel file. %s\n", ERROR_FISHERMAN);
+    }
+
+
+    int jentry;
+    struct myEvent temp;
+    int nentries = t1->GetEntries();
+    t1->SetBranchAddress("wave_array", temp.wave_array);
+    t1->SetBranchAddress("time_array", temp.time_array);
+
+    float Integral, BaseIntegral, Max;
+    WaveForm Wave;
+
+    //TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
+    TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", N_SAMPLES, 0, N_SAMPLES);
+
+    for (jentry = 0; jentry < nentries; jentry++) {
+        t1->GetEntry(jentry);
+        Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
+        Integral = Wave.Integral();
+        BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
+        Integral -= BaseIntegral;
+        if (Integral > charge * 0.9 && Integral < charge * 1.1) {
+            for (int k = 0; k < 1024; k++) {
+                histo_ch1->SetBinContent(k, temp.wave_array[CH][k]);
+            }
+
+            //histo_ch1->Draw();
+            printf("Do you want some more imgurs?\n");
+            return histo_ch1;
+        }
+
+    }
+    printf("I'm sorry but i could not find any waveform with such a charge.\n%s", ERROR_FISHERMAN);
+    return histo_ch1;
+}
+
+void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid) {
+    TFile* f = TFile::Open(fileIN);
+
+    TTree* t1 = (TTree*) f->Get("t1");
+    TTree* tset = (TTree*) f->Get("tset");
+
+    struct mySetting st;
+    mySetting_get(tset, &st);
+    mySetting_print(st);
+
+    int CH = PMTtoCH(PMTid, &st);
+    if (CH == NOT_FOUND_INT) {
+        printf("PMT non nel file. %s\n", ERROR_FISHERMAN);
+    }
+
+    struct myEvent ev;
+    t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
+
+    int nentries = t1->GetEntries();
+    int jentry;
+
+    TFile *FOut = new TFile(fileOUT, "UPDATE");
+
+    TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
+    TGraph2D *splot = new TGraph2D(nentries * N_SAMPLES); //"histo_ch1", "Forma del segnale", N_SAMPLES, 50, 500, nentries/1000, 50, 500
+    splot->GetXaxis()->SetRange(0, 1024);
+    splot->GetYaxis()->SetRange(0, nentries);
+    splot ->GetZaxis()->SetRange(2000, -2000);
+    printf("Scrittura in corso\n");
+    int s = 0;
+    FILE* santanas = fopen("santanas.jpt", "w");
+    for (jentry = 0; jentry < nentries; jentry++) {
+        t1->GetEntry(jentry);
+        for (int k = 0; k < N_SAMPLES; k++) {
+            splot->SetPoint(s++, k, jentry, ev.wave_array[CH][k]);
+            fprintf(santanas, "%d\t%d\t%f\n", k, jentry, ev.wave_array[CH][k]);
+            //printf("%f\n", ev.wave_array[CH][k]);
+        }
+        printf("%d/%d\n", jentry, nentries);
+    }
+    fclose(santanas);
+    gStyle->SetPalette(1);
+    splot->Print();
+    // splot->Draw("");
+
+    splot->Write();
+
+    FOut->Close();
 
 }
 
@@ -109,17 +249,13 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
     TCanvas *c2 = new TCanvas("cB", PLOTS_TITLE, 640, 480);
 
 
-    TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", 1024, 0, N_SAMPLES);
-    
+    TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", N_SAMPLES, 0, N_SAMPLES);
     TH1F *histo_max = new TH1F("histo_max", "Istogramma dei massimi", 500, 0, 5024);
 
- //       TH2F *histo_big = new TH2F("histo_big", "Forma dei segnali", 1024, 0, nentries, N_SAMPLES);
-    
     TH1F *showHist;
     TF1 *showFit;
 
     TFile *FOut = new TFile(fileOUT, "RECREATE");
-
 
     int nentries = t1->GetEntries();
     int minimo;
@@ -135,7 +271,6 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
         gf->SetParameter(3, 220);
         gf->SetParameter(4, 1620);
         gf->SetParameter(5, 220);
-
 
         for (int k = 0; k < 1024; k++) {
             histo_ch1->SetBinContent(k, ev.wave_array[CH][k]);
@@ -176,3 +311,6 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
     histo_max ->Write();
     FOut->Write();
 }
+
+
+#endif

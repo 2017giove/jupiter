@@ -17,6 +17,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1.h"
+#include "TGraph2D.h"
 #include "TROOT.h"
 #include "TF1.h"
 #include "TMath.h"

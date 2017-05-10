@@ -36,9 +36,9 @@ void volt_fit(char * peaksfile) {
         if ((strm >> voltage[i] >> peakpos[i] >> err_voltage[i] >> err_peakpos[i])) {
             std::cout << i << " " << voltage[i] << " " << peakpos[i] << " " << err_voltage[i] << " " << err_peakpos[i] << std::endl;
             esfpeakpos[i] = peakpos[i];
-            peakpos[i] = TMath::Log10(peakpos[i]);
+            peakpos[i] = TMath::Log(peakpos[i]);
 
-            err_peakpos[i] = TMath::Log10(err_peakpos[i]);
+            err_peakpos[i] = TMath::Log(err_peakpos[i]);
             i++;
 
         } else {
