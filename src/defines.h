@@ -62,7 +62,6 @@
 
 struct myEvent {
     /*
-     * Questa va modificata togliendo l'array in [MAXCH] e id[MAXCH] e channels, perchè non servono a nulla
      * Che altre informazioni servono?
      */
     int eventID;
@@ -81,7 +80,7 @@ struct mySetting {
     int triggerSetting;
     int delayns;
     char description[10 * STR_LENGTH];
-    //Aggiungere altri parametri rilevanti come deltaT, descrizione ...
+    //Aggiungere altri parametri rilevanti come...
 
 };
 

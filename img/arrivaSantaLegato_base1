@@ -1,0 +1,43 @@
+{
+//========= Macro generated from object: h1/Istogramma energia
+//========= by ROOT version6.08/06
+   
+   TH1D *h1__4 = new TH1D("h1__4","Istogramma energia",2000,0,200);
+   h1__4->SetBinContent(0,174);
+   h1__4->SetBinContent(1,439);
+   h1__4->SetBinContent(2,249);
+   h1__4->SetBinContent(3,112);
+   h1__4->SetBinContent(4,46);
+   h1__4->SetBinContent(5,31);
+   h1__4->SetBinContent(6,22);
+   h1__4->SetBinContent(7,17);
+   h1__4->SetBinContent(8,14);
+   h1__4->SetBinContent(9,7);
+   h1__4->SetBinContent(10,5);
+   h1__4->SetBinContent(11,6);
+   h1__4->SetBinContent(12,5);
+   h1__4->SetBinContent(27,1);
+   h1__4->SetBinContent(30,2);
+   h1__4->SetBinContent(31,1);
+   h1__4->SetBinContent(32,2);
+   h1__4->SetBinContent(407,1);
+   h1__4->SetEntries(1134);
+
+   ci = TColor::GetColor("#000099");
+   h1__4->SetLineColor(ci);
+   h1__4->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
+   h1__4->GetXaxis()->SetLabelFont(42);
+   h1__4->GetXaxis()->SetLabelSize(0.035);
+   h1__4->GetXaxis()->SetTitleSize(0.035);
+   h1__4->GetXaxis()->SetTitleFont(42);
+   h1__4->GetYaxis()->SetTitle("# eventi");
+   h1__4->GetYaxis()->SetLabelFont(42);
+   h1__4->GetYaxis()->SetLabelSize(0.035);
+   h1__4->GetYaxis()->SetTitleSize(0.035);
+   h1__4->GetYaxis()->SetTitleFont(42);
+   h1__4->GetZaxis()->SetLabelFont(42);
+   h1__4->GetZaxis()->SetLabelSize(0.035);
+   h1__4->GetZaxis()->SetTitleSize(0.035);
+   h1__4->GetZaxis()->SetTitleFont(42);
+   h1__4->Draw("");
+}

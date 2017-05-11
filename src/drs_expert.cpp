@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
     
     for (i=0;i<tree->GetEntries();i++){
         tree->GetEntry(i);
-        ev.trigCH = getTriggerSource(ev,cset);
+        ev.trigCH = getTriggerSource(&ev,&cset);
         b_trigId->Fill();
     }
     
