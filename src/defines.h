@@ -87,8 +87,10 @@ struct mySetting {
 
 struct peak {
     float resolution;
+    float sigmag;
     float err_resolution;
     float peakpos;
+    float peakvalue;
     float err_peakpos;
 };
 
@@ -98,7 +100,7 @@ void allocateSetting(struct mySetting* st, int NCHAN) {
         st->voltage[i] = NOT_CARING_INT;
         st->PmtID[i] = NOT_CARING_INT;
         st->thresh[i] = NOT_CARING_INT;
-        sprintf(st->description,"%s",NOT_CARING_STRING );
+        sprintf(st->description, "%s", NOT_CARING_STRING);
     }
     //
     //    st->voltage = (float*) malloc(NCHAN * sizeof (st->voltage));

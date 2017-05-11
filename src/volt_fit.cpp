@@ -27,19 +27,24 @@ void volt_fit(char * peaksfile) {
     Double_t voltage[n];
     Double_t peakpos[n];
     Double_t esfpeakpos[n];
-    Double_t err_voltage[n];
+    Double_t resolution[n];
     Double_t err_peakpos[n];
     int i = 0;
 
     while (std::getline(myfile1, myline)) {
         std::istringstream strm(myline);
-        if ((strm >> voltage[i] >> peakpos[i] >> err_voltage[i] >> err_peakpos[i])) {
-            std::cout << i << " " << voltage[i] << " " << peakpos[i] << " " << err_voltage[i] << " " << err_peakpos[i] << std::endl;
+        if ((strm >> voltage[i] >> peakpos[i] >> resolution[i] >> err_peakpos[i])) {
+            std::cout << i << " " << voltage[i] << " " << peakpos[i] << " " << resolution[i] << " " << err_peakpos[i] << std::endl;
             esfpeakpos[i] = peakpos[i];
             peakpos[i] = TMath::Log(peakpos[i]);
 
             err_peakpos[i] = TMath::Log(err_peakpos[i]);
-            i++;
+             i++;
+            if (resolution[i] < 0) {
+                printf("Il fit a %d volt sarà rigettato in acqua.\n%s\n", voltage[i], ERROR_FISHERMAN);
+                i--;
+            }
+
 
         } else {
             printf("(riga ignorata)\n");
@@ -49,6 +54,7 @@ void volt_fit(char * peaksfile) {
     TCanvas *c40 = new TCanvas("c40", PLOTS_TITLE, 640, 480);
     c40->SetFillColor(10);
     c40->SetGrid();
+    gStyle->SetOptFit(1111);
 
     TGraph* mygraph1 = new TGraph(i, voltage, peakpos);
     //    TGraphErrors* mygraph1 = new TGraphErrors(i, voltage, peakpos, err_voltage, err_peakpos);
@@ -73,8 +79,9 @@ void volt_fit(char * peaksfile) {
 
     TCanvas *c401 = new TCanvas("c401", PLOTS_TITLE, 640, 480);
     TGraph* mygraph2 = new TGraph(i, voltage, esfpeakpos);
-    
-        mygraph2->SetTitle("Calibrazione");
+
+
+    mygraph2->SetTitle("Calibrazione");
     mygraph2->GetXaxis()->SetTitle("Tensione PMT [V]");
     mygraph2->GetYaxis()->SetTitle("Posizione picco[adc count] ");
 
@@ -82,12 +89,29 @@ void volt_fit(char * peaksfile) {
     mygraph2->SetMarkerStyle(20);
     mygraph2->SetMarkerSize(1);
     mygraph2->Draw("AP");
-    
+
     TF1* fit_function2 = new TF1("rett2", "TMath::Exp([0]*x+[1])", 1000, 2000);
     fit_function2->SetParameter(0, fit_function->GetParameter(0));
     fit_function2->SetParameter(1, fit_function->GetParameter(1));
 
     fit_function2->Draw("Same");
+
+
+    TCanvas *c401 = new TCanvas("c402", PLOTS_TITLE, 640, 480);
+    TGraph* mygraph3 = new TGraph(i, voltage, resolution);
+
+    mygraph3->SetTitle("Calibrazione - Risoluzione");
+    mygraph3->GetXaxis()->SetTitle("Tensione PMT [V]");
+    mygraph3->GetYaxis()->SetTitle("Risoluzione [#sigma/E] ");
+
+    mygraph3->SetMarkerColor(4);
+    mygraph3->SetMarkerStyle(20);
+    mygraph3->SetMarkerSize(1);
+    mygraph3->Draw("AP");
+
+
+
+
 
     std::cout << fit_function->GetChisquare() << std::endl;
 }

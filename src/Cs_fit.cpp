@@ -58,8 +58,8 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     mypeak = Cs_fit(h1);
 
     std::ofstream savefile(wheretosave, std::ios_base::app);
-    savefile << st.voltage[CH] << " " << mypeak.peakpos << " " << 0 << " " << mypeak.err_peakpos << std::endl;
-    
+    savefile << st.voltage[CH] << " " << mypeak.peakpos << " " << mypeak.resolution << " " << mypeak.sigmag / mypeak.peakvalue << std::endl;
+
     delete c41;
 }
 
@@ -94,12 +94,13 @@ void Cs_fit() {
             std::string pmtname = myname.substr(myname.length() - 3);
             int PMTid = atoi(pmtname.c_str());
             sprintf(tname, "h%d", PMTid);
-            if (myname.compare(tname)) {
+            if (!myname.compare(tname)) {
+                //printf("\n\n%s\n%s\n", myname.c_str(), tname);
                 printf("Fit per il PMT %d\n", PMTid);
                 Cs_fit(h1);
                 h1->Write();
                 sprintf(tname, "img/%s_csfit%d.eps", filenameFromPath(sorgente_file->GetName()).c_str(), PMTid);
-                h1->Draw("");
+                // h1->Draw("");
                 c41->SaveAs(tname);
             }
         }
@@ -114,8 +115,9 @@ struct peak Cs_fit(TH1D* h1) {
 
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
+    printf("%f\n\n", step);
     int maxBin = GetMaximumBin(h1, 5. / step, nBins);
-    float Xmax = 80.;//maxBin*step;
+    float Xmax = maxBin*step; //80
     float Xwindow = 3.8; // larghezza su cui eseguire il fit gaussiano rispetto a xmax rilevato
     float Ymax = h1->GetBinContent(maxBin);
 
@@ -161,6 +163,7 @@ struct peak Cs_fit(TH1D* h1) {
     //      fsrc->SetParLimits(3, 0.9 * p2, 1.1 * p2);
     fsrc->SetParLimits(4, Ymax * 0.8, Ymax * 1.2); //OK!
     fsrc->SetParLimits(5, Xmax * 0.9, Xmax * 1.1);
+    fsrc->SetParLimits(6, 0, 10000000);
     fsrc->SetParLimits(7, 0, 10000000);
     fsrc->SetParLimits(8, FDCompton * 0.9, FDCompton * 1.1);
     fsrc->SetParLimits(10, 0, 1000);
@@ -265,9 +268,32 @@ struct peak Cs_fit(TH1D* h1) {
     h1->GetYaxis()->SetTitle("Eventi");
     gPad->SetGrid();
 
+
     struct peak mypeak;
-    mypeak.resolution = fsrc->GetParameter("Peak") / fsrc->GetParameter("sigma");
+    mypeak.sigmag = fsrc->GetParameter("sigma");
     mypeak.peakpos = fsrc->GetParameter("Peak");
+    
+    mypeak.resolution = fsrc->GetParameter("sigma") / fsrc->GetParameter("Peak");
+
+    TF1 *fitmax = new TF1("fsrc", "[0]*([1]*TMath::Exp((-[2])*x)+  (1-[1])*TMath::Exp((-[3])*x))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", 20, 60);
+
+    fitmax->FixParameter(0, fsrc->GetParameter(0));
+    fitmax->FixParameter(1, fsrc->GetParameter(1));
+    fitmax->FixParameter(2, fsrc->GetParameter(2));
+    fitmax->FixParameter(3, fsrc->GetParameter(3));
+    fitmax->FixParameter(4, fsrc->GetParameter(4));
+    fitmax->FixParameter(5, fsrc->GetParameter(5));
+    fitmax->FixParameter(6, fsrc->GetParameter(6));
+    fitmax->FixParameter(7, fsrc->GetParameter(7));
+    fitmax->FixParameter(8, fsrc->GetParameter(8));
+    fitmax->FixParameter(9, fsrc->GetParameter(9));
+    fitmax->FixParameter(10, fsrc->GetParameter(10));
+    fitmax->FixParameter(11, fsrc->GetParameter(11));
+    fitmax->FixParameter(12, fsrc->GetParameter(12));
+
+    mypeak.peakvalue = fitmax->Eval(mypeak.peakpos);
+
+
 
     printf("RISOLUZIONE = %f\n", mypeak.resolution);
     return mypeak;

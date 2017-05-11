@@ -59,7 +59,7 @@ void MakeWaveform(const char* fileIN, int PMTid) {
         printf("The file is being processed. You may go to sleep in the meanwhile\n");
         RawWave(fileIN, histOUT, PMTid);
 
-       // DrawWaveSplot(fileIN, histOUT, PMTid);
+        // DrawWaveSplot(fileIN, histOUT, PMTid);
         //f = TFile::Open(histOUT);
     }
 
@@ -103,16 +103,24 @@ void plotWaveStepCharge() {
     struct mySetting st;
     mySetting_get(tset, &st);
     mySetting_print(st);
+    TCanvas *c40 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+
     for (j = 0; j < st.Nchan; j++) {
         for (i = 5; i < 150; i += 10) {
             histo_ch1 = plotWaveFromCharge(f->GetName(), st.PmtID[j], i);
-            sprintf(tname, "cwave%d_%d", j, i);
+            sprintf(tname, "cwave%d_%d", st.PmtID[j], i);
             FOut->cd();
             histo_ch1->SetName(tname);
             histo_ch1->Write();
+
+            sprintf(tname, "img/%s_cwave%d_%d.eps", filenameFromPath(f->GetName()).c_str(), st.PmtID[j],i);
+            histo_ch1->Draw();
+            c40->SaveAs(tname);
         }
     }
+
     FOut->Close();
+    delete c40;
 }
 
 void plotWaveFromCharge_show(const char * fileIN, int PMTid, float charge) {
