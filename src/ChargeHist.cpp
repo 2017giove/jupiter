@@ -201,7 +201,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
 
-//        if (temp.trigCH = i) {
+        if (temp.trigCH = i) {
 
             Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
             Integral = Wave.Integral();
@@ -214,7 +214,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
             printf("%d/%d ", i, Nentries);
             printStatus((float) i / (float) Nentries);
 
-//        }
+        }
 
     }
     printf("CH %d (PMT %d) completed\n", CH, cPMT);

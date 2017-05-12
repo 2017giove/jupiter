@@ -73,6 +73,7 @@
       </df>
       <in>ChargeHist_RUN.c</in>
       <in>Cs_fit_RUN.c</in>
+      <in>WaveformCharge_RUN.c</in>
       <in>Waveform_RUN.c</in>
     </df>
   </logicalFolder>
