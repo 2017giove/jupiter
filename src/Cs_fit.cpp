@@ -5,7 +5,8 @@
  * 
  * It's Boguliubov!
  * 
- * Original code written by DeathStar, Sferici 2016
+ * Original code written by DeathStar, "Sferici" 2016
+ * 
  */
 
 
