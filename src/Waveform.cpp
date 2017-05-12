@@ -10,6 +10,7 @@
 
 #define J_WAVEFORM 
 
+#include <TView3D.h>
 #include "WaveAnalysis.h"
 
 #include <string.h>
@@ -19,7 +20,7 @@ int FittingStartBin(float threshold, TH1F * hist);
 void Waveform(int PMTid);
 void MakeWaveform(const char* fileIN, int PMTid = -1);
 //void Waveform(std::string _fileIN);
-void RawWave(const char * fileIN, const char *fileOUT);
+void RawWave(const char * fileIN, const char *fileOUT, int PMTid);
 void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid);
 TH1F* plotWaveFromCharge(const char * fileIN, int PMTid, float charge);
 
@@ -104,21 +105,89 @@ void plotWaveStepCharge() {
     mySetting_get(tset, &st);
     mySetting_print(st);
     TCanvas *c40 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+    FILE * plot3d = fopen("plot3d.jpt", "w");
+
+
+    int p = 0;
 
     for (j = 0; j < st.Nchan; j++) {
+
+        sprintf(tname, "p3d%d", st.PmtID[j]);
+        TCanvas *c41 = new TCanvas(tname, PLOTS_TITLE, 640, 480);
+        TGraph2D* splot3d = new TGraph2D();
+
+
         for (i = 5; i < 150; i += 10) {
             histo_ch1 = plotWaveFromCharge(f->GetName(), st.PmtID[j], i);
-            sprintf(tname, "cwave%d_%d", st.PmtID[j], i);
-            FOut->cd();
-            histo_ch1->SetName(tname);
-            histo_ch1->Write();
+            if (histo_ch1 != NULL) {
+                sprintf(tname, "cwave%d_%d", st.PmtID[j], i);
+                FOut->cd();
+                c40->cd();
+                histo_ch1->SetName(tname);
+                histo_ch1->Write();
 
-            sprintf(tname, "img/%s_cwave%d_%d.eps", filenameFromPath(f->GetName()).c_str(), st.PmtID[j],i);
-            histo_ch1->Draw();
-            c40->SaveAs(tname);
+                sprintf(tname, "img/%s_cwave%d_%d.eps", filenameFromPath(f->GetName()).c_str(), st.PmtID[j], i);
+                histo_ch1->Draw();
+                c40->SaveAs(tname);
+
+                sprintf(tname, "cfit%d_%d", st.PmtID[j], i);
+                TH1F *temp = (TH1F*) histo_ch1->Clone(tname);
+                temp ->Rebin(16);
+                for (int k = 0; k < 64; k++) {
+                    temp->SetBinContent(k, temp->GetBinContent(k) / 16);
+                }
+
+                TF1 *fitfunct = new TF1("f1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
+
+                fitfunct->SetParameter(0, 1620);
+                fitfunct->FixParameter(1, 0.00867);
+                fitfunct->FixParameter(2, 0.0992);
+                fitfunct->SetParameter(3, 220);
+                fitfunct->SetParameter(4, 1620);
+                fitfunct->SetParameter(5, 220);
+
+
+
+                // se vuoi velocizzare parti da start=(N_SAMPLES - (int) (delay * RATE))
+                temp->Fit(fitfunct, "Q", "", FittingStartBin(st.thresh[j], histo_ch1), N_SAMPLES);
+
+                for (int k = (N_SAMPLES - (int) (st.delayns * RATE)) - 10; k < N_SAMPLES - 100; k++) {
+                    fprintf(plot3d, "%d\t%d\t%f\n", i, k, fitfunct->Eval(k));
+                    splot3d->SetPoint(p++, k, i, fitfunct->Eval(k));
+                }
+
+                temp->Write();
+            } else {
+                printf("%s. We could not fish this fish.\n", ERROR_DEEPER)
+            }
+
         }
+        c41->cd();
+        //gStyle->SetPalette(53);
+
+        TView3D *view = (TView3D*) TView::CreateView(1);
+        view->RotateView(-75, 65);
+
+
+        splot3d->SetName(tname);
+        splot3d->SetTitle("Waveform - Charge");
+        splot3d->GetXaxis()->SetBinLabel(1, "time ");
+        splot3d->GetYaxis()->SetBinLabel(1, "ADC counts");
+        splot3d->GetZaxis()->SetBinLabel(1, "charge");
+        splot3d->GetXaxis()->CenterTitle();
+        splot3d->GetYaxis()->CenterTitle();
+        splot3d->GetZaxis()->CenterTitle();
+        splot3d->Draw("surf");
+        gPad->Modified();
+
+
+        c41->Write();
+        sprintf(tname, "img/%s_p3d%d.eps", filenameFromPath(f->GetName()).c_str(), st.PmtID[j]);
+        c41->SaveAs(tname);
     }
 
+
+    fclose(plot3d);
     FOut->Close();
     delete c40;
 }
@@ -129,7 +198,7 @@ void plotWaveFromCharge_show(const char * fileIN, int PMTid, float charge) {
     histo_ch1->Draw();
 }
 
-TH1F* plotWaveFromCharge(const char * fileIN, int PMTid, float charge) {
+TH1F * plotWaveFromCharge(const char * fileIN, int PMTid, float charge) {
 
     TFile* f = TFile::Open(fileIN);
 
@@ -164,12 +233,13 @@ TH1F* plotWaveFromCharge(const char * fileIN, int PMTid, float charge) {
         Integral = Wave.Integral();
         BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
         Integral -= BaseIntegral;
-        if (Integral > charge * 0.9 && Integral < charge * 1.1) {
+        if (Integral > charge * 0.95 && Integral < charge * 1.05) {
             for (int k = 0; k < 1024; k++) {
                 histo_ch1->SetBinContent(k, temp.wave_array[CH][k]);
             }
 
             //histo_ch1->Draw();
+
             printf("Do you want some more imgurs?\n");
             return histo_ch1;
         }
@@ -271,14 +341,14 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
     for (int jentry = 0; jentry < nentries; jentry++) {
 
         t1->GetEntry(jentry);
-        TF1 *gf = new TF1("f1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
+        TF1 *fitfunct = new TF1("f1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
 
-        gf->SetParameter(0, 1620);
-        gf->FixParameter(1, 0.00867);
-        gf->FixParameter(2, 0.0992);
-        gf->SetParameter(3, 220);
-        gf->SetParameter(4, 1620);
-        gf->SetParameter(5, 220);
+        fitfunct->SetParameter(0, 1620);
+        fitfunct->FixParameter(1, 0.00867);
+        fitfunct->FixParameter(2, 0.0992);
+        fitfunct->SetParameter(3, 220);
+        fitfunct->SetParameter(4, 1620);
+        fitfunct->SetParameter(5, 220);
 
         for (int k = 0; k < 1024; k++) {
             histo_ch1->SetBinContent(k, ev.wave_array[CH][k]);
@@ -291,11 +361,11 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
         }
 
         // se vuoi velocizzare parti da start=(N_SAMPLES - (int) (delay * RATE))
-        temp->Fit(gf, "Q", "", FittingStartBin(st.thresh[CH], histo_ch1), N_SAMPLES);
+        temp->Fit(fitfunct, "Q", "", FittingStartBin(st.thresh[CH], histo_ch1), N_SAMPLES);
 
         if (jentry % 500 == 0) {
             showHist = (TH1F*) histo_ch1->Clone("GrongoWave");
-            showFit = (TF1*) gf->Clone("GrongoCurve");
+            showFit = (TF1*) fitfunct->Clone("GrongoCurve");
             printf("Pesco un granchio...\n");
             showHist->GetXaxis()->SetTitle("tempo (samples)");
             showHist->GetYaxis()->SetTitle("Segnale (mV)");
@@ -308,7 +378,7 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
             showFit->Draw("same");
         }
 
-        minimo = -gf->GetMinimum(0, N_SAMPLES);
+        minimo = -fitfunct->GetMinimum(0, N_SAMPLES);
         histo_max->Fill(minimo, 1);
 
         printf("%d/%d\t", jentry, nentries);
