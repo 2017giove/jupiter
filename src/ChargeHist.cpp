@@ -74,13 +74,9 @@ void MakeChargeHist(const char* fileIN) {
 
         tset = (TTree*) fin->Get("tset");
         mySetting_get(tset, &st);
-       // mySetting_print(&st);
+        mySetting_print(&st);
 
-        int aPMT;
-         aPMT = CHtoPMT(0, &st);
-        sprintf(tname, "t%d", aPMT);
-             
-        Nentries = ((TTree*) fin->Get(tname))->GetEntries();
+        Nentries = ((TTree*) fin->Get("t1"))->GetEntries();
         printf("This file contains %d events.\n", Nentries);
 
         int ii;
@@ -181,7 +177,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     TTree* tset1 = (TTree*) f->Get("tset");
     mySetting st;
     mySetting_get(tset1, &st);
-  //  mySetting_print(&st);
+    //  mySetting_print(&st);
     int cPMT = CHtoPMT(CH, &st);
 
 
@@ -205,7 +201,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
 
-        if (temp.trigCH == i) {
+        if (temp.trigCH == CH) {
 
             Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
             Integral = Wave.Integral();
@@ -214,11 +210,12 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
             Tspectrum->Fill();
             Tbaseline->Fill();
-            printf("CH %d (PMT %d) ", CH, cPMT);
-            printf("%d/%d ", i, Nentries);
-            printStatus((float) i / (float) Nentries);
 
         }
+
+        printf("CH %d (PMT %d) ", CH, cPMT);
+        printf("%d/%d ", i, Nentries);
+        printStatus((float) i / (float) Nentries);
 
     }
     printf("CH %d (PMT %d) completed\n", CH, cPMT);
