@@ -76,7 +76,11 @@ void MakeChargeHist(const char* fileIN) {
         mySetting_get(tset, &st);
         mySetting_print(st);
 
-        Nentries = ((TTree*) fin->Get("t1"))->GetEntries();
+        int aPMT;
+         aPMT = CHtoPMT(CH, &st);
+        sprintf(tname, "t%d", aPMT);
+             
+        Nentries = ((TTree*) fin->Get(tname))->GetEntries();
         printf("This file contains %d events.\n", Nentries);
 
         int ii;
