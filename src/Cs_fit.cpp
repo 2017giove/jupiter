@@ -46,9 +46,11 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     TCanvas *c41 = new TCanvas();
     peak mypeak;
     mySetting st;
+    
     TTree* tset1 = (TTree*) sorgente_file->Get("tset");
     mySetting_get(tset1, &st);
-
+    mySetting_print(&st);
+    
     char tname[STR_LENGTH];
 
     int CH = PMTtoCH(PMTid, &st);
@@ -57,11 +59,11 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
     mypeak = Cs_fit(h1);
-
+    
     std::ofstream savefile(wheretosave, std::ios_base::app);
-    savefile << st.voltage[CH] << " " << mypeak.peakpos << " " << mypeak.resolution << " " << mypeak.sigmag / mypeak.peakvalue << std::endl;
+    savefile << st.voltage[CH] << " " << mypeak.peakpos << " " << mypeak.sigma << " " << mypeak.peakvalue << " " << mypeak.nSGN << " " << mypeak.nBG << std::endl;
 
-    delete c41;
+   // delete c41;
 }
 
 
@@ -86,7 +88,7 @@ void Cs_fit() {
     std::strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
     TFile *FOut = new TFile(fileOUT, "UPDATE");
 
-
+    // esegue il fit per tutti gli istogrammi presenti nel file hPMT
     while ((key = (TKey*) next())) {
         TClass *cl = gROOT->GetClass(key->GetClassName());
         if (cl -> InheritsFrom("TH1D")) {
@@ -96,7 +98,7 @@ void Cs_fit() {
             int PMTid = atoi(pmtname.c_str());
             sprintf(tname, "h%d", PMTid);
             if (!myname.compare(tname)) {
-                //printf("\n\n%s\n%s\n", myname.c_str(), tname);
+
                 printf("Fit per il PMT %d\n", PMTid);
                 Cs_fit(h1);
                 h1->Write();
@@ -116,10 +118,13 @@ struct peak Cs_fit(TH1D* h1) {
 
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
-    printf("%f\n\n", step);
+
     int maxBin = GetMaximumBin(h1, 5. / step, nBins);
+    
+   
     float Xmax = maxBin*step; //80
-    float Xwindow = 3.8; // larghezza su cui eseguire il fit gaussiano rispetto a xmax rilevato
+    
+    float Xwindow = 3.8; // larghezza su cui eseguire a occhio il fit gaussiano rispetto a xmax rilevato
     float Ymax = h1->GetBinContent(maxBin);
 
 
@@ -129,9 +134,9 @@ struct peak Cs_fit(TH1D* h1) {
     TF1 *Gauss = new TF1("Gauss", "[0]*TMath::Exp(-(x-[1])*(x-[1])/(2*[2]*[2]))", Xmax - Xwindow, Xmax + Xwindow);
     Gauss->SetParNames("Amplitude", "PeakPos", "sigma");
 
-    Gauss->SetParLimits(0, 0.8 * Ymax, 1.1 * Ymax);
-    Gauss->SetParLimits(1, Xmax * 0.9, Xmax * 1.1);
-    Gauss->SetParLimits(2, 0, Xwindow);
+    Gauss->SetParLimits(0, 0.8 * Ymax, 1.1 * Ymax); // ampiezza
+    Gauss->SetParLimits(1, Xmax * 0.9, Xmax * 1.1); // xpicco
+    Gauss->SetParLimits(2, 0, Xwindow); //sigma
 
     Gauss->SetParameter(0, Ymax);
     Gauss->SetParameter(1, Xmax);
@@ -142,21 +147,16 @@ struct peak Cs_fit(TH1D* h1) {
     Ymax = Gauss->GetParameter(0);
     Xmax = Gauss->GetParameter(1);
     float sigma = Gauss->GetParameter(2);
-
+    float FDCompton = Xmax * (1 - 1 / (1 + 2 * ENERGY_CESIO / MASS_ELECTRON));
 
     h1->GetXaxis()->SetRange(Xmax * 0.3 / step, Xmax * 1.5 / step);
 
     TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-[2])*x)+  (1-[1])*TMath::Exp((-[3])*x))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", 20, 60);
-
-    float FDCompton = Xmax * (1 - 1 / (1 + 2 * ENERGY_CESIO / MASS_ELECTRON));
-
-
     //                   0        1           2       3           4           5       6       7       8               9
     fsrc->SetParNames("BGAmp", "BGratio", "tau_1", "tau_2", "GaussAmp", "Peak", "sigma", "FDCAmp", "FDCShift", "FDCBeta");
     fsrc->SetParName(10, "FD2Amp");
     fsrc->SetParName(11, "FD2Beta");
     fsrc->SetParName(12, "FD2Modulation");
-
 
     fsrc->SetParLimits(0, 0, 10000000);
     fsrc->SetParLimits(1, 0, 1); //OK
@@ -171,7 +171,7 @@ struct peak Cs_fit(TH1D* h1) {
     fsrc->SetParLimits(11, 0, 1);
 
     //
-    ////    Parametri fissati dal fit del rumore
+    ////    Parametri (che erano) fissati dal fit del rumore
     // fsrc->FixParameter(1, p3);
     // fsrc->SetParameter(2, p1);
     // fsrc->SetParameter(3, p2);
@@ -185,10 +185,13 @@ struct peak Cs_fit(TH1D* h1) {
     fsrc->SetParameter(12, 0.95);
 
 
-    //  h1->Fit("fsrc", "", "", 20, 60);
+    //  h1->Fit("fsrc", "", "", 20, 60); //vecchio modo di fare il fit
     h1->Fit("fsrc", "", "", FDCompton * 2 / 3, Xmax * 2);
     h1->Draw();
 
+
+
+    //grafici delle funzioni usate per il fit
     //Replot senza doppio esponenziale
     TF1 *wow = new TF1("wow", "[4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)   +[12]/(TMath::Exp((x-[5])*[13])*[14]+1)  ", Xmax * 0.3, Xmax * 1.6);
 
@@ -202,15 +205,12 @@ struct peak Cs_fit(TH1D* h1) {
     wow->FixParameter(13, fsrc->GetParameter(13));
     wow->FixParameter(14, fsrc->GetParameter(14));
 
-
     wow->SetLineColor(30);
     wow->SetLineStyle(3);
-
     wow->Draw("same");
 
 
     //Replot doppio exp
-
     TF1 *BG = new TF1("BG", "[0]*([1]*TMath::Exp((-[2])*x)+(1-[1])*TMath::Exp((-[3])*x)) ", Xmax * 0.35, Xmax * 1.6);
     BG->FixParameter(0, fsrc->GetParameter(0));
     BG->FixParameter(1, fsrc->GetParameter(1));
@@ -223,10 +223,7 @@ struct peak Cs_fit(TH1D* h1) {
     BG->Draw("same");
 
     //Replot Fermi-Dirac2  (Compton Edge)
-
     TF1 *FD2 = new TF1("FD2", "[7]/(TMath::Exp((x-[8])*[9])+1) ", Xmax * 0.3, Xmax * 1.6);
-
-
     FD2->FixParameter(7, fsrc->GetParameter(7));
     FD2->FixParameter(8, fsrc->GetParameter(8));
     FD2->FixParameter(9, fsrc->GetParameter(9));
@@ -237,7 +234,6 @@ struct peak Cs_fit(TH1D* h1) {
     FD2->Draw("same");
 
     //Replot Fermi-Dirac1  (Multiple Compton)
-
     TF1 *FD1 = new TF1("FD1", "[12]/(TMath::Exp((x-[5])*[13]*[14])+1) ", Xmax * 0.3, Xmax * 1.6);
 
     FD1->FixParameter(12, fsrc->GetParameter(10));
@@ -251,7 +247,6 @@ struct peak Cs_fit(TH1D* h1) {
     FD1->Draw("same");
 
     //Replot Gauss (Photon Peak)
-
     TF1 *G1 = new TF1("G1", " [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) ", Xmax * 0.3, Xmax * 1.6);
 
     G1->FixParameter(4, fsrc->GetParameter(4));
@@ -263,6 +258,7 @@ struct peak Cs_fit(TH1D* h1) {
 
     G1->Draw("same");
 
+
     h1->SetTitle("Spettro del Cs137");
     h1->SetName("Risultati del Fit");
     h1->GetXaxis()->SetTitle("adc Counts");
@@ -270,11 +266,7 @@ struct peak Cs_fit(TH1D* h1) {
     gPad->SetGrid();
 
 
-    struct peak mypeak;
-    mypeak.sigmag = fsrc->GetParameter("sigma");
-    mypeak.peakpos = fsrc->GetParameter("Peak");
-    
-    mypeak.resolution = fsrc->GetParameter("sigma") / fsrc->GetParameter("Peak");
+
 
     TF1 *fitmax = new TF1("fsrc", "[0]*([1]*TMath::Exp((-[2])*x)+  (1-[1])*TMath::Exp((-[3])*x))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", 20, 60);
 
@@ -292,11 +284,16 @@ struct peak Cs_fit(TH1D* h1) {
     fitmax->FixParameter(11, fsrc->GetParameter(11));
     fitmax->FixParameter(12, fsrc->GetParameter(12));
 
+    struct peak mypeak;
+    mypeak.sigma = fsrc->GetParameter("sigma");
+    mypeak.peakpos = fsrc->GetParameter("Peak");
     mypeak.peakvalue = fitmax->Eval(mypeak.peakpos);
+    float nTOT = h1->Integral(h1->GetXaxis()->FindBin(mypeak.peakpos - mypeak.sigma), h1->GetXaxis()->FindBin(mypeak.peakpos + mypeak.sigma));
+    mypeak.nSGN = fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
+    mypeak.nBG = nTOT - fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
 
+    float resolution = mypeak.sigma / mypeak.peakpos;
+    printf("RISOLUZIONE = %f\n", resolution);
 
-
-    printf("RISOLUZIONE = %f\n", mypeak.resolution);
     return mypeak;
-
 }

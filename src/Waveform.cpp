@@ -103,7 +103,7 @@ void plotWaveStepCharge() {
     char tname [STR_LENGTH];
     struct mySetting st;
     mySetting_get(tset, &st);
-    mySetting_print(st);
+    mySetting_print(&st);
     TCanvas *c40 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
     FILE * plot3d = fopen("plot3d.jpt", "w");
 
@@ -132,9 +132,9 @@ void plotWaveStepCharge() {
 
                 sprintf(tname, "cfit%d_%d", st.PmtID[j], i);
                 TH1F *temp = (TH1F*) histo_ch1->Clone(tname);
-                temp ->Rebin(16);
-                for (int k = 0; k < 64; k++) {
-                    temp->SetBinContent(k, temp->GetBinContent(k) / 16);
+                temp ->Rebin(8);
+                for (int k = 0; k < N_SAMPLES/8; k++) {
+                    temp->SetBinContent(k, temp->GetBinContent(k) / 8);
                 }
 
                 TF1 *fitfunct = new TF1("f1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
@@ -151,14 +151,14 @@ void plotWaveStepCharge() {
                 // se vuoi velocizzare parti da start=(N_SAMPLES - (int) (delay * RATE))
                 temp->Fit(fitfunct, "Q", "", FittingStartBin(st.thresh[j], histo_ch1), N_SAMPLES);
 
-                for (int k = (N_SAMPLES - (int) (st.delayns * RATE)) - 10; k < N_SAMPLES - 100; k++) {
+                for (int k = (N_SAMPLES - (int) (st.delayns * RATE))+10; k < N_SAMPLES - 300; k++) {
                     fprintf(plot3d, "%d\t%d\t%f\n", i, k, fitfunct->Eval(k));
                     splot3d->SetPoint(p++, k, i, fitfunct->Eval(k));
                 }
 
                 temp->Write();
             } else {
-                printf("%s. We could not fish this fish.\n", ERROR_DEEPER)
+                printf("%s. We could not fish this fish.\n", ERROR_DEEPER);
             }
 
         }
@@ -207,7 +207,7 @@ TH1F * plotWaveFromCharge(const char * fileIN, int PMTid, float charge) {
 
     struct mySetting st;
     mySetting_get(tset, &st);
-    mySetting_print(st);
+    mySetting_print(&st);
 
     int CH = PMTtoCH(PMTid, &st);
     if (CH == NOT_FOUND_INT) {
@@ -257,7 +257,7 @@ void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid) {
 
     struct mySetting st;
     mySetting_get(tset, &st);
-    mySetting_print(st);
+    mySetting_print(&st);
 
     int CH = PMTtoCH(PMTid, &st);
     if (CH == NOT_FOUND_INT) {
@@ -311,7 +311,7 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
 
     struct mySetting st;
     mySetting_get(tset, &st);
-    mySetting_print(st);
+    //mySetting_print(st);
 
     int CH = PMTtoCH(PMTid, &st);
     if (CH == NOT_FOUND_INT) {

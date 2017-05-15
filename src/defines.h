@@ -85,12 +85,11 @@ struct mySetting {
 };
 
 struct peak {
-    float resolution;
-    float sigmag;
-    float err_resolution;
+    float sigma;
     float peakpos;
     float peakvalue;
-    float err_peakpos;
+    float nBG;
+    float nSGN;
 };
 
 void allocateSetting(struct mySetting* st, int NCHAN) {
@@ -178,14 +177,44 @@ void printStatus(float progress) {
 
 }
 
-void mySetting_print(mySetting st) {
+//
+//struct myEvent {
+//    /*
+//     * Che altre informazioni servono?
+//     */
+//    int eventID;
+//    int trigCH;
+//    float time_array[SANTA_MAX][N_SAMPLES];
+//    float wave_array[SANTA_MAX][N_SAMPLES];
+//};
+//
+//struct mySetting {
+//    char date[STR_LENGTH];
+//    int Nchan;
+//    int deltaT;
+//    float voltage[SANTA_MAX];
+//    int PmtID[SANTA_MAX];
+//    float thresh[SANTA_MAX];
+//    int triggerSetting;
+//    int delayns;
+//    char description[10 * STR_LENGTH];
+//    //Aggiungere altri parametri rilevanti come...
+//
+//};
 
-    //    printf("Data captured on %s", st.date);
-    //    printf("PMT_ID \t\t=\t%d\n", st.PmtID);
-    //    printf("Voltage(V)\t=\t%f\n", st.voltage);
-    //    printf("Threshold(mV)\t=\t%f\n", st.thresh);
-    //    printf("Delay(ns)\t=\t%d\n", st.delayns);
-    //    printf("\n");
+void mySetting_print(mySetting *st) {
+
+    printf("Data captured on %s for %d secs in configuration %d with %d channels.\n", st->date, st->deltaT, st->triggerSetting, st->Nchan);
+    printf("Delay ns = %d\n", st->delayns);
+    int i;
+    for (i = 0; i < st->Nchan; i++) {
+        printf("*****\tCH #%d\t*****\n", i);
+        printf("PMT_ID\t=\t%d\n", st->PmtID[i]);
+        printf("Voltage(V)\t=\t%f\n", st->voltage[i]);
+        printf("Threshold(mV)\t=\t%f\n", st->thresh[i]);
+        printf("\n");
+    }
+
 }
 
 void mySetting_get(TTree* tset1, mySetting* st) {
