@@ -74,7 +74,7 @@
 using namespace std;
 
 /*------------------------------------------------------------------*/
-float getTriggerSource(myEvent *ev, mySetting *st );
+float getTriggerSource(myEvent *ev, mySetting *st);
 
 int main(int argc, char* argv[]) {
 
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 
     // f1->cd();
     Tset->Fill();
-
+  //  Tset->Write();
     /*
     >t1
      *  trigID
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
 
 
 
-    TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
+
     TBranch * b_eventId = tree->Branch("eventID", &ev.eventID, "eventID/I");
 
 
@@ -336,15 +336,16 @@ int main(int argc, char* argv[]) {
         totevents++;
     }
 
-    
-    
-    for (i=0;i<tree->GetEntries();i++){
+
+    TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
+    for (i = 0; i < tree->GetEntries(); i++) {
         tree->GetEntry(i);
-        ev.trigCH = getTriggerSource(&ev,&cset);
+        ev.trigCH = getTriggerSource(&ev, &cset);
+        printf("%d\n\n", ev.trigCH);
         b_trigId->Fill();
     }
-    
-    
+
+    //tree->Write();
     f1->Write();
     f1->Close();
 
@@ -364,31 +365,31 @@ int main(int argc, char* argv[]) {
 //            if (&santanas < cset.thresh[i]) {
 //                ev.trigCH = ch;
 //            }
-            
-float getTriggerSource(myEvent *ev, mySetting *st ){
+
+float getTriggerSource(myEvent *ev, mySetting *st) {
     int i;
     int j;
-    float santamax[SANTA_MAX]={0};
-    float santaI[SANTA_MAX]={0};
-    for (i=0;i<st->Nchan;i++ ){
-        j=0;
-        while(santamax[i] > st->thresh[i]){
+    float santamax[SANTA_MAX] = {0};
+    float santaI[SANTA_MAX] = {0};
+    for (i = 0; i < st->Nchan; i++) {
+        j = 0;
+        while (santamax[i] > st->thresh[i]) {
             santamax[i] = ev->wave_array[i][j];
-            santaI[i]=j;
+            santaI[i] = j;
             j++;
         }
         //printf("Santa came from %f", santamax[i]);
-        
+
     }
-    
+
     float nastasiomax = N_SAMPLES;
     float nastasioI = 0;
-    for (i=0;i<st->Nchan;i++){
-        if (santaI[i]< nastasiomax){
+    for (i = 0; i < st->Nchan; i++) {
+        if (santaI[i] < nastasiomax) {
             nastasiomax = santaI[i];
-            nastasioI= i;
+            nastasioI = i;
         }
     }
-   // printf("Santa came from %f", nastasiomax);
+    // printf("Santa came from %f", nastasiomax);
     return nastasioI;
 }

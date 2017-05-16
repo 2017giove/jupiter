@@ -133,7 +133,7 @@ void plotWaveStepCharge() {
                 sprintf(tname, "cfit%d_%d", st.PmtID[j], i);
                 TH1F *temp = (TH1F*) histo_ch1->Clone(tname);
                 temp ->Rebin(8);
-                for (int k = 0; k < N_SAMPLES/8; k++) {
+                for (int k = 0; k < N_SAMPLES / 8; k++) {
                     temp->SetBinContent(k, temp->GetBinContent(k) / 8);
                 }
 
@@ -151,7 +151,7 @@ void plotWaveStepCharge() {
                 // se vuoi velocizzare parti da start=(N_SAMPLES - (int) (delay * RATE))
                 temp->Fit(fitfunct, "Q", "", FittingStartBin(st.thresh[j], histo_ch1), N_SAMPLES);
 
-                for (int k = (N_SAMPLES - (int) (st.delayns * RATE))+10; k < N_SAMPLES - 300; k++) {
+                for (int k = (N_SAMPLES - (int) (st.delayns * RATE)) + 10; k < N_SAMPLES - 300; k++) {
                     fprintf(plot3d, "%d\t%d\t%f\n", i, k, fitfunct->Eval(k));
                     splot3d->SetPoint(p++, k, i, fitfunct->Eval(k));
                 }
@@ -218,6 +218,8 @@ TH1F * plotWaveFromCharge(const char * fileIN, int PMTid, float charge) {
     int jentry;
     struct myEvent temp;
     int nentries = t1->GetEntries();
+
+    t1->SetBranchAddress("trigCH", &temp.trigCH);
     t1->SetBranchAddress("wave_array", temp.wave_array);
     t1->SetBranchAddress("time_array", temp.time_array);
 
@@ -321,6 +323,7 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
 
     struct myEvent ev;
     // allocateEvent(&ev,st.Nchan );
+    t1->SetBranchAddress("trigCH", &temp.trigCH);
     t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
     TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);

@@ -186,6 +186,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     TTree* t1 = (TTree*) f->Get("t1");
     Nentries = t1->GetEntries();
 
+    t1->SetBranchAddress("trigCH", &temp.trigCH);
     t1->SetBranchAddress("wave_array", temp.wave_array);
     t1->SetBranchAddress("time_array", temp.time_array);
 
@@ -200,7 +201,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-
+        printf("\n%d\n\n", temp.trigCH);
         if (temp.trigCH == CH) {
 
             Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
@@ -215,7 +216,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
         printf("CH %d (PMT %d) ", CH, cPMT);
         printf("%d/%d ", i, Nentries);
-        printStatus((float) i / (float) Nentries);
+        //        printStatus((float) i / (float) Nentries);
 
     }
     printf("CH %d (PMT %d) completed\n", CH, cPMT);
