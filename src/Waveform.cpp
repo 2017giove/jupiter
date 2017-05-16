@@ -267,6 +267,7 @@ void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid) {
     }
 
     struct myEvent ev;
+        t1->SetBranchAddress("trigCH", &ev.trigCH);
     t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
     int nentries = t1->GetEntries();
@@ -323,7 +324,7 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
 
     struct myEvent ev;
     // allocateEvent(&ev,st.Nchan );
-    t1->SetBranchAddress("trigCH", &temp.trigCH);
+    t1->SetBranchAddress("trigCH", &ev.trigCH);
     t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
     TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);

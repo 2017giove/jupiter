@@ -46,6 +46,7 @@
         <in>Measurement.cpp</in>
         <in>Osci.cpp</in>
         <in>PowerExpert.cpp</in>
+        <in>Timer.cpp</in>
         <in>TriggerDialog.cpp</in>
         <in>WaveAnalysis.h</in>
         <in>Waveform.cpp</in>
@@ -102,6 +103,8 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
+        <gdb_signals>
+        </gdb_signals>
         <gdb_options>
           <DebugOptions>
           </DebugOptions>
@@ -115,8 +118,10 @@
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}"  lorenzo 300 0 1200 1 5000 501</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"  sananas4 10 4 900 100 15 1800 505 404 405 301
+</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}"  lorenzo 300 0 1200 1 5000 501</runcommand>
+        <runcommand>"${OUTPUT_PATH}"  sananas4 10 4 900 100 15 1800 505 404 405 301</runcommand>
         <arguments> lorenzo 300 0 1200 1 5000 501</arguments>
         <rundir>.</rundir>
         <buildfirst>false</buildfirst>

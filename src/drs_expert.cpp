@@ -51,6 +51,8 @@
 #include <ctime>
 #include "time.h" 
 
+#include <chrono>
+
 #include <math.h>
 #include "TCanvas.h"
 #include "TROOT.h"
@@ -69,7 +71,46 @@
 #include "strlcpy.h"
 #include "DRS.h"
 
+
 #include "defines.h"
+
+/** -------------------- Rieussec Class -------------------- 
+ This class is used to analyze code performance using an exclusive Montblanc Rieussec Cronograph.
+ * The automatic chronograph in the Nicolas Rieussec Collection is one of Montblanc's tributes to the inventor of the first patented chronograph. 
+ * Its innovative minute display, along with the modern design of its rotating discs for elapsed seconds and minutes, creates purity and clarity 
+ * that consistently continue into luminous hands for the time in the primary zone and a skeletonized hand for the hour in the second time zone. 
+ * Equipped with a monopusher mechanism, a column-wheel and vertical disc coupling, the self-winding manufacture caliber MB R200 features several 
+ * additional complications that complement its classical appearance. 
+ * These include a day-night display for the second time zone and a rapid-reset mechanism for the hours-hand.
+ * 
+ * For information and documentation: 
+ * http://www.montblanc.com/en-us/collection/watches/montblanc-nicolas-rieussec-collection/109996-Montblanc-Nicolas-Rieussec-Chronograph-Automatic.html
+ * 
+ * Usage: just declare a variable 
+ *          rieussec mynewmbclock;
+ *          [... the piece of code you want to measure ...]
+ *          double timeelapsed = mynewmbclock.elapsed();
+ * 
+ */
+class rieussec {
+public:
+    std::chrono::time_point<std::chrono::high_resolution_clock> lastTime;
+
+    rieussec() : lastTime(std::chrono::high_resolution_clock::now()) {
+    }
+
+    inline double elapsed() {
+        std::chrono::time_point<std::chrono::high_resolution_clock> thisTime = std::chrono::high_resolution_clock::now();
+        double deltaTime = std::chrono::duration<double>(thisTime - lastTime).count();
+        lastTime = thisTime;
+        return deltaTime;
+    }
+};
+
+/*-------------------- end of Rieussec Class ----------------------------------------------*/
+
+
+
 
 using namespace std;
 
@@ -186,7 +227,7 @@ int main(int argc, char* argv[]) {
 
     // f1->cd();
     Tset->Fill();
-  //  Tset->Write();
+    //  Tset->Write();
     /*
     >t1
      *  trigID
@@ -247,6 +288,7 @@ int main(int argc, char* argv[]) {
     b = drs->GetBoard(0); //ciambo
 
     /* initialize board */
+ 
     b->Init();
 
     /* set sampling frequency */
@@ -273,6 +315,8 @@ int main(int argc, char* argv[]) {
     b->SetIndividualTriggerLevel(1, cset.thresh[0] / 1000.);
     b->SetIndividualTriggerLevel(2, cset.thresh[0] / 1000.);
     b->SetIndividualTriggerLevel(3, cset.thresh[0] / 1000.);
+
+
     /*setta la sorgente del trigger in codice binario
      es: CH1=1 CH2=2 CH3=4, CH1_OR_CH2 = 3*/
     /*
@@ -283,7 +327,6 @@ int main(int argc, char* argv[]) {
      * 0101 0000
      */
 
-    //  b->SetTriggerSource(triggerSource); //fallo piu esperto
     b->SetTriggerSource(triggerSource);
     b->SetTriggerDelayNs(cset.delayns); // ns trigger delay
 
@@ -292,13 +335,21 @@ int main(int argc, char* argv[]) {
 
     // Ciclo Eventi - Acquisizione per un intervallo di tempo deltaT
     totevents = 0;
+
+    double drstime = 0;
+    double pctime = 0;
+
     while ((time(0) - t0) < cset.deltaT) {
         /* start board (activate domino wave) */
         b->StartDomino();
 
         /* wait for trigger - write to console only first time */
         if (totevents == 0) cout << "Waiting for trigger..." << endl;
+        rieussec tr;
         while (b->IsBusy());
+        drstime += tr.elapsed();
+
+        rieussec tr2;
         if (totevents == 0) cout << "Trigger found, session started..." << endl;
 
         /* read all waveforms */
@@ -309,7 +360,6 @@ int main(int argc, char* argv[]) {
         for (int ch = 0; ch < maxchan; ch++) {
 
             ev.eventID = totevents;
-            //mettere TRIGch IN QUALCHE MODO <<<<<
 
             /* read time (X) array of first channel in ns
              *    Note: On the evaluation board input #1 is connected to channel 0 and 1 of
@@ -320,13 +370,12 @@ int main(int argc, char* argv[]) {
             /* decode waveform (Y) array of first channel in mV */
             b->GetWave(0, 2 * ch, ev.wave_array[ch]);
 
+
         }
 
 
-        // f1[i] = tree[i]->GetCurrentFile();
+
         tree->Fill();
-
-
 
         /* print some progress indication */
         printf("%d ev - %d sec rem.", totevents, cset.deltaT - (time(0) - t0));
@@ -334,6 +383,7 @@ int main(int argc, char* argv[]) {
         printStatus((float) ((time(0) - t0) / (float) cset.deltaT));
 
         totevents++;
+        pctime += tr2.elapsed();
     }
 
 
@@ -341,7 +391,7 @@ int main(int argc, char* argv[]) {
     for (i = 0; i < tree->GetEntries(); i++) {
         tree->GetEntry(i);
         ev.trigCH = getTriggerSource(&ev, &cset);
-        printf("%d\n\n", ev.trigCH);
+        // printf("%d\n\n", ev.trigCH);
         b_trigId->Fill();
     }
 
@@ -349,10 +399,11 @@ int main(int argc, char* argv[]) {
     f1->Write();
     f1->Close();
 
-
+    printf("\nTempo DRS:\t%lf\t(%lf )\nTempo PC:\t%lf\t(%lf )\n", drstime, pctime, (double) drstime / (drstime + pctime), (double) pctime / (drstime + pctime));
     printf("\n*** ACQUISITION IS COMPLETE ***\n");
 
 
+    //  fclose(tempofile    );
     /* delete DRS object -> close USB connection */
     delete drs;
 }
@@ -393,3 +444,7 @@ float getTriggerSource(myEvent *ev, mySetting *st) {
     // printf("Santa came from %f", nastasiomax);
     return nastasioI;
 }
+
+
+
+

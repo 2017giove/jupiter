@@ -24,7 +24,7 @@ else
 DOS           = OS_LINUX
 endif
 
-CFLAGS        = -g -O2 -Wall -Wuninitialized -fno-strict-aliasing -Iinclude -I/usr/local/include -D$(DOS) -DHAVE_USB -DHAVE_LIBUSB10 -DUSE_DRS_MUTEX #`root-config --cflags`
+CFLAGS        = -g -O2 -Wall -Wuninitialized -fno-strict-aliasing -std=gnu++0x -Iinclude -I/usr/local/include -D$(DOS) -DHAVE_USB -DHAVE_LIBUSB10 -DUSE_DRS_MUTEX #`root-config --cflags`
 LIBS          = -lpthread -lutil -lusb-1.0  #`root-config --glibs`
 
 
@@ -49,7 +49,7 @@ all: drsosc drscl drs_exam drs_sub drs_exam_multi PowerExpert drs_expert
 endif
 
 
-CCFLAGS=	-DUNIX -DLINUX
+CCFLAGS=	-DUNIX -DLINUX 
 CLIBS=		-lcaenhvwrapper -lncurses -lpthread -ldl -lm
 CINCLUDEDIR=	-I./$(GLOBALDIR) -I./include/
 INCLUDES=	include/HVPowerSupply.h include/CAENHVWrapper.h 

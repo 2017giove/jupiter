@@ -32,6 +32,8 @@
 
 
 
+
+
 #define JUPITER "Esperienza GioVe"
 #define PLOTS_TITLE "Fisherman's Plot"
 #define ERROR_CRUCIAL "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
@@ -91,6 +93,8 @@ struct peak {
     float nBG;
     float nSGN;
 };
+
+
 
 void allocateSetting(struct mySetting* st, int NCHAN) {
     int i;
