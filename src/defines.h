@@ -44,7 +44,7 @@
 #define NOT_CARING_STRING "Blessed are they who hold lively conversations with the helplessly mute, for they shall be called dentists."
 #define EXT_ROOT ".root"
 #define STR_LENGTH 300
-
+#define BASE_SPAGO 70
 
 #define TRIGGER_EDGE "neg"
 //#define THRESH -25 // non ha senso definirlo perche è utile cambiarlo
@@ -179,6 +179,65 @@ void printStatus(float progress) {
     std::cout << "] " << int(progress * 100.0) << " %\r";
     std::cout.flush();
 
+}
+
+int get_minimum_pos  (float* test, int start, int end) {
+    
+    int minpos = 0;
+    float min = 0;
+    
+    for (int i = start; i < end; i++) {
+        
+        if (test[i] < min) {
+            
+            min = test[i];
+            minpos = i;
+            
+        }
+        
+    }
+    
+    return minpos;
+    
+}
+
+int triggerbin(int threshold, float* test) {
+    int i;
+    if (threshold < 0) {
+        for (i = 100; i < N_SAMPLES; i++) {
+            if (test[i] < threshold) return i - 1;
+        }
+        return 0;
+    } else if (threshold >= 0) {
+        for (i = 100; i < N_SAMPLES; i++) {
+            if (test[i] > threshold) return i - 1;
+        }
+        return 0;
+    }
+}
+
+float BoundIntegral(float* test, int min, int max) {
+    float integral = 0;
+    int i;
+
+    for (i = min; i < max; i++) {
+        integral += test[i];
+    }
+    //cout << _samples[min] << "    " << _samples[max] << endl;
+    return integral / ((float) (max - min));
+}
+
+bool isnotaspike (float* test, int triggerpos, float baseline) {
+    
+    float testint =  - BoundIntegral (test, triggerpos, triggerpos + 100);
+    int minpos = get_minimum_pos (test, triggerpos, triggerpos + 100);
+    float maxspike = - test[minpos];
+    float troppospike = (testint - baseline)/(maxspike - baseline);
+    if (troppospike < 0.1) {
+        printf("\nBrava gente: bomba %f\ntestint %f\nminpos %f\nmaxspike %f\ntroppospike %f\n\n", test[0], testint,minpos, maxspike,troppospike);
+        return 0;
+    }
+    return 1;
 }
 
 //

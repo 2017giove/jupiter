@@ -76,6 +76,7 @@
       <in>Cs_fit_RUN.c</in>
       <in>WaveformCharge_RUN.c</in>
       <in>Waveform_RUN.c</in>
+      <in>refillDRS.c</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
@@ -103,8 +104,6 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
-        <gdb_signals>
-        </gdb_signals>
         <gdb_options>
           <DebugOptions>
           </DebugOptions>
@@ -120,6 +119,7 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}"  lorenzo 300 0 1200 1 5000 501</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}"  sananas4 10 4 900 100 15 1800 505 404 405 301
 </runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"  sananas4 10 4 900 100 15 1800 505 404 405 301</runcommandpicklistitem>
         </runcommandpicklist>
         <runcommand>"${OUTPUT_PATH}"  sananas4 10 4 900 100 15 1800 505 404 405 301</runcommand>
         <arguments> lorenzo 300 0 1200 1 5000 501</arguments>

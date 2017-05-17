@@ -161,6 +161,7 @@ void MakeChargeHist(const char* fileIN) {
 
 void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     int i, j, Nentries;
+    int N_spikes = 0;
     WaveForm Wave; //definizione di WaveForm in WaveAnalysis.h
     float Integral, BaseIntegral, Max;
     char branchDef[STR_LENGTH];
@@ -198,28 +199,54 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     Tspectrum->Branch("Integral", &Integral, "Integral/F");
     Tbaseline->Branch("Baseline", &BaseIntegral, "Baseline/F");
 
+    
+        TCanvas *c400 = new TCanvas("SpikeFish", PLOTS_TITLE, 640, 480);
+    
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
-        printf("\n%d\n\n", temp.trigCH);
+        //(printf("\n%d\n\n", temp.trigCH);
         if (temp.trigCH == CH) {
 
             Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
-            Integral = Wave.Integral();
-            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) (st.delayns * RATE)));
-            Integral -= BaseIntegral;
+            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
 
-            Tspectrum->Fill();
-            Tbaseline->Fill();
+            int trigpos = triggerbin(st.thresh[CH], temp.wave_array[CH]);
+
+            if (isnotaspike(temp.wave_array[CH], trigpos, BaseIntegral) == 1) {
+
+                Integral = Wave.Integral();
+                Integral -= BaseIntegral;
+                Tspectrum->Fill();
+                Tbaseline->Fill();
+
+            } else {
+                
+                N_spikes++;
+                if (N_spikes % 11 == 0){
+                        sprintf(tname, "sp%d", N_spikes);
+                        TH1F *histo_ch1 = new TH1F(tname, "Spikes", N_SAMPLES, 0, N_SAMPLES);
+                        int k;
+                        for (k=0;k<N_SAMPLES;k++){
+                                        histo_ch1->SetBinContent(k, temp.wave_array[CH][k]);
+                        }
+                    
+                        histo_ch1->Draw();
+                        histo_ch1->Write(   );
+                                sprintf(tname, "img/sp%d.jpg", N_spikes);
+                        c400->SaveAs(tname);
+            
+                }
+            }
 
         }
 
-        printf("CH %d (PMT %d) ", CH, cPMT);
+        //printf("CH %d (PMT %d) ", CH, cPMT);
         printf("%d/%d ", i, Nentries);
-        //        printStatus((float) i / (float) Nentries);
+        printStatus((float) i / (float) Nentries);
 
     }
-    printf("CH %d (PMT %d) completed\n", CH, cPMT);
+    printf("CH %d (PMT %d) completed. Lollo ha avuto %d erezioni spiked.\n", CH, cPMT, N_spikes);
 
     FOut->cd();
     Tspectrum->Write();

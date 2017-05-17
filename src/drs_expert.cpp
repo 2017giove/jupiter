@@ -92,11 +92,11 @@
  *          double timeelapsed = mynewmbclock.elapsed();
  * 
  */
-class rieussec {
+class exotourbillion {
 public:
     std::chrono::time_point<std::chrono::high_resolution_clock> lastTime;
 
-    rieussec() : lastTime(std::chrono::high_resolution_clock::now()) {
+    exotourbillion() : lastTime(std::chrono::high_resolution_clock::now()) {
     }
 
     inline double elapsed() {
@@ -155,9 +155,9 @@ int main(int argc, char* argv[]) {
     printf("Canali da acquisire\n");
 
     for (i = 0; i < maxchan; i++) {
+        cset.voltage[i] =  atof(argv[7]);
         cset.thresh[i] = -atof(argv[5]);
         //cset.thresh = -100.; //2*Voltage*THRESH/1200;
-        cset.voltage[i] = atof(argv[7]);
         cset.PmtID[i] = atoi(argv[i + 8]);
         printf("%d\n", cset.PmtID[i]);
     }
@@ -341,15 +341,17 @@ int main(int argc, char* argv[]) {
 
     while ((time(0) - t0) < cset.deltaT) {
         /* start board (activate domino wave) */
+      
+        exotourbillion tr;
         b->StartDomino();
 
         /* wait for trigger - write to console only first time */
         if (totevents == 0) cout << "Waiting for trigger..." << endl;
-        rieussec tr;
+        
         while (b->IsBusy());
         drstime += tr.elapsed();
 
-        rieussec tr2;
+        exotourbillion tr2;
         if (totevents == 0) cout << "Trigger found, session started..." << endl;
 
         /* read all waveforms */
