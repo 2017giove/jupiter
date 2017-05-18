@@ -114,6 +114,8 @@ void MakeChargeHist(const char* fileIN) {
         t1->SetBranchAddress("Integral", &Integral);
         tbase->SetBranchAddress("Baseline", &BaseIntegral);
 
+ 
+        
         //Crea l'istogramma e lo popola integrando le forme d'onda
         sprintf(tname, "h%d", cPMT);
         TH1D *h1 = new TH1D(tname, "Istogramma energia", NBIN, QMIN, QMAX);

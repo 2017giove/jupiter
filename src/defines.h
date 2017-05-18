@@ -17,6 +17,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TGraph2D.h"
 #include "TROOT.h"
 #include "TF1.h"
@@ -54,6 +55,8 @@
 #define QMIN 0
 #define N_SAMPLES 1024
 #define SANTA_MAX 50
+
+#define CHARGE_STEP 5 //larghezza del bin nel tprofile della forma d'onda
 
 #define MAXCH 4
 #define DELAY 1160 //da cambiare se si usa un rate di acquisizione diverso

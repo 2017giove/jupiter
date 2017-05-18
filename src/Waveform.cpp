@@ -91,6 +91,101 @@ void MakeWaveform(const char* fileIN, int PMTid) {
 
 }
 
+void WaveProfile() {
+    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+    char fileOUT[STR_LENGTH];
+    std::strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
+    TFile *FOut = new TFile(fileOUT, "UPDATE");
+    int i, j;
+
+    TH1F *histo_ch1;
+    TTree* tset = (TTree*) f->Get("tset");
+    char tname [STR_LENGTH];
+    struct mySetting st;
+    mySetting_get(tset, &st);
+    mySetting_print(&st);
+    TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+    int CH;
+
+    for (i = 0; i < st.Nchan; i++) {
+        CH = i;
+
+
+        TTree* t1 = (TTree*) f->Get("t1");
+        TTree* tset = (TTree*) f->Get("tset");
+
+        int jentry;
+        struct myEvent temp;
+        int nentries = t1->GetEntries();
+
+        t1->SetBranchAddress("trigCH", &temp.trigCH);
+        t1->SetBranchAddress("wave_array", temp.wave_array);
+        t1->SetBranchAddress("time_array", temp.time_array);
+
+        float Integral, BaseIntegral, Max;
+        WaveForm Wave;
+
+        sprintf(tname, "wp%d", st.PmtID[i]);
+        TH2D * sprofh = new TH2D(tname, "Profile della waveform", N_SAMPLES + 1, 0, N_SAMPLES, 20, 0, 200);
+
+        int totEventiQ[100] = {0};
+
+
+        //Ciclo sugli eventi
+        for (jentry = 0; jentry < nentries; jentry++) {
+            t1->GetEntry(jentry);
+
+            Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
+            Integral = Wave.Integral();
+            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
+            Integral -= BaseIntegral;
+
+            for (j = 0; j < N_SAMPLES; j++) {
+                int cQ = (int) (Integral / sprofh->GetYaxis()->GetBinWidth((j)));
+         
+                if (cQ < 0) {
+                          //  printf("%f\t%d\n\n\n",Integral,cQ);
+                    cQ = 100;
+                }
+                float oldBinContent = sprofh->GetBinContent(j, cQ);
+                sprofh->SetBinContent(j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
+                totEventiQ[cQ]++;
+
+            }
+
+
+
+          //  printf("%d/%d ", jentry, nentries);
+           // printStatus((float) jentry / (float) nentries);
+
+        }
+
+
+        int jj = sprofh->GetNbinsY();
+        printf("%d\n\n",jj);
+        float z;
+        for (j = 0; j < jj; j++) {
+            for (int k = 0; k < N_SAMPLES; k++) {
+                if (totEventiQ[j] != 0) {
+                    z = sprofh->GetBinContent(k, j) / (float) totEventiQ[j];
+                    sprofh->SetBinContent(k, j, z);
+
+                }
+            }
+
+        }
+
+
+        sprofh->Draw("surf3");
+        c41->Write();
+        sprintf(tname, "img/%s_wp%d.eps", filenameFromPath(f->GetName()).c_str(), st.PmtID[i]);
+        c41->SaveAs(tname);
+    }
+
+   // FOut->Close();
+    // delete c41;
+}
+
 void plotWaveStepCharge() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
     char fileOUT[STR_LENGTH];
@@ -267,7 +362,7 @@ void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid) {
     }
 
     struct myEvent ev;
-        t1->SetBranchAddress("trigCH", &ev.trigCH);
+    t1->SetBranchAddress("trigCH", &ev.trigCH);
     t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
     int nentries = t1->GetEntries();
