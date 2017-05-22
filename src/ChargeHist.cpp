@@ -114,8 +114,8 @@ void MakeChargeHist(const char* fileIN) {
         t1->SetBranchAddress("Integral", &Integral);
         tbase->SetBranchAddress("Baseline", &BaseIntegral);
 
- 
-        
+
+
         //Crea l'istogramma e lo popola integrando le forme d'onda
         sprintf(tname, "h%d", cPMT);
         TH1D *h1 = new TH1D(tname, "Istogramma energia", NBIN, QMIN, QMAX);
@@ -200,10 +200,15 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
     Tspectrum->Branch("Integral", &Integral, "Integral/F");
     Tbaseline->Branch("Baseline", &BaseIntegral, "Baseline/F");
+    TH1F *histo_spike = new TH1F("histo_spike", "Forma delle spike", N_SAMPLES, 0, N_SAMPLES);
 
-    
-        TCanvas *c400 = new TCanvas("SpikeFish", PLOTS_TITLE, 640, 480);
-    
+
+
+
+    TCanvas *c400 = new TCanvas("SpikeFish", PLOTS_TITLE, 640, 480);
+    // TCanvas *c401 = new TCanvas("SaturatedFish", PLOTS_TITLE, 640, 480);
+    int nsat = 0;
+
     //Integra le forme d'onda, stima il valore massimo dell'array e li stampa sul file in output
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
@@ -215,29 +220,68 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
             int trigpos = triggerbin(st.thresh[CH], temp.wave_array[CH]);
 
-            if (isnotaspike(temp.wave_array[CH], trigpos, BaseIntegral) == 1) {
+
+
+            if (isaspike(temp.wave_array[CH], trigpos, BaseIntegral) == 0) {
+
+
+
 
                 Integral = Wave.Integral();
                 Integral -= BaseIntegral;
                 Tspectrum->Fill();
                 Tbaseline->Fill();
 
+
+                //        get_minimum_pos(temp.wave_array[CH], trigpos,N_SAMPLES);
+
+                if (issaturated(temp.wave_array[CH], trigpos) == 1) {
+                    nsat++;
+
+                    sprintf(tname, "sat%d", N_spikes);
+                    TH1F *histo_ch2 = new TH1F(tname, "Saturation", N_SAMPLES, 0, N_SAMPLES);
+                    int k;
+                    for (k = 0; k < N_SAMPLES; k++) {
+                        histo_ch2->SetBinContent(k, temp.wave_array[CH][k]);
+                    }
+                    //     FOut->cd();
+                    //    c401->cd();
+                    histo_ch2->Draw();
+                    histo_ch2->Write();
+                    //  sprintf(tname, "img/sat%d.jpg", N_spikes);
+                    //   c401->SaveAs(tname);
+
+                }
+
+
+
+
             } else {
-                
+
                 N_spikes++;
-                if (N_spikes % 11 == 0){
-                        sprintf(tname, "sp%d", N_spikes);
-                        TH1F *histo_ch1 = new TH1F(tname, "Spikes", N_SAMPLES, 0, N_SAMPLES);
-                        int k;
-                        for (k=0;k<N_SAMPLES;k++){
-                                        histo_ch1->SetBinContent(k, temp.wave_array[CH][k]);
-                        }
-                    
-                        histo_ch1->Draw();
-                        histo_ch1->Write(   );
-                                sprintf(tname, "img/sp%d.jpg", N_spikes);
-                        c400->SaveAs(tname);
-            
+
+                for (int k = 0; k < 1024; k++) {
+                    histo_spike->SetBinContent(k, histo_spike->GetBinContent(k) + temp.wave_array[CH][k]);
+                }
+
+
+
+
+
+                if (N_spikes % 500 == 0) {
+                    sprintf(tname, "sp%d", N_spikes);
+                    TH1F *histo_ch1 = new TH1F(tname, "Spikes", N_SAMPLES, 0, N_SAMPLES);
+                    int k;
+                    for (k = 0; k < N_SAMPLES; k++) {
+                        histo_ch1->SetBinContent(k, temp.wave_array[CH][k]);
+                    }
+                    //  FOut->cd();
+                    // c400->cd();
+                    histo_ch1->Draw();
+                    histo_ch1->Write();
+                    //    sprintf(tname, "img/sp%d.jpg", N_spikes);
+                    //    c400->SaveAs(tname);
+
                 }
             }
 
@@ -248,11 +292,24 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
         printStatus((float) i / (float) Nentries);
 
     }
-    printf("CH %d (PMT %d) completed. Lollo ha avuto %d erezioni spiked.\n", CH, cPMT, N_spikes);
+
+    for (int k = 0; k < 1024; k++) {
+        histo_spike->SetBinContent(k, histo_spike->GetBinContent(k) / (float) N_spikes);
+    }
+
+    c400->cd();
+    histo_spike->Draw();
+    sprintf(tname, "img/avgSP%d.jpg", CH);
+    c400->SaveAs(tname);
+
+
+
+    printf("\nCH %d (PMT %d) completed. Lollo ha avuto %d erezioni spiked e %d fellatio saturated.\n", CH, cPMT, N_spikes, nsat);
 
     FOut->cd();
     Tspectrum->Write();
     Tbaseline->Write();
+    histo_spike->Write();
 
     TTree* newtree = tset1->CloneTree(0);
     newtree->Fill();

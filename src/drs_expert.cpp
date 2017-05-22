@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     printf("Canali da acquisire\n");
 
     for (i = 0; i < maxchan; i++) {
-        cset.voltage[i] =  atof(argv[7]);
+        cset.voltage[i] = atof(argv[7]);
         cset.thresh[i] = -atof(argv[5]);
         //cset.thresh = -100.; //2*Voltage*THRESH/1200;
         cset.PmtID[i] = atoi(argv[i + 8]);
@@ -183,6 +183,8 @@ int main(int argc, char* argv[]) {
 
     myEvent ev;
     allocateEvent(&ev, maxchan);
+
+    std::vector<myEvent> totEvents;
 
 
     char rootFileName[130];
@@ -258,10 +260,6 @@ int main(int argc, char* argv[]) {
     TBranch * b_wave_array = tree->Branch("wave_array", &ev.wave_array[0][0], branchDef);
 
 
-
-
-
-
     /*  Inizializzazione scheda*/
     int nBoards;
     DRS *drs;
@@ -288,7 +286,7 @@ int main(int argc, char* argv[]) {
     b = drs->GetBoard(0); //ciambo
 
     /* initialize board */
- 
+
     b->Init();
 
     /* set sampling frequency */
@@ -339,19 +337,25 @@ int main(int argc, char* argv[]) {
     double drstime = 0;
     double pctime = 0;
 
+    exotourbillion totaltr;
+    exotourbillion tr;
+    exotourbillion tr2;
+    totaltr.elapsed();
     while ((time(0) - t0) < cset.deltaT) {
         /* start board (activate domino wave) */
-      
-        exotourbillion tr;
+
+
+        tr.elapsed();
         b->StartDomino();
 
         /* wait for trigger - write to console only first time */
         if (totevents == 0) cout << "Waiting for trigger..." << endl;
-        
+
         while (b->IsBusy());
         drstime += tr.elapsed();
 
-        exotourbillion tr2;
+
+        tr2.elapsed();
         if (totevents == 0) cout << "Trigger found, session started..." << endl;
 
         /* read all waveforms */
@@ -376,7 +380,7 @@ int main(int argc, char* argv[]) {
         }
 
 
-
+     //   totEvents.push_back(ev);
         tree->Fill();
 
         /* print some progress indication */
@@ -385,22 +389,25 @@ int main(int argc, char* argv[]) {
         printStatus((float) ((time(0) - t0) / (float) cset.deltaT));
 
         totevents++;
+
+
         pctime += tr2.elapsed();
     }
 
+    double total = totaltr.elapsed();
+    // is trig?
+        TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
+        for (i = 0; i < tree->GetEntries(); i++) {
+            tree->GetEntry(i);
+            ev.trigCH = getTriggerSource(&ev, &cset);
+            // printf("%d\n\n", ev.trigCH);
+            b_trigId->Fill();
+        }
 
-    TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
-    for (i = 0; i < tree->GetEntries(); i++) {
-        tree->GetEntry(i);
-        ev.trigCH = getTriggerSource(&ev, &cset);
-        // printf("%d\n\n", ev.trigCH);
-        b_trigId->Fill();
-    }
-
-    //tree->Write();
+    tree->Write();
     f1->Write();
     f1->Close();
-
+    printf("\nTempo totale\t%lf\n", total);
     printf("\nTempo DRS:\t%lf\t(%lf )\nTempo PC:\t%lf\t(%lf )\n", drstime, pctime, (double) drstime / (drstime + pctime), (double) pctime / (drstime + pctime));
     printf("\n*** ACQUISITION IS COMPLETE ***\n");
 

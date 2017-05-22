@@ -126,7 +126,7 @@ void WaveProfile() {
         WaveForm Wave;
 
         sprintf(tname, "wp%d", st.PmtID[i]);
-        TH2D * sprofh = new TH2D(tname, "Profile della waveform", N_SAMPLES + 1, 0, N_SAMPLES, 20, 0, 200);
+        TH2D * sprofh = new TH2D(tname, "Profile della waveform", N_SAMPLES + 1, 0, N_SAMPLES, 20, 0, 300);
 
         int totEventiQ[100] = {0};
 
@@ -142,27 +142,28 @@ void WaveProfile() {
 
             for (j = 0; j < N_SAMPLES; j++) {
                 int cQ = (int) (Integral / sprofh->GetYaxis()->GetBinWidth((j)));
-         
-                if (cQ < 0) {
-                          //  printf("%f\t%d\n\n\n",Integral,cQ);
-                    cQ = 100;
+
+                if (cQ < 0 || cQ > 99) {
+                    //printf("\n\n%f\t%d\n\n\n",Integral,cQ);
+                    cQ = 99;
                 }
                 float oldBinContent = sprofh->GetBinContent(j, cQ);
                 sprofh->SetBinContent(j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
+
+                //printf("\n%d\t%d\t%f\n\n", j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
                 totEventiQ[cQ]++;
 
             }
 
 
 
-          //  printf("%d/%d ", jentry, nentries);
-           // printStatus((float) jentry / (float) nentries);
+            printf("%d/%d ", jentry, nentries);
+            printStatus((float) jentry / (float) nentries);
 
         }
 
 
         int jj = sprofh->GetNbinsY();
-        printf("%d\n\n",jj);
         float z;
         for (j = 0; j < jj; j++) {
             for (int k = 0; k < N_SAMPLES; k++) {
@@ -182,7 +183,7 @@ void WaveProfile() {
         c41->SaveAs(tname);
     }
 
-   // FOut->Close();
+    // FOut->Close();
     // delete c41;
 }
 

@@ -54,11 +54,11 @@
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024
-#define SANTA_MAX 50
+#define SANTA_MAX 4
 
 #define CHARGE_STEP 5 //larghezza del bin nel tprofile della forma d'onda
 
-#define MAXCH 4
+#define MAXCH 4  //non esiste
 #define DELAY 1160 //da cambiare se si usa un rate di acquisizione diverso
 #define RATE 0.7 //da cambiare se si usa un rate di acquisizione diverso
 
@@ -96,8 +96,6 @@ struct peak {
     float nBG;
     float nSGN;
 };
-
-
 
 void allocateSetting(struct mySetting* st, int NCHAN) {
     int i;
@@ -184,24 +182,24 @@ void printStatus(float progress) {
 
 }
 
-int get_minimum_pos  (float* test, int start, int end) {
-    
+int get_minimum_pos(float* test, int start, int end) {
+
     int minpos = 0;
     float min = 0;
-    
+
     for (int i = start; i < end; i++) {
-        
+
         if (test[i] < min) {
-            
+
             min = test[i];
             minpos = i;
-            
+
         }
-        
+
     }
-    
+
     return minpos;
-    
+
 }
 
 int triggerbin(int threshold, float* test) {
@@ -230,17 +228,37 @@ float BoundIntegral(float* test, int min, int max) {
     return integral / ((float) (max - min));
 }
 
-bool isnotaspike (float* test, int triggerpos, float baseline) {
-    
-    float testint =  - BoundIntegral (test, triggerpos, triggerpos + 100);
-    int minpos = get_minimum_pos (test, triggerpos, triggerpos + 100);
-    float maxspike = - test[minpos];
-    float troppospike = (testint - baseline)/(maxspike - baseline);
+bool isaspike(float* test, int triggerpos, float baseline) {
+
+    float testint = -BoundIntegral(test, triggerpos, triggerpos + 100);
+    int minpos = get_minimum_pos(test, triggerpos, triggerpos + 100);
+    float maxspike = -test[minpos];
+    float troppospike = (testint - baseline) / (maxspike - baseline);
     if (troppospike < 0.1) {
-        printf("\nBrava gente: bomba %f\ntestint %f\nminpos %f\nmaxspike %f\ntroppospike %f\n\n", test[0], testint,minpos, maxspike,troppospike);
+        //  printf("\nBrava gente: bomba %f\ntestint %f\nminpos %f\nmaxspike %f\ntroppospike %f\n\n", test[0], testint,minpos, maxspike,troppospike);
+        return 1;
+    }
+    return 0;
+}
+
+bool issaturated(float* test, int triggerpos) {
+    int nsat = 0;
+
+    for (int i = triggerpos; i < N_SAMPLES; i++) {
+
+        if (test[i] < -490) {
+            //   printf("\n\n%f\n\n", test[i]);
+            nsat++;
+        }
+    }
+
+
+    if (nsat > 100) {
+        return 1;
+    } else {
         return 0;
     }
-    return 1;
+
 }
 
 //
