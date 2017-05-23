@@ -38,17 +38,31 @@ void volt_fit(char * peaksfile) {
     Double_t nSGN[n];
 
     int i = 0;
-    int tresh=0;
+    int tresh = 0;
+
+    char temp[STR_LENGTH ];
+
+    std::string fout = peaksfile;
+    std::string whattolook = ".expert";
+    std::string whattoput = "calib.root";
+    fout = fout.replace(fout.find(whattolook), whattolook.length(), whattoput);
+
+    printf("\n\nfile %s\n\n", fout.c_str());
+    TFile *FOut = new TFile(fout.c_str(), "UPDATE");
+
+
     while (std::getline(myfile1, myline)) {
         std::istringstream strm(myline);
         if (strm >> voltage[i] >> tresh >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
             std::cout << i << " " << voltage[i] << " " << tresh << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
             esfpeakpos[i] = peakpos[i];
-            peakpos[i] = TMath::Log(peakpos[i]);
+     
 
-            resolution[i] = sigma[i] / peakpos[i]/TMath::Sqrt(nSGN[i]);
-            i++;
+            resolution[i] = sigma[i] / peakpos[i];// / TMath::Sqrt(nSGN[i]);
             
+                   peakpos[i] = TMath::Log(peakpos[i]);
+            i++;
+
             if (resolution[i] < 0) {
                 printf("Il fit a %f volt sarà rigettato in acqua.\n%s\n", voltage[i], ERROR_FISHERMAN);
                 i--;
@@ -60,7 +74,8 @@ void volt_fit(char * peaksfile) {
         }
     }
 
-    TCanvas *c40 = new TCanvas("c40", PLOTS_TITLE, 640, 480);
+
+    TCanvas *c40 = new TCanvas("linear", PLOTS_TITLE, 640, 480);
     c40->SetFillColor(10);
     c40->SetGrid();
     gStyle->SetOptFit(1111);
@@ -85,8 +100,12 @@ void volt_fit(char * peaksfile) {
     fit_function->Draw("Same");
     //gROOT->SetStyle("Plain");
     //gStyle->SetOptFit(1111);
+    c40->Write();
 
-    TCanvas *c4001 = new TCanvas("c4001", PLOTS_TITLE, 640, 480);
+
+
+
+    TCanvas *c4001 = new TCanvas("expo", PLOTS_TITLE, 640, 480);
     TGraph* mygraph2 = new TGraph(i, voltage, esfpeakpos);
 
 
@@ -99,19 +118,21 @@ void volt_fit(char * peaksfile) {
     mygraph2->SetMarkerSize(1);
     mygraph2->Draw("AP");
 
+
     TF1* fit_function2 = new TF1("rett2", "TMath::Exp([0]*x+[1])", 1000, 2000);
     fit_function2->SetParameter(0, fit_function->GetParameter(0));
     fit_function2->SetParameter(1, fit_function->GetParameter(1));
 
     fit_function2->Draw("Same");
+    c4001->Write();
 
 
-    
-    
-    TCanvas *c402 = new TCanvas("c402", PLOTS_TITLE, 640, 480);
+
+    TCanvas *c402 = new TCanvas("resol", PLOTS_TITLE, 640, 480);
     TGraph* mygraph3 = new TGraph(i, voltage, resolution);
 
     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E #sqrt{N}}");
+     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E}");
     mygraph3->GetXaxis()->SetTitle("Tensione PMT [V]");
     mygraph3->GetYaxis()->SetTitle("Risoluzione [#sigma/E] ");
 
@@ -119,7 +140,9 @@ void volt_fit(char * peaksfile) {
     mygraph3->SetMarkerStyle(20);
     mygraph3->SetMarkerSize(1);
     mygraph3->Draw("AP");
-
+    c402->Write();
 
     std::cout << fit_function->GetChisquare() << std::endl;
+
+    //  FOut->Close();
 }

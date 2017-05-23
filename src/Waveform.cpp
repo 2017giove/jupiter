@@ -13,6 +13,8 @@
 #include <TView3D.h>
 #include "WaveAnalysis.h"
 
+
+#include "TProfile2D.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -90,6 +92,107 @@ void MakeWaveform(const char* fileIN, int PMTid) {
 
 
 }
+
+//void WaveProfile() {
+//
+//
+//
+//    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+//    char fileOUT[STR_LENGTH];
+//    std::strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
+//    TFile *FOut = new TFile(fileOUT, "UPDATE");
+//    int i, j;
+//
+//    TH1F *histo_ch1;
+//    TTree* tset = (TTree*) f->Get("tset");
+//    char tname [STR_LENGTH];
+//    struct mySetting st;
+//    mySetting_get(tset, &st);
+//    mySetting_print(&st);
+//    TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+//    int CH;
+//
+//    for (i = 0; i < st.Nchan; i++) {
+//        CH = i;
+//
+//
+//        TTree* t1 = (TTree*) f->Get("t1");
+//        TTree* tset = (TTree*) f->Get("tset");
+//
+//        int jentry;
+//        struct myEvent temp;
+//        int nentries = t1->GetEntries();
+//
+//        t1->SetBranchAddress("trigCH", &temp.trigCH);
+//        t1->SetBranchAddress("wave_array", temp.wave_array);
+//        t1->SetBranchAddress("time_array", temp.time_array);
+//
+//        float Integral, BaseIntegral, Max;
+//        WaveForm Wave;
+//
+//        sprintf(tname, "wp%d", st.PmtID[i]);
+//        TProfile2D * sprofh = new TProfile2D(tname, "Profile della waveform", N_SAMPLES + 1, 0, N_SAMPLES, 20, 0, 300, 0, 0.1);
+//       // sprofh->SetBinEntries(200,1);
+//        int totEventiQ[100] = {0};
+//
+//
+//        //Ciclo sugli eventi
+//        for (jentry = 0; jentry < nentries; jentry++) {
+//            t1->GetEntry(jentry);
+//
+//            Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
+//            Integral = Wave.Integral();
+//            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
+//            Integral -= BaseIntegral;
+//
+//            for (j = 0; j < N_SAMPLES; j++) {
+//                int cQ = (int) (Integral / sprofh->GetYaxis()->GetBinWidth((j)));
+//
+//                if (cQ < 0 || cQ > 99) {
+//                    //printf("\n\n%f\t%d\n\n\n",Integral,cQ);
+//                    cQ = 99;
+//                }
+//                float oldBinContent = sprofh->GetBinContent(j, cQ);
+//                //  sprofh->SetBinContent(j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
+//                sprofh->Fill(j, cQ, (-temp.wave_array[CH][j] / Integral));
+//                //printf("\n%d\t%d\t%f\n\n", j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
+//                totEventiQ[cQ]++;
+//
+//            }
+//
+//
+//
+//            printf("%d/%d ", jentry, nentries);
+//            printStatus((float) jentry / (float) nentries);
+//
+//        }
+//
+//
+//        int jj = sprofh->GetNbinsY();
+//        float z;
+//        for (j = 0; j < jj; j++) {
+//            for (int k = 0; k < N_SAMPLES; k++) {
+//                if (totEventiQ[j] != 0) {
+//                    z = sprofh->GetBinContent(k, j) / (float) totEventiQ[j];
+//                    sprofh->SetBinContent(k, j, z);
+//
+//                }
+//            }
+//
+//        }
+//
+//
+//        sprofh->Draw("surf3"  );
+//        c41->Write();
+//        sprintf(tname, "img/%s_wp%d.jpg", filenameFromPath(f->GetName()).c_str(), st.PmtID[i]);
+//        c41->SaveAs(tname);
+//    }
+//
+//
+//    // FOut->Close();
+//    // delete c41;
+//}
+
 
 void WaveProfile() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();

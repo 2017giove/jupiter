@@ -23,6 +23,10 @@
 #include "TF1.h"
 #include "TMath.h"
 #include "TGraph.h"
+#include "TSystemFile.h"
+#include "TSystemDirectory.h"
+#include "TList.h"
+
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -31,7 +35,10 @@
 #include <iostream>
 #include <ostream>
 
-
+//#include "Waveform.cpp"
+//#include "volt_fit.cpp"
+//#include "Cs_fit.cpp"
+//#include "ChargeHist.cpp"
 
 
 
@@ -276,30 +283,35 @@ bool issaturated(float* test, int triggerpos) {
 
 
 
-//
-//struct myEvent {
-//    /*
-//     * Che altre informazioni servono?
-//     */
-//    int eventID;
-//    int trigCH;
-//    float time_array[SANTA_MAX][N_SAMPLES];
-//    float wave_array[SANTA_MAX][N_SAMPLES];
-//};
-//
-//struct mySetting {
-//    char date[STR_LENGTH];
-//    int Nchan;
-//    int deltaT;
-//    float voltage[SANTA_MAX];
-//    int PmtID[SANTA_MAX];
-//    float thresh[SANTA_MAX];
-//    int triggerSetting;
-//    int delayns;
-//    char description[10 * STR_LENGTH];
-//    //Aggiungere altri parametri rilevanti come...
-//
-//};
+std::vector<std::string> list_files(const char *dirname = "data/",
+        const char *prefix = "",
+        const char *suffix = ".root"
+        ) {
+
+    std::vector<std::string> myfiles;
+
+    if (!dirname || !(*dirname)) return myfiles; // just a precaution
+    TString pwd(gSystem->pwd());
+    TSystemDirectory dir(dirname, dirname);
+    TList *files = dir.GetListOfFiles();
+    gSystem->cd(pwd.Data()); // bug fix for ROOT prior to 5.34
+    if (files) {
+        TSystemFile *file;
+        TString fname;
+        TIter next(files);
+        while ((file = (TSystemFile*) next())) {
+            fname = file->GetName();
+            if (!(file->IsDirectory()) &&
+                    (!prefix || !(*prefix) || fname.BeginsWith(prefix)) &&
+                    (!suffix || !(*suffix) || fname.EndsWith(suffix))) {
+                myfiles.push_back(file->GetName());
+                std::cout << fname.Data() << std::endl;
+            }
+        }
+    }
+    delete files;
+    return myfiles;
+}
 
 void mySetting_print(mySetting *st) {
 
