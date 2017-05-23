@@ -158,7 +158,7 @@ void MakeChargeHist(const char* fileIN) {
     newtree->Write("", TObject::kOverwrite);
 
     hist_file->Close();
-    delete c40;
+  //  delete c40;
 }
 
 void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {

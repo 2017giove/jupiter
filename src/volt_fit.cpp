@@ -16,6 +16,10 @@
  * 
  * @param nome del file contenente la lista di misure Tensione-PosizionePicco
  */
+
+
+
+
 void volt_fit(char * peaksfile) {
 
     std::ifstream myfile1;
@@ -34,11 +38,11 @@ void volt_fit(char * peaksfile) {
     Double_t nSGN[n];
 
     int i = 0;
-
+    int tresh=0;
     while (std::getline(myfile1, myline)) {
         std::istringstream strm(myline);
-        if (strm >> voltage[i] >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
-            std::cout << i << " " << voltage[i] << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
+        if (strm >> voltage[i] >> tresh >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
+            std::cout << i << " " << voltage[i] << " " << tresh << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
             esfpeakpos[i] = peakpos[i];
             peakpos[i] = TMath::Log(peakpos[i]);
 

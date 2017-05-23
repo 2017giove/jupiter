@@ -12,6 +12,10 @@
 
 #include "WaveAnalysis.h"
 
+#include "TSystemFile.h"
+#include "TSystemDirectory.h"
+#include "TList.h"
+
 
 //Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
 int GetMaximumBin(TH1D* hist, int from, int to);
@@ -36,6 +40,199 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
 
 }
 
+std::vector<std::string> list_files(const char *dirname = "data/",
+        const char *prefix = "",
+        const char *suffix = ".root"
+        ) {
+
+    std::vector<std::string> myfiles;
+
+    if (!dirname || !(*dirname)) return; // just a precaution
+    TString pwd(gSystem->pwd());
+    TSystemDirectory dir(dirname, dirname);
+    TList *files = dir.GetListOfFiles();
+    gSystem->cd(pwd.Data()); // bug fix for ROOT prior to 5.34
+    if (files) {
+        TSystemFile *file;
+        TString fname;
+        TIter next(files);
+        while ((file = (TSystemFile*) next())) {
+            fname = file->GetName();
+            if (!(file->IsDirectory()) &&
+                    (!prefix || !(*prefix) || fname.BeginsWith(prefix)) &&
+                    (!suffix || !(*suffix) || fname.EndsWith(suffix))) {
+                myfiles.push_back(file->GetName());
+                std::cout << fname.Data() << std::endl;
+            }
+        }
+    }
+    delete files;
+    return myfiles;
+}
+
+void Calibra(char* capturename) {
+
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myfiles = list_files("data/", capturename, "0.root");
+
+
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".fish");
+    for (int k = 0; k < myrottenfish.size(); k++) {
+        sprintf(rottentemp, "data/%s", myrottenfish[k].c_str());
+        printf("removing %s\n", rottentemp);
+        remove(rottentemp);
+    }
+
+    std::vector<std::string> myrottenexpert = list_files("data/", capturename, ".expert");
+    for (int k = 0; k < myrottenexpert.size(); k++) {
+        sprintf(rottentemp, "data/%s", myrottenexpert[k].c_str());
+        printf("removing %s\n", rottentemp);
+        remove(rottentemp);
+    }
+
+
+
+    for (int i = 0; i < myfiles.size(); i++) {
+
+        sprintf(capturename_, "data/%s", myfiles[i].c_str());
+        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        ChargeHist(capturename_);
+    }
+
+
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, "hist.root");
+
+    for (int i = 0; i < myHistfiles.size(); i++) {
+        printf("Bogoliubov\n\n\n");
+        int voltage;
+        int trigger;
+
+        std::string fname = capturename_;
+        std::string vlt = myHistfiles[i].substr(fname.length(), 4);
+        std::string trg = myHistfiles[i].substr(fname.length() + 5, 2);
+        voltage = atoi(vlt.c_str());
+        trigger = atoi(trg.c_str());
+        printf("Bogolobov\n\n\n");
+
+
+        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
+        TFile *sorgente_file = TFile::Open(temp1);
+
+        mySetting st;
+        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+        mySetting_get(tset1, &st);
+
+        for (int j = 0; j < st.Nchan; j++) {
+            int PMTid = CHtoPMT(j, &st);
+            sprintf(temp2, "data/%s_%d_%d.fish", capturename, voltage, PMTid);
+            printf("\ntemp1 %s \ntemp2%s\n", temp1, temp2);
+            Cs_getPeak(temp1, PMTid, temp2);
+
+        }
+    }
+
+
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
+    char tempf[STR_LENGTH];
+    for (int f = 0; f < myFish.size(); f++) {
+        sprintf(tempf, "data/%s", myFish[f].c_str());
+        trigger_fit(tempf);
+    }
+
+    
+        sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myExpert = list_files("data/", capturename, ".expert");
+    char tempe[STR_LENGTH];
+    for (int e = 0; e < myExpert.size(); e++) {
+        sprintf(tempe, "data/%s", myExpert[e].c_str());
+        volt_fit(tempe);
+    }
+    
+}
+
+void trigger_fit(char * peaksfile) {
+
+    std::ifstream myfile1;
+    std::string myline;
+
+    myfile1.open(peaksfile);
+
+    const int n = 50;
+    Double_t voltage[n];
+    Double_t esfpeakpos[n];
+    Double_t peakpos[n];
+    Double_t sigma[n];
+    Double_t peakval[n];
+    Double_t resolution[n];
+    Int_t tresh[n];
+    Double_t nBG[n];
+    Double_t nSGN[n];
+
+    int i = 0;
+
+
+    int minres = 5000;
+    int minresPOS = 0;
+
+    while (std::getline(myfile1, myline)) {
+        std::istringstream strm(myline);
+        if (strm >> voltage[i] >> tresh[i] >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
+            std::cout << i << " " << voltage[i] << " " << tresh[i] << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
+            esfpeakpos[i] = peakpos[i];
+            peakpos[i] = TMath::Log(peakpos[i]);
+            resolution[i] = sigma[i] / peakpos[i] / TMath::Sqrt(nSGN[i]);
+
+
+
+
+            if (resolution[i] < 0) {
+                printf("Il fit a %f volt sarà rigettato in acqua.\n%s\n", voltage[i], ERROR_FISHERMAN);
+                i--;
+            } else {
+                if (resolution[i] < minres) {
+                    minres = resolution[i];
+                    minresPOS = i;
+                }
+            }
+
+
+            i++;
+
+
+        } else {
+            printf("(riga ignorata)\n");
+        }
+    }
+
+
+
+    std::string filename = peaksfile;
+    printf("tutti %d\n", filename.find_first_of("_"));
+    std::string capturedir = filename.substr(0, filename.find_first_of("_"));
+    std::string PMTidname = filename.substr(filename.find_last_of("_"), 4);
+
+    printf("%s\n%s\n%s\n\n", filename.c_str(), capturedir.c_str(), PMTidname.c_str());
+
+    char wheretosave[STR_LENGTH];
+
+
+    sprintf(wheretosave, "%s%s.expert", capturedir.c_str(), PMTidname.c_str());
+
+    printf("wheretosave %s\n\n", wheretosave);
+    printf("minrespos %d\n\n\n", minresPOS);
+    std::ofstream savefile(wheretosave, std::ios_base::app);
+    savefile << voltage[minresPOS] << " " << tresh[minresPOS] << " " << peakpos[minresPOS] << " " << sigma[minresPOS] << " " << peakval[minresPOS] << " " << nSGN[minresPOS] << " " << nBG[minresPOS] << std::endl;
+
+
+
+}
+
 /**
  * Salva il picco trovato e la tensione di acquisizione, e i rispettivi errori, in una nuova riga del file specificato
  * @param nome file hist.root contenente l'istogramma
@@ -46,11 +243,11 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     TCanvas *c41 = new TCanvas();
     peak mypeak;
     mySetting st;
-    
+
     TTree* tset1 = (TTree*) sorgente_file->Get("tset");
     mySetting_get(tset1, &st);
     mySetting_print(&st);
-    
+
     char tname[STR_LENGTH];
 
     int CH = PMTtoCH(PMTid, &st);
@@ -59,11 +256,11 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
     mypeak = Cs_fit(h1);
-    
-    std::ofstream savefile(wheretosave, std::ios_base::app);
-    savefile << st.voltage[CH] << " " << mypeak.peakpos << " " << mypeak.sigma << " " << mypeak.peakvalue << " " << mypeak.nSGN << " " << mypeak.nBG << std::endl;
 
-   // delete c41;
+    std::ofstream savefile(wheretosave, std::ios_base::app);
+    savefile << st.voltage[CH] << " " << st.thresh[CH] << " " << mypeak.peakpos << " " << mypeak.sigma << " " << mypeak.peakvalue << " " << mypeak.nSGN << " " << mypeak.nBG << std::endl;
+
+    // delete c41;
 }
 
 
@@ -120,10 +317,10 @@ struct peak Cs_fit(TH1D* h1) {
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
 
     int maxBin = GetMaximumBin(h1, 5. / step, nBins);
-    
-   
+
+
     float Xmax = maxBin*step; //80
-    
+
     float Xwindow = 3.8; // larghezza su cui eseguire a occhio il fit gaussiano rispetto a xmax rilevato
     float Ymax = h1->GetBinContent(maxBin);
 
