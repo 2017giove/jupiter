@@ -204,7 +204,8 @@ char* HVPowerSupply::GetError(){
 void  interrupt_handler(int sig){
 	putchar('\n');
 	printf("CTRL+C detected\n");
-	printf("Shuting down bias voltage device\n");
-	delete ptrDev;
-	exit(1);
+	printf("Shuting down bias voltage device...\n");
+        printf("But not on first hand (program modified by JupiTer)\n");
+	//delete ptrDev;
+	//exit(1);
 }

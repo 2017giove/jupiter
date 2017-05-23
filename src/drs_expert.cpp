@@ -72,6 +72,10 @@
 #include "DRS.h"
 
 
+#include "HVPowerSupply.h"
+#include "CAENHVWrapper.h"
+
+
 #include "defines.h"
 
 /** -------------------- Rieussec Class -------------------- 
@@ -116,57 +120,172 @@ using namespace std;
 
 /*------------------------------------------------------------------*/
 float getTriggerSource(myEvent *ev, mySetting *st);
+void startCapture(char* fileName, mySetting cset);
 
 int main(int argc, char* argv[]) {
 
-    if (argc < 8) {
-        cout << argv[0] << ": Usage" << endl;
-        cout << argv[0] << " filename " << endl;
-        cout << "          deltaT   : time of the experiment in s" << endl;
-        cout << "          nchan : number of channels to acquire [1-4]" << endl;
-        cout << "          delay    : Trigger delay in ns" << endl; //<<--- ATTENZIONE: è veramente il tempo morto, o forse il ritardo del trigger (da quando far partire l'acquisizione???
-        cout << "          thresh   : Threshold in mV" << endl;
-        cout << "          source   : trigger source 1=ch1, 2=ch2, 3=ch1 or ch2" << endl;
-        cout << "          Voltage  : Voltage of PMT" << endl;
-        cout << "          PMT      : ID number of the crystal, put one for each channel specified in nchan" << endl;
-        //                              nome    DT  # del thr src V    pmtIDs
-        cout << " Example: drs_jupiter filename 300 1 900  25  1  1500 500" << endl;
-        //                                 1    2   3  4   5   6   7   8 -9-10-11
-        return 0;
+    if (argc < 2) {
+        printf("Sintax: ./drs_expert SETTINGSFILE.jpt deltaT filename\n");
+        return -1;
     }
 
-    printf("Loading settings...\n");
-
-    int i;
-
-    int maxchan = atoi(argv[3]);
-    /* Lettura impostazioni     */
     mySetting cset;
+
+    char *fileName = argv[3];
+
+    std::string filen = fileName;
+    if (endsWith(filen, ".jpt")) {
+        printf("%s\nAre you confusing filename with configuration file??", ERROR_CRUCIAL);
+        return -1;
+    }
+
+    char* settingsFilename = argv[1];
+
+    std::vector<myPMTconfig> myPMTs = PMT_ReadConfig(settingsFilename, &cset.triggerSetting, &cset.delayns);
+    std::vector<myHVchannel> myChannels = HV_ReadConfig("channelsHV.cfg");
+
+    int maxchan = myPMTs.size();
+    // printf("\nmaxch %d\n%d\t%d\n", maxchan, cset.triggerSetting, cset.delayns);
+
     allocateSetting(&cset, maxchan);
 
-    char *fileName = argv[1];
 
-    cset.deltaT = atoi(argv[2]);
 
     cset.Nchan = maxchan;
-    cset.delayns = atoi(argv[4]);
-    int triggerSource = atoi(argv[6]);
+    cset.deltaT = atoi(argv[2]);
 
     printf("Canali da acquisire\n");
 
-    for (i = 0; i < maxchan; i++) {
-        cset.voltage[i] = atof(argv[7]);
-        cset.thresh[i] = -atof(argv[5]);
-        //cset.thresh = -100.; //2*Voltage*THRESH/1200;
-        cset.PmtID[i] = atoi(argv[i + 8]);
+    for (int i = 0; i < maxchan; i++) {
+        cset.voltage[i] = myPMTs[i].volt;
+        cset.thresh[i] = -myPMTs[i].thresh; //attenzione al segno -
+        cset.PmtID[i] = myPMTs[i].id;
+
         printf("%d\n", cset.PmtID[i]);
     }
 
 
-    bool triggerEdge;
-    if (strncmp(TRIGGER_EDGE, "neg", 3) == 0) triggerEdge = true;
-    else if (strncmp(TRIGGER_EDGE, "pos", 3) == 0) triggerEdge = false;
+    mySetting_print(&cset);
 
+    HVPowerSupply *dev = new HVPowerSupply((char *) "192.168.1.2", SY2527, (char *) "admin", (char *) "admin");
+
+    bool power = false;
+    bool verbose = true;
+
+    unsigned slot = 0;
+    unsigned short channel = 0;
+
+    float current;
+    float bias;
+    float tensione;
+    float ramp_up;
+    float ramp_down;
+
+    myHVchannel temp;
+
+    for (int i = 0; i < maxchan; i++) {
+
+        temp = HV_findChannel(myPMTs[i].chname, myChannels);
+
+        power = 1;
+        slot = temp.slot;
+        tensione = myPMTs[i].volt;
+        channel = temp.channel;
+        ramp_up = 25;
+        ramp_down = 25;
+
+        dev->setBias(slot, 1, &channel, &tensione);
+        dev->setRampUp(slot, 1, &channel, &ramp_up);
+        dev->setRampDown(slot, 1, &channel, &ramp_down);
+
+        dev->pwOnChannel(slot, 1, &channel, &power);
+
+    }
+
+    int isready=0;
+    do {
+        isready=1;
+        for (int i = 0; i < maxchan; i++) {
+            temp = HV_findChannel(myPMTs[i].chname, myChannels);
+            slot = temp.slot;
+            channel = temp.channel;
+
+            dev->getBias(slot, 1, &channel, &bias);
+            dev->getCurrent(slot, 1, &channel, &current);
+            printf("CH %d, Voltage: %2.2f [V], Current: %1.2f [uA] ", i, bias, current);
+
+            if (fabs(bias-myPMTs[i].volt)>ramp_up){
+                isready=0;
+            }else{
+                printf(">> Ready to spike.");
+            }
+            
+            printf("\n");
+        }
+
+        printf("\n");
+
+    } while(isready==0);
+
+    
+    printf("Ready to land in the spacetime continuum.\n");
+    
+    startCapture(fileName, cset);
+
+    return 0;
+
+    //    if (argc < 8) {
+    //        cout << argv[0] << ": Usage" << endl;
+    //        cout << argv[0] << " filename " << endl;
+    //        cout << "          deltaT   : time of the experiment in s" << endl;
+    //        cout << "          nchan : number of channels to acquire [1-4]" << endl;
+    //        cout << "          delay    : Trigger delay in ns" << endl; //<<--- ATTENZIONE: è veramente il tempo morto, o forse il ritardo del trigger (da quando far partire l'acquisizione???
+    //        cout << "          thresh   : Threshold in mV" << endl;
+    //        cout << "          source   : trigger source 1=ch1, 2=ch2, 3=ch1 or ch2" << endl;
+    //        cout << "          Voltage  : Voltage of PMT" << endl;
+    //        cout << "          PMT      : ID number of the crystal, put one for each channel specified in nchan" << endl;
+    //        //                              nome    DT  # del thr src V    pmtIDs
+    //        cout << " Example: drs_jupiter filename 300 1 900  25  1  1500 500" << endl;
+    //        //                                 1    2   3  4   5   6   7   8 -9-10-11
+    //        return 0;
+    //    }
+    //
+    //    printf("Loading settings...\n");
+    //
+    //    int i;
+    //
+    //    int maxchan = atoi(argv[3]);
+    //    /* Lettura impostazioni     */
+    //    mySetting cset;
+    //    allocateSetting(&cset, maxchan);
+    //
+    //    char *fileName = argv[1];
+    //
+    //    cset.deltaT = atoi(argv[2]);
+    //
+    //    cset.Nchan = maxchan;
+    //    cset.delayns = atoi(argv[4]);
+    //    int triggerSource = atoi(argv[6]);
+    //
+    //    printf("Canali da acquisire\n");
+    //
+    //    for (i = 0; i < maxchan; i++) {
+    //        cset.voltage[i] = atof(argv[7]);
+    //        cset.thresh[i] = -atof(argv[5]); //attenzione al segno -
+    //        //cset.thresh = -100.; //2*Voltage*THRESH/1200;
+    //        cset.PmtID[i] = atoi(argv[i + 8]);
+    //        printf("%d\n", cset.PmtID[i]);
+    //    }
+    //
+    //    startCapture(fileName, cset, triggerSource);
+
+}
+
+void startCapture(char* fileName, mySetting cset) {
+    /* Apertura files e creazione albero */
+    TFile * f1;
+    Int_t comp = 4;
+    int i;
 
     time_t t0 = time(0);
     time_t Current_Time;
@@ -176,15 +295,18 @@ int main(int argc, char* argv[]) {
 
 
 
-
-    /* Apertura files e creazione albero */
-    TFile * f1;
-    Int_t comp = 4;
+    int triggerSource = cset.triggerSetting; //in futuro da rimuovere
 
     myEvent ev;
-    allocateEvent(&ev, maxchan);
+    allocateEvent(&ev, cset.Nchan);
 
     std::vector<myEvent> totEvents;
+
+
+    bool triggerEdge;
+    if (strncmp(TRIGGER_EDGE, "neg", 3) == 0) triggerEdge = true;
+    else if (strncmp(TRIGGER_EDGE, "pos", 3) == 0) triggerEdge = false;
+
 
 
     char rootFileName[130];
@@ -227,8 +349,9 @@ int main(int argc, char* argv[]) {
     sprintf(branchDef, "threshold[%d]/F", SANTA_MAX);
     Tset->Branch("threshold", cset.thresh, branchDef);
 
-    // f1->cd();
     Tset->Fill();
+
+
     //  Tset->Write();
     /*
     >t1
@@ -244,10 +367,6 @@ int main(int argc, char* argv[]) {
      
      * è memorizzata nella struttura myevent
      */
-
-
-
-
 
     TBranch * b_eventId = tree->Branch("eventID", &ev.eventID, "eventID/I");
 
@@ -279,7 +398,7 @@ int main(int argc, char* argv[]) {
     nBoards = drs->GetNumberOfBoards();
     if (nBoards == 0) {
         printf("No DRS4 evaluation board found. %s\n", ERROR_CRUCIAL);
-        return 0;
+        return;
     }
 
     /* continue working with first board only */
@@ -311,9 +430,9 @@ int main(int argc, char* argv[]) {
 
     /* use following lines to set individual trigger elvels */
     b->SetIndividualTriggerLevel(1, cset.thresh[0] / 1000.);
-    b->SetIndividualTriggerLevel(2, cset.thresh[0] / 1000.);
-    b->SetIndividualTriggerLevel(3, cset.thresh[0] / 1000.);
-
+    b->SetIndividualTriggerLevel(2, cset.thresh[1] / 1000.);
+    b->SetIndividualTriggerLevel(3, cset.thresh[2] / 1000.);
+    b->SetIndividualTriggerLevel(4, cset.thresh[3] / 1000.);
 
     /*setta la sorgente del trigger in codice binario
      es: CH1=1 CH2=2 CH3=4, CH1_OR_CH2 = 3*/
@@ -363,7 +482,7 @@ int main(int argc, char* argv[]) {
 
 
 
-        for (int ch = 0; ch < maxchan; ch++) {
+        for (int ch = 0; ch < cset.Nchan; ch++) {
 
             ev.eventID = totevents;
 
@@ -380,7 +499,7 @@ int main(int argc, char* argv[]) {
         }
 
 
-     //   totEvents.push_back(ev);
+        //   totEvents.push_back(ev);
         tree->Fill();
 
         /* print some progress indication */
@@ -396,13 +515,13 @@ int main(int argc, char* argv[]) {
 
     double total = totaltr.elapsed();
     // is trig?
-        TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
-        for (i = 0; i < tree->GetEntries(); i++) {
-            tree->GetEntry(i);
-            ev.trigCH = getTriggerSource(&ev, &cset);
-            // printf("%d\n\n", ev.trigCH);
-            b_trigId->Fill();
-        }
+    TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
+    for (i = 0; i < tree->GetEntries(); i++) {
+        tree->GetEntry(i);
+        ev.trigCH = getTriggerSource(&ev, &cset);
+        // printf("%d\n\n", ev.trigCH);
+        b_trigId->Fill();
+    }
 
     tree->Write();
     f1->Write();

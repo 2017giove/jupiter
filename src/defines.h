@@ -54,7 +54,7 @@
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024
-#define SANTA_MAX 4
+#define SANTA_MAX 50
 
 #define CHARGE_STEP 5 //larghezza del bin nel tprofile della forma d'onda
 
@@ -87,6 +87,19 @@ struct mySetting {
     char description[10 * STR_LENGTH];
     //Aggiungere altri parametri rilevanti come...
 
+};
+
+struct myHVchannel {
+    char name[STR_LENGTH];
+    int slot;
+    int channel;
+};
+
+struct myPMTconfig {
+    int id;
+    float volt;
+    float thresh;
+    char chname[STR_LENGTH];
 };
 
 struct peak {
@@ -261,6 +274,8 @@ bool issaturated(float* test, int triggerpos) {
 
 }
 
+
+
 //
 //struct myEvent {
 //    /*
@@ -334,6 +349,100 @@ int CHtoPMT(int CH, mySetting* st) {
     return st->PmtID[CH];
 }
 
+bool startsWith(std::string& src, char* tk) {
+    std::string token = tk;
+    return src.substr(0, token.length()) == token;
+}
+
+bool endsWith(const std::string& a, char* bb) {
+    std::string b = bb;
+    if (b.size() > a.size()) return false;
+    return std::equal(a.begin() + a.size() - b.size(), a.end(), b.begin());
+}
+
+std::vector<myPMTconfig> PMT_ReadConfig(char* filename, int* triggersource, int* delayns) {
+
+
+    std::ifstream myfile1;
+    myfile1.open(filename);
+
+    std::string myline;
+
+    std::vector<myPMTconfig> myPMTs;
+
+    myPMTconfig temp;
+    char tempstring [STR_LENGTH];
+    while (std::getline(myfile1, myline)) {
+        if (startsWith(myline, "#") == 0) {
+            std::istringstream strm(myline);
+
+            if (startsWith(myline, "triggersource")) {
+                sscanf(myline.c_str(), "%s %d", tempstring, triggersource);
+              //  printf("\n%s\t%d\n", tempstring, *triggersource);
+            } else if (startsWith(myline, "delay")) {
+                sscanf(myline.c_str(), "%s %d", tempstring, delayns);
+               // printf("\n%s\t%d\n", tempstring, *delayns);
+            } else {
+
+
+                if (strm >> temp.id >> temp.volt >> temp.thresh >> temp.chname) {
+
+                    myPMTs.push_back(temp);
+
+                }
+            }
+        }
+    }
+
+//    for (int i = 0; i < myPMTs.size(); i++) {
+//        std::cout << myPMTs[i].id << " " << myPMTs[i].volt << " " << myPMTs[i].thresh << " " << myPMTs[i].chname << std::endl;
+//    }
+
+    return myPMTs;
+}
+
+std::vector<myHVchannel> HV_ReadConfig(char* filename) {
+
+
+    std::ifstream myfile1;
+    myfile1.open(filename);
+
+    std::string myline;
+
+    std::vector<myHVchannel> myChannels;
+
+    myHVchannel temp;
+
+    while (std::getline(myfile1, myline)) {
+        if (startsWith(myline, "#") == 0) {
+
+            std::istringstream strm(myline);
+            if (strm >> temp.name >> temp.slot >> temp.channel) {
+                myChannels.push_back(temp);
+
+            }
+        }
+    }
+
+//    for (int i = 0; i < myChannels.size(); i++) {
+//        std::cout << myChannels[i].name << " " << myChannels[i].slot << " " << myChannels[i].channel << std::endl;
+//    }
+
+    return myChannels;
+}
+
+myHVchannel HV_findChannel(char* name, std::vector<myHVchannel> myChannels) {
+
+    for (int i = 0; i < myChannels.size(); i++) {
+        if (strcmp(name, myChannels[i].name) == 0) {
+            return myChannels[i];
+        }
+    }
+
+    myHVchannel nullCH;
+    nullCH.channel = NOT_FOUND_INT;
+    return nullCH;
+}
 
 
 #ifndef DEFINES_H

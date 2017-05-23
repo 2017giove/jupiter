@@ -72,6 +72,10 @@
         <in>up.xpm</in>
         <in>volt_fit.cpp</in>
       </df>
+      <in>AutoDict_random_access_iterator_myHVchannel_long_.cxx</in>
+      <in>AutoDict_random_access_iterator_myPMTconfig_long_.cxx</in>
+      <in>AutoDict_vector_myHVchannel_.cxx</in>
+      <in>AutoDict_vector_myPMTconfig_.cxx</in>
       <in>ChargeHist_RUN.c</in>
       <in>Cs_fit_RUN.c</in>
       <in>WaveformCharge_RUN.c</in>
@@ -79,6 +83,8 @@
       <in>Waveform_RUN.c</in>
       <in>refillDRS.c</in>
     </df>
+    <itemPath>channelsHV.cfg</itemPath>
+    <itemPath>src/testACQ.jpt</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

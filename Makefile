@@ -7,6 +7,7 @@
 #
 #  161211:  modified by S. Veneziano to compile drs_sub
 #  042017:  modified by J. UpiTer to compile PowerExpert
+#  052017:  modified by J. UpiTer to compiler drs_expert
 #
 ########################################################
 
@@ -24,7 +25,7 @@ else
 DOS           = OS_LINUX
 endif
 
-CFLAGS        = -g -O2 -Wall -Wuninitialized -fno-strict-aliasing -std=gnu++0x -Iinclude -I/usr/local/include -D$(DOS) -DHAVE_USB -DHAVE_LIBUSB10 -DUSE_DRS_MUTEX #`root-config --cflags`
+CFLAGS        = -g -O2 -Wall -Wuninitialized -fno-strict-aliasing -std=gnu++0x -Iinclude -I/usr/local/include  -D$(DOS) -DHAVE_USB -DHAVE_LIBUSB10 -DUSE_DRS_MUTEX #`root-config --cflags`
 LIBS          = -lpthread -lutil -lusb-1.0  #`root-config --glibs`
 
 
@@ -39,7 +40,7 @@ WXLIBS        = $(shell wx-config --libs)
 WXFLAGS       = $(shell wx-config --cxxflags)
 
 CPP_OBJ       = DRS.o averager.o ConfigDialog.o DOFrame.o DOScreen.o DRSOsc.o MeasureDialog.o Measurement.o Osci.o InfoDialog.o DisplayDialog.o AboutDialog.o EPThread.o TriggerDialog.o rb.o 
-OBJECTS       = musbstd.o mxml.o strlcpy.o
+OBJECTS       = musbstd.o mxml.o strlcpy.o 
 
 
 ifeq ($(OS),Darwin)
@@ -94,8 +95,8 @@ drs_sub: $(OBJECTS) DRS.o averager.o drs_sub.o
 drs_jupiter: $(OBJECTS) DRS.o averager.o drs_jupiter.o
 	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_jupiter.o -o drs_jupiter $(LIBS) `root-config --libs` $(WXLIBS)
 
-drs_expert: $(OBJECTS) DRS.o averager.o drs_expert.o
-	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_expert.o -o drs_expert $(LIBS) `root-config --libs` $(WXLIBS)
+drs_expert: $(OBJECTS) HVPowerSupply.o DRS.o averager.o drs_expert.o HVPowerSupply.o
+	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o HVPowerSupply.o drs_expert.o -o drs_expert $(LIBS) $(CLIBS)  `root-config --libs` $(WXLIBS)
 
 drs_exam_multi: $(OBJECTS) DRS.o averager.o drs_exam_multi.o
 	$(CXX) $(CFLAGS) $(OBJECTS) DRS.o averager.o drs_exam_multi.o -o drs_exam_multi $(LIBS) $(WXLIBS)
@@ -115,8 +116,8 @@ drs_sub.o: src/drs_sub.cpp include/mxml.h include/DRS.h
 drs_jupiter.o: src/drs_jupiter.cpp include/mxml.h include/DRS.h 
 	$(CXX) $(CFLAGS) `root-config --cflags` -c $<
 
-drs_expert.o: src/drs_expert.cpp include/mxml.h include/DRS.h 
-	$(CXX) $(CFLAGS) `root-config --cflags` -c $<
+drs_expert.o: src/drs_expert.cpp include/mxml.h include/DRS.h src/HVPowerSupply.cpp  include/HVPowerSupply.h   
+	$(CXX) $(CFLAGS)  `root-config --cflags` -c $<
 
 drs_exam_multi.o: src/drs_exam_multi.cpp include/mxml.h include/DRS.h
 	$(CXX) $(CFLAGS) -c $<
