@@ -12,15 +12,12 @@
         <group>
             <file>file:/home/sfera/Desktop/jupiter/src/WaveAnalysis.h</file>
             <file>file:/home/sfera/Desktop/jupiter/src/Waveform.cpp</file>
-            <file>file:/home/sfera/Desktop/jupiter/channelsHV.cfg</file>
             <file>file:/home/sfera/Desktop/jupiter/src/ChargeHist.cpp</file>
             <file>file:/home/sfera/Desktop/jupiter/testACQ.jpt</file>
             <file>file:/home/sfera/Desktop/jupiter/src/volt_fit.cpp</file>
             <file>file:/home/sfera/Desktop/jupiter/src/defines.h</file>
-            <file>file:/home/sfera/Desktop/jupiter/src/PowerExpert.cpp</file>
-            <file>file:/home/sfera/Desktop/jupiter/Makefile</file>
+            <file>file:/home/sfera/Desktop/jupiter/src/Cs_fit.cpp</file>
             <file>file:/home/sfera/Desktop/jupiter/src/drs_expert.cpp</file>
-            <file>file:/home/sfera/Desktop/jupiter/src/HVPowerSupply.cpp</file>
         </group>
     </open-files>
 </project-private>

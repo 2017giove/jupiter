@@ -23,7 +23,9 @@
 //                                             //
 /////////////////////////////////////////////////
 
-#ifndef JUPITER
+#ifndef WAVEANALYSIS
+
+#define WAVEANALYSIS
 
 #include "defines.h"
 

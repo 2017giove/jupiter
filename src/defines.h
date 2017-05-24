@@ -13,6 +13,9 @@
  * Created on April 9, 2017, 11:43 PM
  */
 
+
+#ifndef JUPITER
+
 #include "TCanvas.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -36,9 +39,6 @@
 #include <ostream>
 
 //#include "Waveform.cpp"
-//#include "volt_fit.cpp"
-//#include "Cs_fit.cpp"
-//#include "ChargeHist.cpp"
 
 
 
@@ -49,6 +49,7 @@
 #define ERROR_FISHERMAN "We did not find what you were looking for: the fish escaped the net."
 #define NOT_FOUND_INT -241
 #define NOT_CARING_INT 433
+#define NOT_CREDIBLE 233
 #define NOT_CARING_STRING "Blessed are they who hold lively conversations with the helplessly mute, for they shall be called dentists."
 #define EXT_ROOT ".root"
 #define STR_LENGTH 300
@@ -61,7 +62,7 @@
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024
-#define SANTA_MAX 50
+#define SANTA_MAX 4
 
 #define CHARGE_STEP 5 //larghezza del bin nel tprofile della forma d'onda
 
@@ -473,3 +474,10 @@ extern "C" {
 
 #endif /* DEFINES_H */
 
+#include "volt_fit.cpp"
+#include "ChargeHist.cpp"
+#include "Cs_fit.cpp"
+
+
+
+#endif

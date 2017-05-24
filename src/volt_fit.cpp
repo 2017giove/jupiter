@@ -6,6 +6,8 @@
  * 
  */
 
+#ifndef VOLTFIT
+#define VOLTFIT
 
 #include "WaveAnalysis.h"
 
@@ -36,6 +38,7 @@ void volt_fit(char * peaksfile) {
     Double_t resolution[n];
     Double_t nBG[n];
     Double_t nSGN[n];
+        int PMTid[n];
 
     int i = 0;
     int tresh = 0;
@@ -53,8 +56,8 @@ void volt_fit(char * peaksfile) {
 
     while (std::getline(myfile1, myline)) {
         std::istringstream strm(myline);
-        if (strm >> voltage[i] >> tresh >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
-            std::cout << i << " " << voltage[i] << " " << tresh << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
+        if (strm >> PMTid[i]>>voltage[i] >> tresh >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
+            std::cout << i << " " << PMTid[i]<<" "<< voltage[i] << " " << tresh << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
             esfpeakpos[i] = peakpos[i];
      
 
@@ -78,7 +81,7 @@ void volt_fit(char * peaksfile) {
     TCanvas *c40 = new TCanvas("linear", PLOTS_TITLE, 640, 480);
     c40->SetFillColor(10);
     c40->SetGrid();
-    gStyle->SetOptFit(1111);
+//    gStyle->SetOptFit(1111);
 
     TGraph* mygraph1 = new TGraph(i, voltage, peakpos);
     //    TGraphErrors* mygraph1 = new TGraphErrors(i, voltage, peakpos, err_voltage, err_peakpos);
@@ -146,3 +149,5 @@ void volt_fit(char * peaksfile) {
 
     //  FOut->Close();
 }
+
+#endif

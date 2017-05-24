@@ -121,8 +121,17 @@ using namespace std;
 /*------------------------------------------------------------------*/
 float getTriggerSource(myEvent *ev, mySetting *st);
 void startCapture(char* fileName, mySetting cset);
+void preCalibra(char* fileName, mySetting cset);
 
 int main(int argc, char* argv[]) {
+
+    vector<std::string> myArgs;
+    std::string tempstring;
+    for (int j; j < argc; j++) {
+
+        tempstring = argv[j];
+        myArgs.push_back(tempstring);
+    }
 
     if (argc < 2) {
         printf("Sintax: ./drs_expert SETTINGSFILE.jpt deltaT filename\n");
@@ -132,6 +141,8 @@ int main(int argc, char* argv[]) {
     mySetting cset;
 
     char *fileName = argv[3];
+    char tmp[STR_LENGTH];
+
 
     std::string filen = fileName;
     if (endsWith(filen, ".jpt")) {
@@ -202,9 +213,9 @@ int main(int argc, char* argv[]) {
 
     }
 
-    int isready=0;
+    int isready = 0;
     do {
-        isready=1;
+        isready = 1;
         for (int i = 0; i < maxchan; i++) {
             temp = HV_findChannel(myPMTs[i].chname, myChannels);
             slot = temp.slot;
@@ -214,23 +225,83 @@ int main(int argc, char* argv[]) {
             dev->getCurrent(slot, 1, &channel, &current);
             printf("CH %d, Voltage: %2.2f [V], Current: %1.2f [uA] ", i, bias, current);
 
-            if (fabs(bias-myPMTs[i].volt)>ramp_up){
-                isready=0;
-            }else{
+            if (fabs(bias - myPMTs[i].volt) > ramp_up) {
+                isready = 0;
+            } else {
                 printf(">> Ready to spike.");
             }
-            
+
             printf("\n");
         }
 
         printf("\n");
 
-    } while(isready==0);
+    } while (isready == 0);
 
-    
+
     printf("Ready to land in the spacetime continuum.\n");
-    
-    startCapture(fileName, cset);
+
+
+    for (int k = 0; k < myArgs.size(); k++) {
+        if (strcmp(myArgs[k].c_str(), "precalib") == 0) {
+            preCalibra(fileName, cset);
+
+
+
+        } else if (strcmp(myArgs[k].c_str(), "calib") == 0) {
+
+
+
+            char tempc[STR_LENGTH];
+            std::ifstream myfile1;
+            std::string myline;
+
+            const int n = 50;
+            Double_t voltage[n];
+            Double_t esfpeakpos[n];
+            Double_t peakpos[n];
+            Double_t sigma[n];
+            Double_t peakval[n];
+            Double_t resolution[n];
+            Int_t tresh[n];
+            Double_t nBG[n];
+            Double_t nSGN[n];
+            int PMTid[n];
+            int i = 0;
+
+            int minresPOS = 0;
+
+
+            sprintf(tempc, "data/%s.expert", fileName);
+            myfile1.open(tempc);
+            while (std::getline(myfile1, myline)) {
+                std::istringstream strm(myline);
+                if (strm >> PMTid[i] >> voltage[i] >> tresh[i] >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
+                    std::cout << i << " " << PMTid[i] << " " << voltage[i] << " " << tresh[i] << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
+
+                    resolution[i] = sigma[i] / peakpos[i]; // / TMath::Sqrt(nSGN[i]);
+
+                    if (resolution[i] < 0) {
+                        printf("Il fit a %f volt sarà rigettato in acqua.\n%s\n", voltage[i], ERROR_FISHERMAN);
+                        i--;
+                    } else {
+                        int realCH = PMTtoCH(PMTid[i], &cset);
+                        cset.thresh[realCH] = cset.voltage[realCH] / voltage[i] * tresh[i];
+                    }
+
+                    i++;
+                } else {
+                    printf("(riga ignorata)\n");
+                }
+            }
+
+
+
+
+        }
+    }
+
+
 
     return 0;
 
@@ -278,6 +349,24 @@ int main(int argc, char* argv[]) {
     //    }
     //
     //    startCapture(fileName, cset, triggerSource);
+
+}
+
+void preCalibra(char* fileName, mySetting cset) {
+    printf("He is filling his fountain pen...\n");
+    int thresh;
+    char tmp[STR_LENGTH];
+    for (int thresh = 20; thresh < 60; thresh += 20) {
+
+        for (int i = 0; i < cset.Nchan; i++) {
+            cset.thresh[i] = -thresh;
+        }
+
+        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], thresh);
+        startCapture(tmp, cset);
+    }
+
+    preCalibra_analyze(fileName);
 
 }
 

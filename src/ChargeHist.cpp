@@ -19,11 +19,14 @@
 //                                        //
 //  listato di macro che fa l'istogramma  //
 //  della carica portata da un segnale    //
-//  dall'output di RawIntegral      e lo   //
+//  dall'output di RawIntegral      e lo  //
 //  fitta con un esponenziale decrescente //
 //                                        //
 ////////////////////////////////////////////
 
+#ifndef CHARGEHIST
+
+#define CHARGEHIST
 
 #include "WaveAnalysis.h"
 
@@ -31,21 +34,10 @@
 #include <stdio.h>
 
 
-void MakeChargeHist(const char* fileIN);
 void RawIntegral(const char *, const char *, int CH);
 
-void ChargeHist() {
-    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
-    MakeChargeHist(f->GetName());
 
-}
-
-void ChargeHist(std::string _fileIN) {
-    const char* fileIN = _fileIN.c_str();
-    MakeChargeHist(fileIN);
-}
-
-void MakeChargeHist(const char* fileIN) {
+void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
     int i, Nentries;
     float Integral;
     float BaseIntegral;
@@ -61,8 +53,8 @@ void MakeChargeHist(const char* fileIN) {
     char fileRAWname[STR_LENGTH];
     char histOUT[STR_LENGTH];
 
-    std::strcpy(fileRAWname, appendToRootFilename(fileIN, "RAW").c_str());
-    std::strcpy(histOUT, appendToRootFilename(fileIN, "hist").c_str());
+    strcpy(fileRAWname, appendToRootFilename(fileIN, "RAW").c_str());
+    strcpy(histOUT, appendToRootFilename(fileIN, fileext.c_str()).c_str());
 
     f = TFile::Open(fileRAWname, "read");
 
@@ -158,8 +150,21 @@ void MakeChargeHist(const char* fileIN) {
     newtree->Write("", TObject::kOverwrite);
 
     hist_file->Close();
-  //  delete c40;
+    //  delete c40;
 }
+
+
+void ChargeHist() {
+    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+    MakeChargeHist(f->GetName());
+
+}
+
+void ChargeHist(std::string _fileIN, std::string fileext2 = "hist") {
+    const char* fileIN = _fileIN.c_str();
+    MakeChargeHist(fileIN,fileext2);
+}
+
 
 void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     int i, j, Nentries;
@@ -238,18 +243,18 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
                 if (issaturated(temp.wave_array[CH], trigpos) == 1) {
                     nsat++;
 
-                    sprintf(tname, "sat%d", N_spikes);
-                    TH1F *histo_ch2 = new TH1F(tname, "Saturation", N_SAMPLES, 0, N_SAMPLES);
-                    int k;
-                    for (k = 0; k < N_SAMPLES; k++) {
-                        histo_ch2->SetBinContent(k, temp.wave_array[CH][k]);
-                    }
-                    //     FOut->cd();
-                    //    c401->cd();
-                    histo_ch2->Draw();
-                    histo_ch2->Write();
-                    //  sprintf(tname, "img/sat%d.jpg", N_spikes);
-                    //   c401->SaveAs(tname);
+                    //                    sprintf(tname, "sat%d", N_spikes);
+                    //                    TH1F *histo_ch2 = new TH1F(tname, "Saturation", N_SAMPLES, 0, N_SAMPLES);
+                    //                    int k;
+                    //                    for (k = 0; k < N_SAMPLES; k++) {
+                    //                        histo_ch2->SetBinContent(k, temp.wave_array[CH][k]);
+                    //                    }
+                    //                    //     FOut->cd();
+                    //                    //    c401->cd();
+                    //                    histo_ch2->Draw();
+                    //                    histo_ch2->Write();
+                    //                    //  sprintf(tname, "img/sat%d.jpg", N_spikes);
+                    //                    //   c401->SaveAs(tname);
 
                 }
 
@@ -260,29 +265,31 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
                 N_spikes++;
 
-                for (int k = 0; k < 1024; k++) {
-                    histo_spike->SetBinContent(k, histo_spike->GetBinContent(k) + temp.wave_array[CH][k]);
-                }
 
-
-
-
-
-                if (N_spikes % 500 == 0) {
-                    sprintf(tname, "sp%d", N_spikes);
-                    TH1F *histo_ch1 = new TH1F(tname, "Spikes", N_SAMPLES, 0, N_SAMPLES);
-                    int k;
-                    for (k = 0; k < N_SAMPLES; k++) {
-                        histo_ch1->SetBinContent(k, temp.wave_array[CH][k]);
-                    }
-                    //  FOut->cd();
-                    // c400->cd();
-                    histo_ch1->Draw();
-                    histo_ch1->Write();
-                    //    sprintf(tname, "img/sp%d.jpg", N_spikes);
-                    //    c400->SaveAs(tname);
-
-                }
+                //fare funzione Spikes 
+                //                for (int k = 0; k < 1024; k++) {
+                //                    histo_spike->SetBinContent(k, histo_spike->GetBinContent(k) + temp.wave_array[CH][k]);
+                //                }
+                //
+                //
+                //
+                //
+                //
+                //                if (N_spikes % 500 == 0) {
+                //                    sprintf(tname, "sp%d", N_spikes);
+                //                    TH1F *histo_ch1 = new TH1F(tname, "Spikes", N_SAMPLES, 0, N_SAMPLES);
+                //                    int k;
+                //                    for (k = 0; k < N_SAMPLES; k++) {
+                //                        histo_ch1->SetBinContent(k, temp.wave_array[CH][k]);
+                //                    }
+                //                    //  FOut->cd();
+                //                    // c400->cd();
+                //                    histo_ch1->Draw();
+                //                    histo_ch1->Write();
+                //                    //    sprintf(tname, "img/sp%d.jpg", N_spikes);
+                //                    //    c400->SaveAs(tname);
+                //
+                //                }
             }
 
         }
@@ -293,14 +300,14 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
     }
 
-    for (int k = 0; k < 1024; k++) {
-        histo_spike->SetBinContent(k, histo_spike->GetBinContent(k) / (float) N_spikes);
-    }
+    //    for (int k = 0; k < 1024; k++) {
+    //        histo_spike->SetBinContent(k, histo_spike->GetBinContent(k) / (float) N_spikes);
+    //    }
 
-    c400->cd();
-    histo_spike->Draw();
-    sprintf(tname, "img/avgSP%d.jpg", CH);
-    c400->SaveAs(tname);
+    // c400->cd();
+    // histo_spike->Draw();
+    //   sprintf(tname, "img/avgSP%d.jpg", CH);
+    //  c400->SaveAs(tname);
 
 
 
@@ -309,7 +316,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     FOut->cd();
     Tspectrum->Write();
     Tbaseline->Write();
-    histo_spike->Write();
+    // histo_spike->Write();
 
     TTree* newtree = tset1->CloneTree(0);
     newtree->Fill();
@@ -317,3 +324,5 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
 
     FOut->Close();
 }
+
+#endif
