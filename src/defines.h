@@ -16,13 +16,15 @@
 
 #ifndef JUPITER
 
+#include "TDirectory.h"
+#include "TKey.h"
 #include "TCanvas.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1.h"
 #include "TH2.h"
 #include "TGraph2D.h"
-#include "TROOT.h"
+
 #include "TF1.h"
 #include "TMath.h"
 #include "TGraph.h"
@@ -30,12 +32,24 @@
 #include "TSystemDirectory.h"
 #include "TList.h"
 
+#include "TROOT.h"
+#include "TGraphErrors.h"
+#include "TH1F.h"
+#include "TLegend.h"
+#include "TArrow.h"
+#include "TSystem.h"
+#include "TBranch.h"
+#include "TStyle.h"
+
+#include "TRint.h"
+#include <TApplication.h>
+
+
 #include <vector>
 #include <algorithm>
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h> 
-#include <iostream>
 #include <ostream>
 
 //#include "Waveform.cpp"
@@ -50,6 +64,8 @@
 #define NOT_FOUND_INT -241
 #define NOT_CARING_INT 433
 #define NOT_CREDIBLE 233
+#define NOT_PROBABLE 232
+#define NOT_COMPTON 231
 #define NOT_CARING_STRING "Blessed are they who hold lively conversations with the helplessly mute, for they shall be called dentists."
 #define EXT_ROOT ".root"
 #define STR_LENGTH 300
@@ -62,7 +78,7 @@
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024
-#define SANTA_MAX 4
+#define WANDANA_MAX 4
 
 #define CHARGE_STEP 5 //larghezza del bin nel tprofile della forma d'onda
 
@@ -79,17 +95,17 @@ struct myEvent {
      */
     int eventID;
     int trigCH;
-    float time_array[SANTA_MAX][N_SAMPLES];
-    float wave_array[SANTA_MAX][N_SAMPLES];
+    float time_array[WANDANA_MAX][N_SAMPLES];
+    float wave_array[WANDANA_MAX][N_SAMPLES];
 };
 
 struct mySetting {
     char date[STR_LENGTH];
     int Nchan;
     int deltaT;
-    float voltage[SANTA_MAX];
-    int PmtID[SANTA_MAX];
-    float thresh[SANTA_MAX];
+    float voltage[WANDANA_MAX];
+    int PmtID[WANDANA_MAX];
+    float thresh[WANDANA_MAX];
     int triggerSetting;
     int delayns;
     char description[10 * STR_LENGTH];
@@ -116,11 +132,16 @@ struct peak {
     float peakvalue;
     float nBG;
     float nSGN;
+    float voltage;
+    float PMTid;
+    float resolution;
+    float thresh;
+    int anyproblems;
 };
 
 void allocateSetting(struct mySetting* st, int NCHAN) {
     int i;
-    for (i = 0; i < SANTA_MAX; i++) {
+    for (i = 0; i < WANDANA_MAX; i++) {
         st->voltage[i] = NOT_CARING_INT;
         st->PmtID[i] = NOT_CARING_INT;
         st->thresh[i] = NOT_CARING_INT;
@@ -143,7 +164,7 @@ void allocateSetting(struct mySetting* st, int NCHAN) {
 void allocateEvent(struct myEvent* ev, int NCHAN) {
 
     int i, j;
-    for (i = 0; i < SANTA_MAX; i++) {
+    for (i = 0; i < WANDANA_MAX; i++) {
         for (j = 0; j < N_SAMPLES; j++) {
             ev->time_array[i][j] = NOT_CARING_INT;
             ev->wave_array[i][j] = NOT_CARING_INT;
@@ -282,8 +303,6 @@ bool issaturated(float* test, int triggerpos) {
 
 }
 
-
-
 std::vector<std::string> list_files(const char *dirname = "data/",
         const char *prefix = "",
         const char *suffix = ".root"
@@ -391,10 +410,10 @@ std::vector<myPMTconfig> PMT_ReadConfig(char* filename, int* triggersource, int*
 
             if (startsWith(myline, "triggersource")) {
                 sscanf(myline.c_str(), "%s %d", tempstring, triggersource);
-              //  printf("\n%s\t%d\n", tempstring, *triggersource);
+                //  printf("\n%s\t%d\n", tempstring, *triggersource);
             } else if (startsWith(myline, "delay")) {
                 sscanf(myline.c_str(), "%s %d", tempstring, delayns);
-               // printf("\n%s\t%d\n", tempstring, *delayns);
+                // printf("\n%s\t%d\n", tempstring, *delayns);
             } else {
 
 
@@ -407,9 +426,9 @@ std::vector<myPMTconfig> PMT_ReadConfig(char* filename, int* triggersource, int*
         }
     }
 
-//    for (int i = 0; i < myPMTs.size(); i++) {
-//        std::cout << myPMTs[i].id << " " << myPMTs[i].volt << " " << myPMTs[i].thresh << " " << myPMTs[i].chname << std::endl;
-//    }
+    //    for (int i = 0; i < myPMTs.size(); i++) {
+    //        std::cout << myPMTs[i].id << " " << myPMTs[i].volt << " " << myPMTs[i].thresh << " " << myPMTs[i].chname << std::endl;
+    //    }
 
     return myPMTs;
 }
@@ -437,9 +456,9 @@ std::vector<myHVchannel> HV_ReadConfig(char* filename) {
         }
     }
 
-//    for (int i = 0; i < myChannels.size(); i++) {
-//        std::cout << myChannels[i].name << " " << myChannels[i].slot << " " << myChannels[i].channel << std::endl;
-//    }
+    //    for (int i = 0; i < myChannels.size(); i++) {
+    //        std::cout << myChannels[i].name << " " << myChannels[i].slot << " " << myChannels[i].channel << std::endl;
+    //    }
 
     return myChannels;
 }
@@ -457,6 +476,51 @@ myHVchannel HV_findChannel(char* name, std::vector<myHVchannel> myChannels) {
     return nullCH;
 }
 
+void removeFilesbyExt(std::vector<std::string> rottenf) {
+    char temp[STR_LENGTH];
+    for (int k = 0; k < rottenf.size(); k++) {
+        sprintf(temp, "data/%s", rottenf[k].c_str());
+        printf("removing %s\n", temp);
+        remove(temp);
+    }
+}
+
+void peak_save(char* wheretosave, peak* mypeak) {
+    std::ofstream savefile(wheretosave, std::ios_base::app);
+    if (mypeak->anyproblems == NOT_CREDIBLE) {
+        savefile << "#";
+    }
+    savefile << mypeak->PMTid << " " << mypeak->voltage << " " << mypeak->thresh << " " << mypeak->peakpos << " " << mypeak->sigma << " " << mypeak->peakvalue << " " << mypeak->nSGN << " " << mypeak->nBG << " " << mypeak->resolution << " " << mypeak->anyproblems << std::endl;
+
+}
+
+std::vector<peak> peak_load(char* peaksfile) {
+
+    std::ifstream myfile1;
+    std::string myline;
+
+    myfile1.open(peaksfile);
+
+    std::vector<peak> peaks;
+
+    peak temp;
+    int i = 0;
+
+    while (std::getline(myfile1, myline)) {
+        std::istringstream strm(myline);
+        if (strm >> temp.PMTid >> temp.voltage >> temp.thresh >> temp.peakpos >> temp.sigma >> temp.peakvalue >> temp.nSGN >> temp.nBG >> temp.resolution >> temp.anyproblems) {
+            std::cout << i << " " << temp.PMTid << " " << temp.voltage << " " << temp.thresh << " " << temp.peakpos << " " << temp.sigma << " " << temp.peakvalue << " " << temp.nSGN << " " << temp.nBG << " " << temp.resolution << " " << temp.anyproblems << std::endl;
+            i++;
+
+
+            peaks.push_back(temp);
+        } else {
+            printf("(riga ignorata)\n");
+        }
+    }
+
+    return peaks;
+}
 
 #ifndef DEFINES_H
 #define DEFINES_H
@@ -474,9 +538,6 @@ extern "C" {
 
 #endif /* DEFINES_H */
 
-#include "volt_fit.cpp"
-#include "ChargeHist.cpp"
-#include "Cs_fit.cpp"
 
 
 

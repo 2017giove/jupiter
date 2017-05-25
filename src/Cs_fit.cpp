@@ -13,6 +13,7 @@
 
 #define CSFIT
 
+#include "defines.h"
 #include "WaveAnalysis.h"
 
 
@@ -20,7 +21,7 @@
 //Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
 int GetMaximumBin(TH1D* hist, int from, int to);
 void Cs_fit();
-struct peak Cs_fit(TH1D* h1);
+struct peak Cs_fit(TH1D* h1, std::string savepath);
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
 void trigger_fit(char * peaksfile, char* wheretosave);
 //void Cs_fit(char* src_name);
@@ -42,14 +43,100 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
 
 }
 
-void removeFilesbyExt(std::vector<std::string> rottenf) {
-    char temp[STR_LENGTH];
-    for (int k = 0; k < rottenf.size(); k++) {
-        sprintf(temp, "data/%s", rottenf[k].c_str());
-        printf("removing %s\n", temp);
-        remove(temp);
+std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
+    std::vector<float> myMins;
+    std::vector<int> myMinsX;
+
+    int i;
+    int max = 0;
+    int imax;
+    int currentmax;
+
+    float totlength = 0;
+    float media = 0;
+    for (i = from; i < to; i++) {
+        if (hist->GetBinContent(i) != 0) {
+            media += (float) hist->GetBinContent(i);
+            totlength++;
+        }
     }
+    media /= totlength;
+
+
+    float nearmeR[10000] = {0};
+    float nearmeL[10000] = {0};
+
+    int nsumR = 0;
+    int nsumL = 0;
+    for (i = from; i < to; i++) {
+        nsumR = 0;
+        nearmeR[i] = 0;
+        for (int j = i; j < i + 60; j++) {
+            if (j >= from && j < to && j != i) {
+                nearmeR[i] += hist->GetBinContent(j)*1.1;
+            }
+            nsumR++;
+        }
+        nearmeR[i] /= (float) nsumR;
+
+        nsumL = 0;
+        nearmeL[i] = 0;
+        for (int j = i - 60; j < i; j++) {
+            if (j >= from && j < to && j != i) {
+                nearmeL[i] += hist->GetBinContent(j)*1.1;
+            }
+            nsumL++;
+        }
+        nearmeL[i] /= (float) nsumL;
+        // printf("nearme %f\t%f\n", hist->GetBinContent(i), nearmeR[i]);
+    }
+
+    bool isabove = 0;
+
+    float cmax = 0;
+    int cpos = 0;
+
+    for (i = from; i < to; i++) {
+        if (isabove == 0) {//stava sotto soglia
+
+            if (hist->GetBinContent(i) > media && hist->GetBinContent(i) > nearmeR[i] && hist->GetBinContent(i) > nearmeL[i]) { //è andato sopra soglia
+                isabove = 1;
+                cmax = hist->GetBinContent(i);
+                cpos = i;
+            }
+
+        } else { //sta sopra soglia
+            if (hist->GetBinContent(i) < media && hist->GetBinContent(i) <= nearmeL[i]) { //è sceso sotto soglia
+
+                isabove = 0;
+                myMins.push_back(cmax);
+                myMinsX.push_back(cpos);
+                //     printf("csono %d\t%f\t%f\t%f\n", cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+
+
+            } else {
+                if (hist->GetBinContent(i) > cmax) {
+                    cmax = hist->GetBinContent(i);
+                    cpos = i;
+                }
+            }
+        }
+    }
+
+
+    //printf("media %f\n", media);
+    for (i = 0; i < myMins.size(); i++) {
+
+  //      printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
+
+    }
+    return myMinsX;
+
 }
+
+
+
+
 
 //void Calibra_analyze(char* capturename) {
 //
@@ -141,6 +228,9 @@ void preCalibra_analyze(char* capturename) {
     std::vector<std::string> myrottenfish = list_files("data/", capturename, ".fish");
     removeFilesbyExt(myrottenfish);
 
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, "histprec.root");
+    removeFilesbyExt(myrottenhist);
+
     for (int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
         printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
@@ -152,7 +242,6 @@ void preCalibra_analyze(char* capturename) {
     std::vector<std::string> myHistfiles = list_files("data/", capturename, "histprec.root");
 
     for (int i = 0; i < myHistfiles.size(); i++) {
-        printf("Bogoliubov\n\n\n");
         int voltage;
         int trigger;
 
@@ -161,8 +250,6 @@ void preCalibra_analyze(char* capturename) {
         std::string trg = myHistfiles[i].substr(fname.length() + 5, 2);
         voltage = atoi(vlt.c_str());
         trigger = atoi(trg.c_str());
-        printf("Bogolobov\n\n\n");
-
 
         sprintf(temp1, "data/%s", myHistfiles[i].c_str());
         TFile *sorgente_file = TFile::Open(temp1);
@@ -174,12 +261,11 @@ void preCalibra_analyze(char* capturename) {
         for (int j = 0; j < st.Nchan; j++) {
             int PMTid = CHtoPMT(j, &st);
             sprintf(temp2, "data/%s_%d_%d.fish", capturename, voltage, PMTid);
-            printf("\ntemp1 %s \ntemp2%s\n", temp1, temp2);
+            printf("\ntemp1 %s \ntemp2 %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
 
         }
     }
-
 
     sprintf(capturename_, "%s_", capturename);
     std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
@@ -191,69 +277,32 @@ void preCalibra_analyze(char* capturename) {
         trigger_fit(tempf, tempf2);
     }
 
-
-
 }
 
 void trigger_fit(char * peaksfile, char* wheretosave) {
 
-    std::ifstream myfile1;
-    std::string myline;
-
-    myfile1.open(peaksfile);
-
-    const int n = 50;
-    Double_t voltage[n];
-    Double_t esfpeakpos[n];
-    Double_t peakpos[n];
-    Double_t sigma[n];
-    Double_t peakval[n];
-    Double_t resolution[n];
-    Int_t tresh[n];
-    Double_t nBG[n];
-    Double_t nSGN[n];
-    int PMTid[n];
-    int i = 0;
-
+    std::vector<peak> peaks = peak_load(peaksfile);
     double minres = 5000;
     int minresPOS = 0;
 
-    while (std::getline(myfile1, myline)) {
-        std::istringstream strm(myline);
-        if (strm >> PMTid[i] >> voltage[i] >> tresh[i] >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
-            std::cout << i << " " << PMTid[i] << " " << voltage[i] << " " << tresh[i] << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
-            esfpeakpos[i] = peakpos[i];
-            //   peakpos[i] = TMath::Log(peakpos[i]);
-            resolution[i] = sigma[i] / peakpos[i]; // / TMath::Sqrt(nSGN[i]);
+    for (int i = 0; i < peaks.size(); i++) {
+        //printf("\n myres %lf\n\n", peaks[i].resolution);
+        if (peaks[i].resolution < 0) {
+            printf("Il fit a %f volt sarà rigettato in acqua.\n%s\n", peaks[i].voltage, ERROR_FISHERMAN);
 
-            if (resolution[i] < 0) {
-                printf("Il fit a %f volt sarà rigettato in acqua.\n%s\n", voltage[i], ERROR_FISHERMAN);
-                i--;
-            } else {
-                printf("resol %lf ; minres %lf = \n\n",resolution[i], minres);
-                if (resolution[i] < minres) {
-                    minres = resolution[i];
-                    minresPOS = i;
-                }
-            }
-
-            i++;
         } else {
-            printf("(riga ignorata)\n");
+            //printf("resol %f ; minres %f = \n\n", peaks[i].resolution, minres);
+            if (peaks[i].resolution < minres) {
+                minres = peaks[i].resolution;
+                minresPOS = i;
+            }
+            i++;
         }
+
+
     }
-
-    std::string filename = peaksfile;
-    printf("tutti %d\n", filename.find_first_of("_"));
-    std::string capturedir = filename.substr(0, filename.find_first_of("_"));
-    std::string PMTidname = filename.substr(filename.find_last_of("_"), 4);
-
-    printf("%s\n%s\n%s\n\n", filename.c_str(), capturedir.c_str(), PMTidname.c_str());
-    
-    printf("best one is %d\t%lf\n\n",minresPOS, peakpos[minresPOS]);
-    
-    std::ofstream savefile(wheretosave, std::ios_base::app);
-    savefile << PMTid[minresPOS] << " " << voltage[minresPOS] << " " << tresh[minresPOS] << " " << peakpos[minresPOS] << " " << sigma[minresPOS] << " " << peakval[minresPOS] << " " << nSGN[minresPOS] << " " << nBG[minresPOS] << std::endl;
+    //printf("best one is %d\t%f\n\n", minresPOS, peaks[minresPOS].peakpos);
+    peak_save(wheretosave, &(peaks[minresPOS]));
 
 }
 
@@ -272,27 +321,22 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     mySetting_get(tset1, &st);
     mySetting_print(&st);
 
-    char tname[STR_LENGTH];
-
     int CH = PMTtoCH(PMTid, &st);
 
+    char tname[STR_LENGTH];
     sprintf(tname, "h%d", PMTid);
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
-    mypeak = Cs_fit(h1);
-    
-  std::ofstream savefile(wheretosave, std::ios_base::app);
-  
-    if (mypeak.nBG==NOT_CREDIBLE){
-        
-        savefile<<"#";
-        
-    }
-  
-    savefile << PMTid << " " <<st.voltage[CH] << " " << st.thresh[CH] << " " << mypeak.peakpos << " " << mypeak.sigma << " " << mypeak.peakvalue << " " << mypeak.nSGN << " " << mypeak.nBG << std::endl;
-
+    mypeak = Cs_fit(h1, "img/lastcsfit.eps");
+    mypeak.PMTid = PMTid;
+    mypeak.voltage = st.voltage[CH];
+    mypeak.thresh = st.thresh[CH];
+    mypeak.resolution = mypeak.sigma / mypeak.peakpos;
+    peak_save(wheretosave, &mypeak);
     // delete c41;
 }
+
+
 
 
 // non implementato
@@ -316,39 +360,39 @@ void Cs_fit() {
     strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
     TFile *FOut = new TFile(fileOUT, "UPDATE");
 
-    TCanvas *c41 = new TCanvas();
+    gStyle->SetOptFit(1111);
+    // gROOT->SetStyle("Plain");
 
     int i = 0;
     // esegue il fit per tutti gli istogrammi presenti nel file hPMT
-//    while ((key = (TKey*) next())) {
-//           gStyle->SetOptFit(1111);
-//                TClass *cl = gROOT->GetClass(key->GetClassName());
-//                if (cl -> InheritsFrom("TH1D")) {
-//                    h1 = (TH1D*) key->ReadObj();
-//                    std::string myname = h1->GetName();
-//                    std::string pmtname = myname.substr(myname.length() - 3);
-//                    int PMTid = atoi(pmtname.c_str());
-//                    sprintf(tname, "h%d", PMTid);
-//                    if (!myname.compare(tname)) {
-//                        //  TCanvas *c41 = new TCanvas();
-//        
-//                        printf("Fit per il PMT %d\n", PMTid);
-//        
-//                        Cs_fit(h1);
-//                        h1->Write();
-//                        sprintf(tname, "img/%s_csfit%d.eps", filenameFromPath(sorgente_file->GetName()).c_str(), PMTid);
-//                         h1->Draw("");
-//                        c41->SaveAs(tname);
-//                    }
-//                }
-//
-//    }
+    while ((key = (TKey*) next())) {
+
+
+        TClass *cl = gROOT->GetClass(key->GetClassName());
+        if (cl -> InheritsFrom("TH1D")) {
+            h1 = (TH1D*) key->ReadObj();
+            std::string myname = h1->GetName();
+            std::string pmtname = myname.substr(myname.length() - 3);
+            int PMTid = atoi(pmtname.c_str());
+            sprintf(tname, "h%d", PMTid);
+            if (!myname.compare(tname)) {
+                //  TCanvas *c41 = new TCanvas();
+                printf("\n\n********************************\n");
+                printf("Fit per il PMT %d\n", PMTid);
+
+                sprintf(tname, "img/%s_csfit%d.eps", filenameFromPath(sorgente_file->GetName()).c_str(), PMTid);
+                Cs_fit(h1, tname);
+                h1->Write();
+            }
+        }
+
+    }
 
     // FOut->Close();
 
 }
 
-struct peak Cs_fit(TH1D* h1) {
+struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     TCanvas *c40 = new TCanvas();
 
@@ -356,22 +400,25 @@ struct peak Cs_fit(TH1D* h1) {
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
 
-    int maxBin = GetMaximumBin(h1, 5. / step, nBins);
-
+    //int maxBin = GetMaximumBin(h1, 5. / step, nBins);
+    std::vector<int> mymaxsbins = GetMaximumBins(h1, 5. / step, nBins);
+    int maxBin = mymaxsbins.back();
 
     float Xmax = maxBin*step; //80
+    printf("\nxmax=%f\n", Xmax);
 
     float Xwindow = 3.8; // larghezza su cui eseguire a occhio il fit gaussiano rispetto a xmax rilevato
     float Ymax = h1->GetBinContent(maxBin);
 
 
-    gROOT->SetStyle("Plain");
+    //gROOT->SetStyle("Plain");
     //    gStyle->SetOptFit(1111);
-
+    struct peak mypeak;
+    mypeak.anyproblems=0;
     TF1 *Gauss = new TF1("Gauss", "[0]*TMath::Exp(-(x-[1])*(x-[1])/(2*[2]*[2]))", Xmax - Xwindow, Xmax + Xwindow);
     Gauss->SetParNames("Amplitude", "PeakPos", "sigma");
 
-    Gauss->SetParLimits(0, 0.8 * Ymax, 1.1 * Ymax); // ampiezza
+    Gauss->SetParLimits(0, 0.8 * Ymax, 1.5 * Ymax); // ampiezza
     Gauss->SetParLimits(1, Xmax * 0.9, Xmax * 1.1); // xpicco
     Gauss->SetParLimits(2, 0, Xwindow); //sigma
 
@@ -379,7 +426,7 @@ struct peak Cs_fit(TH1D* h1) {
     Gauss->SetParameter(1, Xmax);
     Gauss->SetParameter(2, Xwindow / 2);
 
-    h1->Fit("Gauss", "N", "", Xmax - Xwindow, Xmax + Xwindow);
+    h1->Fit("Gauss", "Nq", "", Xmax - Xwindow, Xmax + Xwindow);
 
     Ymax = Gauss->GetParameter(0);
     Xmax = Gauss->GetParameter(1);
@@ -395,15 +442,17 @@ struct peak Cs_fit(TH1D* h1) {
     fsrc->SetParName(11, "FD2Beta");
     fsrc->SetParName(12, "FD2Modulation");
 
-    fsrc->SetParLimits(0, 0, 10000000);
+    fsrc->SetParLimits(0, 0.1, 10);
     fsrc->SetParLimits(1, 0, 1); //OK
     //     fsrc->SetParLimits(2, 0.9 * p1, 1.1 * p1);
     //      fsrc->SetParLimits(3, 0.9 * p2, 1.1 * p2);
+    //     fsrc->SetParLimits(3, 0, 10000000);
     fsrc->SetParLimits(4, Ymax * 0.8, Ymax * 1.2); //OK!
     fsrc->SetParLimits(5, Xmax * 0.9, Xmax * 1.1);
-    fsrc->SetParLimits(6, 0, 10000000);
-    fsrc->SetParLimits(7, 0, 10000000);
-    fsrc->SetParLimits(8, FDCompton * 0.9, FDCompton * 1.1);
+    fsrc->SetParLimits(6, sigma * 0.7, sigma * 1.3);
+    fsrc->SetParLimits(7, 3, Ymax * 10);
+    fsrc->SetParLimits(8, FDCompton * 0.90, FDCompton * 1.10);
+    fsrc->SetParLimits(9, 0, 5);
     fsrc->SetParLimits(10, 0, 1000);
     fsrc->SetParLimits(11, 0, 1);
 
@@ -421,17 +470,52 @@ struct peak Cs_fit(TH1D* h1) {
     fsrc->SetParameter(10, 100);
     fsrc->SetParameter(12, 0.95);
 
+    float startfitpoint = FDCompton;
+    if (mymaxsbins[0] * step < startfitpoint) startfitpoint = mymaxsbins[0] * step;
+
+    if (mymaxsbins.size() == 1) {
+        startfitpoint = FDCompton * 3 / 4;
+        mypeak.anyproblems = NOT_COMPTON    ;
+        printf("%s\nThere is just one big spike in your plot. Are you cutting some good signal with this trigger? This fish will be thrown overboard.\n", ERROR_DEEPER);
+    }
+
+    //
+
+    printf("startf %f\n", startfitpoint);
+
+    int intfitpoint = startfitpoint / step;
+
+    if (mymaxsbins.size() > 2) {
+
+        for (int j = 0; j < mymaxsbins.size() - 1; j++) {
+
+            //  printf("spiker %d\t%d\n", intfitpoint, mymaxsbins[j]);
+            float cy = h1->GetBinContent(mymaxsbins[j]);
+            float oy = h1->GetBinContent(intfitpoint);
+            //    printf("sanTy %d\t%f\t%d\t%f\t%f\n\n\n\n", mymaxsbins[j], cy, intfitpoint, oy, FDCompton);
+            if (cy > oy && mymaxsbins[j] < FDCompton / step) {
+                intfitpoint = mymaxsbins[j];
+
+            }
+            //    printf("nasTy %d\t%f\t%d\t%f\t%f\n\n\n\n", mymaxsbins[j], cy, intfitpoint, oy, FDCompton);
+
+        }
+
+    }
+
+
+
+    startfitpoint = intfitpoint*step;
+    //  printf("endf %f\n", startfitpoint);
+
+    //   if (startfitpoint<FDCompton*2/3) startfitpoint=FDCompton*2/3;
 
     //  h1->Fit("fsrc", "", "", 20, 60); //vecchio modo di fare il fit
-    h1->Fit("fsrc", "", "", FDCompton * 2 / 3, Xmax * 2);
+    h1->Fit("fsrc", "q", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3
     h1->Draw();
     //   fsrc->Draw("same");
 
-
-
-
-
-
+    /*****************************************************/
 
     //grafici delle funzioni usate per il fit
     //Replot senza doppio esponenziale
@@ -462,7 +546,7 @@ struct peak Cs_fit(TH1D* h1) {
     BG->SetLineColor(40);
     BG->SetLineStyle(2);
 
-    //   BG->Draw("same");
+    BG->Draw("same");
 
     //Replot Fermi-Dirac2  (Compton Edge)
     TF1 *FD2 = new TF1("FD2", "[7]/(TMath::Exp((x-[8])*[9])+1) ", Xmax * 0.3, Xmax * 1.6);
@@ -507,8 +591,7 @@ struct peak Cs_fit(TH1D* h1) {
     h1->GetYaxis()->SetTitle("Eventi");
     gPad->SetGrid();
 
-
-
+    c40->SaveAs(savepath.c_str());
 
     TF1 *fitmax = new TF1("fsrc", "[0]*([1]*TMath::Exp((-[2])*x)+  (1-[1])*TMath::Exp((-[3])*x))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", 20, 60);
 
@@ -526,7 +609,7 @@ struct peak Cs_fit(TH1D* h1) {
     fitmax->FixParameter(11, fsrc->GetParameter(11));
     fitmax->FixParameter(12, fsrc->GetParameter(12));
 
-    struct peak mypeak;
+
     mypeak.sigma = fsrc->GetParameter("sigma");
     mypeak.peakpos = fsrc->GetParameter("Peak");
     mypeak.peakvalue = fitmax->Eval(mypeak.peakpos);
@@ -537,11 +620,28 @@ struct peak Cs_fit(TH1D* h1) {
     float resolution = mypeak.sigma / mypeak.peakpos;
     printf("RISOLUZIONE = %f\n", resolution);
 
-    if (resolution< 0.01){
-        mypeak.nBG=NOT_CREDIBLE;
+
+    float comptonAMP = fsrc->GetParameter("FDCAmp");
+    if (comptonAMP> h1->GetBinContent(intfitpoint)){
+        printf("Questo pesce è senza spalla. Da operare urgentemente.%s\n", ERROR_FISHERMAN);
+          mypeak.anyproblems = NOT_COMPTON;
     }
     
+    
+    if (resolution < 0.01) {
+        mypeak.anyproblems = NOT_CREDIBLE;
+        printf("Questo pesce va rigettato in acqua. E' un granchio.\n");
+    }
+
+   // printf("santaprob: %f\n", fsrc->GetProb());
+    if (fsrc->GetProb()< 0.0001 ){
+        mypeak.anyproblems = NOT_PROBABLE;
+        printf("Questo pesce è una burla. Non ci sto credendo che hai pescato un elefante. Questo essere va rigettato in acqua. E' un granchio?\n");
+    }
+    
+    
     return mypeak;
+
 }
 
 #endif
