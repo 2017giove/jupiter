@@ -395,7 +395,7 @@ void Cs_fit() {
 struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     TCanvas *c40 = new TCanvas();
-
+    c40->SetFillColor(0);
 
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
@@ -442,7 +442,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     fsrc->SetParName(11, "FD2Beta");
     fsrc->SetParName(12, "FD2Modulation");
 
-    fsrc->SetParLimits(0, 0.1, 10);
+    fsrc->SetParLimits(0, 0, 100);
     fsrc->SetParLimits(1, 0, 1); //OK
     //     fsrc->SetParLimits(2, 0.9 * p1, 1.1 * p1);
     //      fsrc->SetParLimits(3, 0.9 * p2, 1.1 * p2);
@@ -455,8 +455,8 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     fsrc->SetParLimits(9, 0, 5);
     fsrc->SetParLimits(10, 0, 1000);
     fsrc->SetParLimits(11, 0, 1);
-
-    //
+//
+//    //
     ////    Parametri (che erano) fissati dal fit del rumore
     // fsrc->FixParameter(1, p3);
     // fsrc->SetParameter(2, p1);
@@ -481,7 +481,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     //
 
-    printf("startf %f\n", startfitpoint);
+ //   printf("startf %f\n", startfitpoint);
 
     int intfitpoint = startfitpoint / step;
 
@@ -506,11 +506,12 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
 
     startfitpoint = intfitpoint*step;
-    //  printf("endf %f\n", startfitpoint);
+     //printf("endf %f\n", startfitpoint);
 
     //   if (startfitpoint<FDCompton*2/3) startfitpoint=FDCompton*2/3;
 
     //  h1->Fit("fsrc", "", "", 20, 60); //vecchio modo di fare il fit
+ 
     h1->Fit("fsrc", "q", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3
     h1->Draw();
     //   fsrc->Draw("same");
@@ -640,6 +641,14 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     }
     
     
+    if (mypeak.anyproblems!=0){
+        printf("col\n");
+          c40->SetFillColor(46);
+          h1->SetFillColor(46);
+           c40->Draw();
+    }
+    
+   
     return mypeak;
 
 }
