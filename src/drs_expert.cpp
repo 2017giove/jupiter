@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
     mySetting_print(&cset);
 
 
-   // initHV(myPMTs,myChannels);
+    initHV(myPMTs,myChannels);
     printf("Ready to land in the spacetime continuum.\n");
 
 
@@ -327,7 +327,7 @@ void preCalibra(char* fileName, mySetting cset) {
         }
 
         sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], thresh);
-        //    startCapture(tmp, cset);
+          startCapture(tmp, cset);
     }
 
     preCalibra_analyze(fileName);

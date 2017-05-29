@@ -20,12 +20,20 @@
 
 //Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
 int GetMaximumBin(TH1D* hist, int from, int to);
+int GetMinimumBin(TH1D* hist, int from, int to);
 void Cs_fit();
 struct peak Cs_fit(TH1D* h1, std::string savepath);
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
 void trigger_fit(char * peaksfile, char* wheretosave);
 //void Cs_fit(char* src_name);
 
+/**
+ * Massimo boss
+ * @param hist
+ * @param from
+ * @param to
+ * @return 
+ */
 int GetMaximumBin(TH1D* hist, int from, int to) {
     int i;
     int max = 0;
@@ -43,6 +51,32 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
 
 }
 
+int GetMinimumBin(TH1D* hist, int from, int to) {
+    int i;
+    int min = RAND_MAX;
+    int imin;
+    int currentmin;
+    printf("\n\nfrom %d\t to%d\n", from, to);
+    for (i = from; i < to; i++) {
+        currentmin = hist->GetBinContent(i);
+        if (currentmin < min) {
+            min = currentmin;
+            imin = i;
+            printf("%d\t%d\n", imin, currentmin);
+        }
+
+    }
+    return imin;
+
+}
+
+/**
+ * Massimi locali
+ * @param hist
+ * @param from
+ * @param to
+ * @return 
+ */
 std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     std::vector<float> myMins;
     std::vector<int> myMinsX;
@@ -127,7 +161,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     //printf("media %f\n", media);
     for (i = 0; i < myMins.size(); i++) {
 
-  //      printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
+        //      printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
 
     }
     return myMinsX;
@@ -413,8 +447,14 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     //gROOT->SetStyle("Plain");
     //    gStyle->SetOptFit(1111);
+
+
     struct peak mypeak;
-    mypeak.anyproblems=0;
+    mypeak.anyproblems = 0;
+
+
+
+    // prefit gaussiano
     TF1 *Gauss = new TF1("Gauss", "[0]*TMath::Exp(-(x-[1])*(x-[1])/(2*[2]*[2]))", Xmax - Xwindow, Xmax + Xwindow);
     Gauss->SetParNames("Amplitude", "PeakPos", "sigma");
 
@@ -430,97 +470,118 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     Ymax = Gauss->GetParameter(0);
     Xmax = Gauss->GetParameter(1);
+
+
+
+
+    // FIT 
     float sigma = Gauss->GetParameter(2);
     float FDCompton = Xmax * (1 - 1 / (1 + 2 * ENERGY_CESIO / MASS_ELECTRON));
 
+    int FD2minAmpX = GetMinimumBin(h1, (int) (FDCompton / step), maxBin);
+    float FD2minAmp = h1->GetBinContent(FD2minAmpX);
+    printf("Min amp %d\t %f\n", FD2minAmpX, FD2minAmp);
+
     h1->GetXaxis()->SetRange(Xmax * 0 / step, Xmax * 1.5 / step);
 
-    TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-[2])*x)+  (1-[1])*TMath::Exp((-[3])*x))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", 0, 60);
+    TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) +      [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", 0, 60);
     //                   0        1           2       3           4           5       6       7       8               9
     fsrc->SetParNames("BGAmp", "BGratio", "tau_1", "tau_2", "GaussAmp", "Peak", "sigma", "FDCAmp", "FDCShift", "FDCBeta");
     fsrc->SetParName(10, "FD2Amp");
     fsrc->SetParName(11, "FD2Beta");
     fsrc->SetParName(12, "FD2Modulation");
 
-    fsrc->SetParLimits(0, 0, 100);
-    fsrc->SetParLimits(1, 0, 1); //OK
+    fsrc->SetParLimits(0, FD2minAmp , Ymax*10);
+    fsrc->SetParLimits(1, 0.01, 0.99); //OK
     //     fsrc->SetParLimits(2, 0.9 * p1, 1.1 * p1);
     //      fsrc->SetParLimits(3, 0.9 * p2, 1.1 * p2);
     //     fsrc->SetParLimits(3, 0, 10000000);
+    fsrc->SetParLimits(2, Xmax/10, Xmax*2);
+    fsrc->SetParLimits(3, Xmax/10, Xmax*2);
     fsrc->SetParLimits(4, Ymax * 0.8, Ymax * 1.2); //OK!
     fsrc->SetParLimits(5, Xmax * 0.9, Xmax * 1.1);
     fsrc->SetParLimits(6, sigma * 0.7, sigma * 1.3);
     fsrc->SetParLimits(7, 3, Ymax * 10);
     fsrc->SetParLimits(8, FDCompton * 0.90, FDCompton * 1.10);
-    fsrc->SetParLimits(9, 0, 5);
-    fsrc->SetParLimits(10, 0, 1000);
-    fsrc->SetParLimits(11, 0, 1);
-//
-//    //
+    fsrc->SetParLimits(9, 0.1, 2);
+    fsrc->SetParLimits(10, FD2minAmp, 2 * FD2minAmp);
+    fsrc->SetParLimits(12, 0.01 , 10000);
+    if (FD2minAmp == 0) {
+        FD2minAmp = 1;
+        fsrc->SetParLimits(10, FD2minAmp, 5 * FD2minAmp);
+    }
+
+    fsrc->SetParLimits(11, 0.1, 1);
+
     ////    Parametri (che erano) fissati dal fit del rumore
     // fsrc->FixParameter(1, p3);
     // fsrc->SetParameter(2, p1);
     // fsrc->SetParameter(3, p2);
+    fsrc->SetParameter(3, FDCompton);
     fsrc->SetParameter(4, Ymax);
     fsrc->SetParameter(5, Xmax);
     fsrc->SetParameter(6, sigma);
     fsrc->SetParameter(7, Ymax / 3);
     fsrc->SetParameter(8, FDCompton);
     fsrc->SetParameter(9, sigma * 0.5296);
-    fsrc->SetParameter(10, 100);
+    fsrc->SetParameter(10, FD2minAmp);
     fsrc->SetParameter(12, 0.95);
 
+
+    //punto di partenza del fit
     float startfitpoint = FDCompton;
-    if (mymaxsbins[0] * step < startfitpoint) startfitpoint = mymaxsbins[0] * step;
+
+    int intfitpoint = startfitpoint / step;
+
+
+    if (mymaxsbins[0] < intfitpoint) intfitpoint = mymaxsbins[0];
 
     if (mymaxsbins.size() == 1) {
-        startfitpoint = FDCompton * 3 / 4;
-        mypeak.anyproblems = NOT_COMPTON    ;
+        intfitpoint = (FDCompton * 3 / 4 / step);
+        mypeak.anyproblems = NOT_COMPTON;
         printf("%s\nThere is just one big spike in your plot. Are you cutting some good signal with this trigger? This fish will be thrown overboard.\n", ERROR_DEEPER);
     }
 
-    //
 
- //   printf("startf %f\n", startfitpoint);
-
-    int intfitpoint = startfitpoint / step;
 
     if (mymaxsbins.size() > 2) {
 
         for (int j = 0; j < mymaxsbins.size() - 1; j++) {
-
             //  printf("spiker %d\t%d\n", intfitpoint, mymaxsbins[j]);
             float cy = h1->GetBinContent(mymaxsbins[j]);
             float oy = h1->GetBinContent(intfitpoint);
             //    printf("sanTy %d\t%f\t%d\t%f\t%f\n\n\n\n", mymaxsbins[j], cy, intfitpoint, oy, FDCompton);
             if (cy > oy && mymaxsbins[j] < FDCompton / step) {
                 intfitpoint = mymaxsbins[j];
-
             }
             //    printf("nasTy %d\t%f\t%d\t%f\t%f\n\n\n\n", mymaxsbins[j], cy, intfitpoint, oy, FDCompton);
-
         }
+    }
 
+    startfitpoint = intfitpoint*step;
+
+
+    h1->Fit("fsrc", "q", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3
+    h1->Draw();
+
+    if (fsrc->GetParameter(7) < fsrc->GetParameter(10)) {
+        printf("Il fit è tildato\n");
+
+        //        float oldFDc = fsrc->GetParameter(7);
+        //        fsrc->SetParameter(7, fsrc->GetParameter(10));
+        //        fsrc->SetParameter(10, oldFDc);
+        //        h1->Fit("fsrc", "q", "", startfitpoint, Xmax * 2);
     }
 
 
-
-    startfitpoint = intfitpoint*step;
-     //printf("endf %f\n", startfitpoint);
-
-    //   if (startfitpoint<FDCompton*2/3) startfitpoint=FDCompton*2/3;
-
-    //  h1->Fit("fsrc", "", "", 20, 60); //vecchio modo di fare il fit
- 
-    h1->Fit("fsrc", "q", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3
-    h1->Draw();
+    //   h1->Draw("same");
     //   fsrc->Draw("same");
 
     /*****************************************************/
 
     //grafici delle funzioni usate per il fit
     //Replot senza doppio esponenziale
-    TF1 *wow = new TF1("wow", "[4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)   +[12]/(TMath::Exp((x-[5])*[13])*[14]+1)  ", Xmax * 0.3, Xmax * 1.6);
+    TF1 *wow = new TF1("nonlovogliamo", "[4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)   +[12]/(TMath::Exp((x-[5])*[13])*[14]+1)  ", Xmax * 0.3, Xmax * 1.6);
 
     wow->FixParameter(4, fsrc->GetParameter(4));
     wow->FixParameter(5, fsrc->GetParameter(5));
@@ -538,19 +599,20 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
 
     //Replot doppio exp
-    TF1 *BG = new TF1("BG", "[0]*([1]*TMath::Exp((-[2])*x)+(1-[1])*TMath::Exp((-[3])*x)) ", Xmax * 0.35, Xmax * 1.6);
+    TF1 *BG = new TF1("doppioexp", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))  ", 0, 200);
     BG->FixParameter(0, fsrc->GetParameter(0));
     BG->FixParameter(1, fsrc->GetParameter(1));
     BG->FixParameter(2, fsrc->GetParameter(2));
     BG->FixParameter(3, fsrc->GetParameter(3));
 
-    BG->SetLineColor(40);
+    //   BG->SetLineColor(0);
     BG->SetLineStyle(2);
 
     BG->Draw("same");
 
-    //Replot Fermi-Dirac2  (Compton Edge)
-    TF1 *FD2 = new TF1("FD2", "[7]/(TMath::Exp((x-[8])*[9])+1) ", Xmax * 0.3, Xmax * 1.6);
+
+    //Replot Fermi-Dirac  (Compton Edge)
+    TF1 *FD2 = new TF1("FDCompton", "[7]/(TMath::Exp((x-[8])*[9])+1) ", Xmax * 0.3, Xmax * 1.6);
     FD2->FixParameter(7, fsrc->GetParameter(7));
     FD2->FixParameter(8, fsrc->GetParameter(8));
     FD2->FixParameter(9, fsrc->GetParameter(9));
@@ -560,8 +622,8 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     FD2->Draw("same");
 
-    //Replot Fermi-Dirac1  (Multiple Compton)
-    TF1 *FD1 = new TF1("FD1", "[12]/(TMath::Exp((x-[5])*[13]*[14])+1) ", Xmax * 0.3, Xmax * 1.6);
+    //Replot Fermi-Dirac Multipla  (Multiple Compton)
+    TF1 *FD1 = new TF1("FDMultiplo", "[12]/(TMath::Exp((x-[5])*[13]*[14])+1) ", Xmax * 0.3, Xmax * 1.6);
 
     FD1->FixParameter(12, fsrc->GetParameter(10));
     FD1->FixParameter(13, fsrc->GetParameter(11));
@@ -623,32 +685,32 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
 
     float comptonAMP = fsrc->GetParameter("FDCAmp");
-    if (comptonAMP> h1->GetBinContent(intfitpoint)){
-        printf("Questo pesce è senza spalla. Da operare urgentemente.%s\n", ERROR_FISHERMAN);
-          mypeak.anyproblems = NOT_COMPTON;
+    if (comptonAMP > h1->GetBinContent(intfitpoint)) {
+        printf("Questo pesce è senza spalla. Da operare urgentemente. %f %d \n %s\n", h1->GetBinContent(intfitpoint), intfitpoint, ERROR_FISHERMAN);
+        mypeak.anyproblems = NOT_COMPTON;
     }
-    
-    
+
+
     if (resolution < 0.01) {
         mypeak.anyproblems = NOT_CREDIBLE;
         printf("Questo pesce va rigettato in acqua. E' un granchio.\n");
     }
 
-   // printf("santaprob: %f\n", fsrc->GetProb());
-    if (fsrc->GetProb()< 0.0001 ){
+    // printf("santaprob: %f\n", fsrc->GetProb());
+    if (fsrc->GetProb() < 0.0001) {
         mypeak.anyproblems = NOT_PROBABLE;
         printf("Questo pesce è una burla. Non ci sto credendo che hai pescato un elefante. Questo essere va rigettato in acqua. E' un granchio?\n");
     }
-    
-    
-    if (mypeak.anyproblems!=0){
+
+
+    if (mypeak.anyproblems != 0) {
         printf("col\n");
-          c40->SetFillColor(46);
-          h1->SetFillColor(46);
-           c40->Draw();
+        c40->SetFillColor(46);
+        h1->SetFillColor(46);
+        c40->Draw();
     }
-    
-   
+
+
     return mypeak;
 
 }
