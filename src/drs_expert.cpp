@@ -172,12 +172,13 @@ int main(int argc, char* argv[]) {
     mySetting_print(&cset);
 
 
-    initHV(myPMTs,myChannels);
+
     printf("Ready to land in the spacetime continuum.\n");
 
 
     for (int k = 0; k < myArgs.size(); k++) {
         if (strcmp(myArgs[k].c_str(), "precalib") == 0) {
+            initHV(myPMTs, myChannels);
             preCalibra(fileName, cset);
 
         } else if (strcmp(myArgs[k].c_str(), "calib") == 0) {
@@ -192,10 +193,15 @@ int main(int argc, char* argv[]) {
             //                printf("Il fit a %f volt sarà rigettato in acqua.\n%s\n", voltage[i], ERROR_FISHERMAN);
             //                i--;
             //            } else {
-            //                int realCH = PMTtoCH(PMTid[i], &cset);
+            //               int realCH = PMTtoCH(PMTid[i], &cset);
             //                cset.thresh[realCH] = cset.voltage[realCH] / voltage[i] * tresh[i];
             //            }
 
+
+
+        } else if (strcmp(myArgs[k].c_str(), "analyze_precalib") == 0) {
+
+            preCalibra_analyze(fileName);
 
 
         }
@@ -320,14 +326,14 @@ void preCalibra(char* fileName, mySetting cset) {
     printf("He is filling his fountain pen...\n");
     int thresh;
     char tmp[STR_LENGTH];
-    for (int thresh = 20; thresh < 60; thresh += 20) {
+    for (int thresh = 20; thresh <= 120; thresh += 20) {
 
         for (int i = 0; i < cset.Nchan; i++) {
             cset.thresh[i] = -thresh;
         }
 
         sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], thresh);
-          startCapture(tmp, cset);
+        startCapture(tmp, cset);
     }
 
     preCalibra_analyze(fileName);

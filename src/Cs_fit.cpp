@@ -16,9 +16,6 @@
 #include "defines.h"
 #include "WaveAnalysis.h"
 
-
-
-//Questa macro fitta l'istogramma sorgente+fondo a partire da un fit del fondo e infine plotta il fit della sorgente e basta
 int GetMaximumBin(TH1D* hist, int from, int to);
 int GetMinimumBin(TH1D* hist, int from, int to);
 void Cs_fit();
@@ -29,10 +26,6 @@ void trigger_fit(char * peaksfile, char* wheretosave);
 
 /**
  * Massimo boss
- * @param hist
- * @param from
- * @param to
- * @return 
  */
 int GetMaximumBin(TH1D* hist, int from, int to) {
     int i;
@@ -72,10 +65,6 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
 
 /**
  * Massimi locali
- * @param hist
- * @param from
- * @param to
- * @return 
  */
 std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     std::vector<float> myMins;
@@ -255,35 +244,35 @@ void preCalibra_analyze(char* capturename) {
     char temp1[STR_LENGTH];
     char temp2[STR_LENGTH];
     char rottentemp[STR_LENGTH];
+
+
+    // Rimuove i file vecchi eventualmente presenti
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".fish");
+    removeFileList(myrottenfish);
+
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histprec.root");
+    removeFileList(myrottenhist);
+
+    std::vector<std::string> myrottentrigger = list_files("data/", capturename, ".besttrigger");
+    removeFileList(myrottentrigger);
+
+
+    // Cerca tutti i file appartenenti alla presa dati indicata
     sprintf(capturename_, "%s_", capturename);
     std::vector<std::string> myfiles = list_files("data/", capturename, ".th.root");
 
-
-    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".fish");
-    removeFilesbyExt(myrottenfish);
-
-    std::vector<std::string> myrottenhist = list_files("data/", capturename, "histprec.root");
-    removeFilesbyExt(myrottenhist);
-
+    // Crea istogramma carica
     for (int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
         printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
-        ChargeHist(capturename_, "histprec");
+        ChargeHist(capturename_, ".histprec");
     }
 
-
+    // Fit con CsFit (CESIO) >> Mette i valori del picco in un file
     sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myHistfiles = list_files("data/", capturename, "histprec.root");
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histprec.root");
 
     for (int i = 0; i < myHistfiles.size(); i++) {
-        int voltage;
-        int trigger;
-
-        std::string fname = capturename_;
-        std::string vlt = myHistfiles[i].substr(fname.length(), 4);
-        std::string trg = myHistfiles[i].substr(fname.length() + 5, 2);
-        voltage = atoi(vlt.c_str());
-        trigger = atoi(trg.c_str());
 
         sprintf(temp1, "data/%s", myHistfiles[i].c_str());
         TFile *sorgente_file = TFile::Open(temp1);
@@ -294,15 +283,17 @@ void preCalibra_analyze(char* capturename) {
 
         for (int j = 0; j < st.Nchan; j++) {
             int PMTid = CHtoPMT(j, &st);
+            int voltage = st.voltage[j];
             sprintf(temp2, "data/%s_%d_%d.fish", capturename, voltage, PMTid);
-            printf("\ntemp1 %s \ntemp2 %s\n", temp1, temp2);
+            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
-
         }
     }
 
+    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
     sprintf(capturename_, "%s_", capturename);
     std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
+
     char tempf[STR_LENGTH];
     char tempf2[STR_LENGTH];
     for (int f = 0; f < myFish.size(); f++) {
@@ -313,19 +304,24 @@ void preCalibra_analyze(char* capturename) {
 
 }
 
+/**
+ * Evaluates best resolution for provided file with fixed voltage and many triggers
+ * @param peaksfile Path to file with fits
+ * @param wheretosave Where to save result of choice 
+ */
 void trigger_fit(char * peaksfile, char* wheretosave) {
 
     std::vector<peak> peaks = peak_load(peaksfile);
     double minres = 5000;
-    int minresPOS = 0;
+    int minresPOS = -1;
 
     for (int i = 0; i < peaks.size(); i++) {
-        //printf("\n myres %lf\n\n", peaks[i].resolution);
-        if (peaks[i].resolution < 0) {
-            printf("Il fit a %f volt sarà rigettato in acqua.\n%s\n", peaks[i].voltage, ERROR_FISHERMAN);
+      //  printf("\n myres %lf\n\n", peaks[i].resolution);
+        if (peaks[i].anyproblems != 0) {
+            printf("Il fit a %f volt sarà rigettato in acqua. Codice errore:%d\n%s\n", peaks[i].voltage, peaks[i].anyproblems, ERROR_FISHERMAN);
 
         } else {
-            //printf("resol %f ; minres %f = \n\n", peaks[i].resolution, minres);
+         //   printf("resol %f ; minres %f = \n\n", peaks[i].resolution, minres);
             if (peaks[i].resolution < minres) {
                 minres = peaks[i].resolution;
                 minresPOS = i;
@@ -335,8 +331,13 @@ void trigger_fit(char * peaksfile, char* wheretosave) {
 
 
     }
-    //printf("best one is %d\t%f\n\n", minresPOS, peaks[minresPOS].peakpos);
-    peak_save(wheretosave, &(peaks[minresPOS]));
+
+    if (minresPOS != -1) {
+        printf("best one is %d\t%f\n\n", minresPOS, peaks[minresPOS].peakpos);
+        peak_save(wheretosave, &(peaks[minresPOS]));
+    } else {
+        printf("Non è stato trovato nessun buon trigger per questa tensione!\n");
+    }
 
 }
 
@@ -361,7 +362,12 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     sprintf(tname, "h%d", PMTid);
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
-    mypeak = Cs_fit(h1, "img/lastcsfit.eps");
+  
+    sprintf(tname, "img/%s_%d_csfit.eps", filenameFromPath(src_name).c_str(), PMTid);
+  printf("Salva in %s\n",tname);
+    
+    
+    mypeak = Cs_fit(h1, tname);
     mypeak.PMTid = PMTid;
     mypeak.voltage = st.voltage[CH];
     mypeak.thresh = st.thresh[CH];
@@ -369,9 +375,6 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     peak_save(wheretosave, &mypeak);
     // delete c41;
 }
-
-
-
 
 // non implementato
 //void Cs_fit(char* src_name) {
@@ -413,8 +416,9 @@ void Cs_fit() {
                 //  TCanvas *c41 = new TCanvas();
                 printf("\n\n********************************\n");
                 printf("Fit per il PMT %d\n", PMTid);
-
+    
                 sprintf(tname, "img/%s_csfit%d.eps", filenameFromPath(sorgente_file->GetName()).c_str(), PMTid);
+                         
                 Cs_fit(h1, tname);
                 h1->Write();
             }
@@ -491,13 +495,13 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     fsrc->SetParName(11, "FD2Beta");
     fsrc->SetParName(12, "FD2Modulation");
 
-    fsrc->SetParLimits(0, FD2minAmp , Ymax*10);
+    fsrc->SetParLimits(0, FD2minAmp, Ymax * 10);
     fsrc->SetParLimits(1, 0.01, 0.99); //OK
     //     fsrc->SetParLimits(2, 0.9 * p1, 1.1 * p1);
     //      fsrc->SetParLimits(3, 0.9 * p2, 1.1 * p2);
     //     fsrc->SetParLimits(3, 0, 10000000);
-    fsrc->SetParLimits(2, Xmax/10, Xmax*2);
-    fsrc->SetParLimits(3, Xmax/10, Xmax*2);
+    fsrc->SetParLimits(2, Xmax / 10, Xmax * 2);
+    fsrc->SetParLimits(3, Xmax / 10, Xmax * 2);
     fsrc->SetParLimits(4, Ymax * 0.8, Ymax * 1.2); //OK!
     fsrc->SetParLimits(5, Xmax * 0.9, Xmax * 1.1);
     fsrc->SetParLimits(6, sigma * 0.7, sigma * 1.3);
@@ -505,7 +509,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     fsrc->SetParLimits(8, FDCompton * 0.90, FDCompton * 1.10);
     fsrc->SetParLimits(9, 0.1, 2);
     fsrc->SetParLimits(10, FD2minAmp, 2 * FD2minAmp);
-    fsrc->SetParLimits(12, 0.01 , 10000);
+    fsrc->SetParLimits(12, 0.01, 10000);
     if (FD2minAmp == 0) {
         FD2minAmp = 1;
         fsrc->SetParLimits(10, FD2minAmp, 5 * FD2minAmp);

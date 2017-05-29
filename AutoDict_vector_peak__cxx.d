@@ -1,7 +1,7 @@
 
 # DO NOT DELETE
 
-AutoDict_vector_peak__cxx.so: /home/sfera/Desktop/jupiter/src/defines.h
+AutoDict_vector_peak__cxx.so: src/defines.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TDirectory.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TNamed.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TObject.h

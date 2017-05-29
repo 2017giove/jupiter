@@ -476,7 +476,7 @@ myHVchannel HV_findChannel(char* name, std::vector<myHVchannel> myChannels) {
     return nullCH;
 }
 
-void removeFilesbyExt(std::vector<std::string> rottenf) {
+void removeFileList(std::vector<std::string> rottenf) {
     char temp[STR_LENGTH];
     for (int k = 0; k < rottenf.size(); k++) {
         sprintf(temp, "data/%s", rottenf[k].c_str());
@@ -498,21 +498,20 @@ std::vector<peak> peak_load(char* peaksfile) {
 
     std::ifstream myfile1;
     std::string myline;
-
+    printf("file %s\n", peaksfile);
     myfile1.open(peaksfile);
 
     std::vector<peak> peaks;
 
-    peak temp;
+
     int i = 0;
 
     while (std::getline(myfile1, myline)) {
+        peak temp;
         std::istringstream strm(myline);
         if (strm >> temp.PMTid >> temp.voltage >> temp.thresh >> temp.peakpos >> temp.sigma >> temp.peakvalue >> temp.nSGN >> temp.nBG >> temp.resolution >> temp.anyproblems) {
             std::cout << i << " " << temp.PMTid << " " << temp.voltage << " " << temp.thresh << " " << temp.peakpos << " " << temp.sigma << " " << temp.peakvalue << " " << temp.nSGN << " " << temp.nBG << " " << temp.resolution << " " << temp.anyproblems << std::endl;
             i++;
-
-
             peaks.push_back(temp);
         } else {
             printf("(riga ignorata)\n");
