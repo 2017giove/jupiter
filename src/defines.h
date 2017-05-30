@@ -352,10 +352,9 @@ void mySetting_print(mySetting *st) {
 
 }
 
-void mySetting_histoprint(mySetting *st, TCanvas * c40, int PMTid) {
+void mySetting_histoprint(mySetting *st, int PMTid) {
     char temp[STR_LENGTH];
-    c40->cd();
-    TPaveText* tbox = new TPaveText(.05, .1, .95, .8);
+       TPaveText* tbox = new TPaveText(.05, .1, .95, .8);
     int CH = PMTtoCH(PMTid, st);
     sprintf(temp, "Data acquired on %s\nPMT %d, Voltage %f, Threshold %f.", st->date, st->PmtID[CH], st->voltage[CH], st->thresh[CH]);
     tbox->AddText(temp);

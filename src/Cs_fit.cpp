@@ -379,7 +379,7 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     mypeak.voltage = st.voltage[CH];
     mypeak.thresh = st.thresh[CH];
     mypeak.resolution = mypeak.sigma / mypeak.peakpos;
-    peak_save(wheretosave, &mypeak);
+            peak_save(wheretosave, &mypeak);
     // delete c41;
 }
 
@@ -440,6 +440,7 @@ void Cs_fit() {
 struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     TCanvas *c40 = new TCanvas();
+     
     c40->SetFillColor(0);
 
  //   h1->Rebin(5);
