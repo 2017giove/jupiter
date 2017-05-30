@@ -19,9 +19,9 @@
 int GetMaximumBin(TH1D* hist, int from, int to);
 int GetMinimumBin(TH1D* hist, int from, int to);
 void Cs_fit();
-struct peak Cs_fit(TH1D* h1, std::string savepath);
+struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid);
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
-void trigger_fit(char * peaksfile, char* wheretosave);
+
 //void Cs_fit(char* src_name);
 
 /**
@@ -49,13 +49,13 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
     int min = RAND_MAX;
     int imin;
     int currentmin;
-  //  printf("\n\nfrom %d\t to%d\n", from, to);
+    //  printf("\n\nfrom %d\t to%d\n", from, to);
     for (i = from; i < to; i++) {
         currentmin = hist->GetBinContent(i);
         if (currentmin < min) {
             min = currentmin;
             imin = i;
-          //  printf("%d\t%d\n", imin, currentmin);
+            //  printf("%d\t%d\n", imin, currentmin);
         }
 
     }
@@ -93,10 +93,10 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     int nsumL = 0;
 
 
-    int windowSize = ( 60.* 0.1 / hist->GetXaxis()->GetBinWidth(3));
-        printf("%f\n\n",windowSize);
- //   if (windowSize==0) windowSize =1;
-    
+    int windowSize = (50. * 0.1 / hist->GetXaxis()->GetBinWidth(0));
+    printf("%f\n\n", windowSize);
+    //   if (windowSize==0) windowSize =1;
+
     for (i = from; i < to; i++) {
         nsumR = 0;
         nearmeR[i] = 0;
@@ -118,7 +118,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
             nsumL++;
         }
         nearmeL[i] /= (float) nsumL;
-     //    printf("nearme %f\t%f\n", hist->GetBinContent(i), nearmeR[i]);
+        //  printf("nearme %f\t%f\n", hist->GetBinContent(i), nearmeR[i]);
     }
 
     bool isabove = 0;
@@ -139,15 +139,23 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
             if (hist->GetBinContent(i) < media && hist->GetBinContent(i) <= nearmeL[i]) { //è sceso sotto soglia
 
                 isabove = 0;
-                myMins.push_back(cmax);
-                myMinsX.push_back(cpos);
-                     printf("csono %d\t%f\t%f\t%f\n", cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
-
+                //                myMins.push_back(cmax);
+                //                myMinsX.push_back(cpos);
+                //                printf("csono %d\t%d\t%f\t%f\t%f\n", i,cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+                //
 
             } else {
                 if (hist->GetBinContent(i) > cmax) {
                     cmax = hist->GetBinContent(i);
                     cpos = i;
+                }
+
+                if (hist->GetBinContent(i) > hist->GetBinContent(i - 1) && hist->GetBinContent(i) >= hist->GetBinContent(i + 1) && hist->GetBinContent(i) > nearmeR[i] && hist->GetBinContent(i) > media) { //condizione ulteriore per massimi, non serve che scenda sempre sotto soglia...
+
+
+                    myMins.push_back(cmax);
+                    myMinsX.push_back(cpos);
+                    printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
                 }
             }
         }
@@ -157,7 +165,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     printf("media %f\n", media);
     for (i = 0; i < myMins.size(); i++) {
 
-             printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
+        printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
 
     }
     return myMinsX;
@@ -245,6 +253,71 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 //
 //}
 
+void Calibra_analyze(char* capturename) {
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+    // Rimuove i file vecchi eventualmente presenti
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".calfish");
+    removeFileList(myrottenfish);
+
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histcal.root");
+    removeFileList(myrottenhist);
+
+    std::vector<std::string> myrottencal = list_files("data/", capturename, ".bestcal");
+    removeFileList(myrottencal);
+
+    // Cerca tutti i file appartenenti alla presa dati indicata
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myfiles = list_files("data/", capturename, ".cal.root");
+
+    // Crea istogramma carica
+    for (int i = 0; i < myfiles.size(); i++) {
+        sprintf(capturename_, "data/%s", myfiles[i].c_str());
+        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        ChargeHist(capturename_, ".histcal");
+    }
+
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histcal.root");
+
+    for (int i = 0; i < myHistfiles.size(); i++) {
+
+        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
+        TFile *sorgente_file = TFile::Open(temp1);
+
+        mySetting st;
+        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+        mySetting_get(tset1, &st);
+
+        for (int j = 0; j < st.Nchan; j++) {
+            int PMTid = CHtoPMT(j, &st);
+            int voltage = st.voltage[j];
+            sprintf(temp2, "data/%s_%d.calfish", capturename,  PMTid);
+            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
+            Cs_getPeak(temp1, PMTid, temp2);
+        }
+
+
+    }
+
+    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myFish = list_files("data/", capturename, ".calfish");
+
+    char tempf[STR_LENGTH];
+    char tempf2[STR_LENGTH];
+    for (int f = 0; f < myFish.size(); f++) {
+        sprintf(tempf, "data/%s", myFish[f].c_str());
+        sprintf(tempf2, "data/%s.bestcal", capturename);
+        volt_fit(tempf, tempf2, capturename);
+    }
+
+
+}
+
 void preCalibra_analyze(char* capturename) {
 
     char capturename_[STR_LENGTH];
@@ -306,44 +379,7 @@ void preCalibra_analyze(char* capturename) {
     for (int f = 0; f < myFish.size(); f++) {
         sprintf(tempf, "data/%s", myFish[f].c_str());
         sprintf(tempf2, "data/%s.besttrigger", capturename);
-        trigger_fit(tempf, tempf2);
-    }
-
-}
-
-/**
- * Evaluates best resolution for provided file with fixed voltage and many triggers
- * @param peaksfile Path to file with fits
- * @param wheretosave Where to save result of choice 
- */
-void trigger_fit(char * peaksfile, char* wheretosave) {
-
-    std::vector<peak> peaks = peak_load(peaksfile);
-    double minres = 5000;
-    int minresPOS = -1;
-
-    for (int i = 0; i < peaks.size(); i++) {
-        //  printf("\n myres %lf\n\n", peaks[i].resolution);
-        if (peaks[i].anyproblems != 0) {
-            printf("Il fit a %f volt sarà rigettato in acqua. Codice errore:%d\n%s\n", peaks[i].voltage, peaks[i].anyproblems, ERROR_FISHERMAN);
-
-        } else {
-            //   printf("resol %f ; minres %f = \n\n", peaks[i].resolution, minres);
-            if (peaks[i].resolution < minres) {
-                minres = peaks[i].resolution;
-                minresPOS = i;
-            }
-            i++;
-        }
-
-
-    }
-
-    if (minresPOS != -1) {
-        printf("best one is %d\t%f\n\n", minresPOS, peaks[minresPOS].peakpos);
-        peak_save(wheretosave, &(peaks[minresPOS]));
-    } else {
-        printf("Non è stato trovato nessun buon trigger per questa tensione!\n");
+        bestresolution_find(tempf, tempf2);
     }
 
 }
@@ -355,7 +391,7 @@ void trigger_fit(char * peaksfile, char* wheretosave) {
  */
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     TFile *sorgente_file = TFile::Open(src_name);
-    TCanvas *c41 = new TCanvas();
+    //  TCanvas *c41 = new TCanvas();
     peak mypeak;
     mySetting st;
 
@@ -374,13 +410,13 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     printf("Salva in %s\n", tname);
 
 
-    mypeak = Cs_fit(h1, tname);
+    mypeak = Cs_fit(h1, tname, &st, PMTid);
     mypeak.PMTid = PMTid;
     mypeak.voltage = st.voltage[CH];
     mypeak.thresh = st.thresh[CH];
     mypeak.resolution = mypeak.sigma / mypeak.peakpos;
-            peak_save(wheretosave, &mypeak);
-    // delete c41;
+    peak_save(wheretosave, &mypeak);
+
 }
 
 // non implementato
@@ -425,8 +461,13 @@ void Cs_fit() {
                 printf("Fit per il PMT %d\n", PMTid);
 
                 sprintf(tname, "img/%s_csfit%d.eps", filenameFromPath(sorgente_file->GetName()).c_str(), PMTid);
+                mySetting st;
+                TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+                mySetting_get(tset1, &st);
+                //  mySetting_print(&st);
 
-                Cs_fit(h1, tname);
+
+                Cs_fit(h1, tname, &st, PMTid);
                 h1->Write();
             }
         }
@@ -437,17 +478,19 @@ void Cs_fit() {
 
 }
 
-struct peak Cs_fit(TH1D* h1, std::string savepath) {
+struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     TCanvas *c40 = new TCanvas();
-     
+
+
+
     c40->SetFillColor(0);
 
- //   h1->Rebin(5);
+    h1->Rebin(5);
 
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
-
+    printf("step %f\n\n", step);
     //int maxBin = GetMaximumBin(h1, 5. / step, nBins);
     std::vector<int> mymaxsbins = GetMaximumBins(h1, 5. / step, nBins);
     int maxBin = mymaxsbins.back();
@@ -487,18 +530,48 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
 
 
-
-    // FIT 
+    //punto di partenza del fit
     float sigma = Gauss->GetParameter(2);
     float FDCompton = Xmax * (1 - 1 / (1 + 2 * ENERGY_CESIO / MASS_ELECTRON));
 
     int FD2minAmpX = GetMinimumBin(h1, (int) (FDCompton / step), maxBin);
     float FD2minAmp = h1->GetBinContent(FD2minAmpX);
-    printf("Min amp %d\t %f\n", FD2minAmpX, FD2minAmp);
+    //   printf("Min amp %d\t %f\n", FD2minAmpX, FD2minAmp);
+    float startfitpoint = FDCompton;
 
+    int intfitpoint = startfitpoint / step;
+
+
+    if (mymaxsbins[0] < intfitpoint) intfitpoint = mymaxsbins[0];
+
+    if (mymaxsbins.size() == 1) {
+        intfitpoint = (FDCompton * 3 / 4 / step);
+        mypeak.anyproblems = NOT_COMPTON;
+        printf("%s\nThere is just one big spike in your plot. Are you cutting some good signal with this trigger? This fish will be thrown overboard.\n", ERROR_DEEPER);
+    }
+
+
+    if (mymaxsbins.size() > 2) {
+
+        for (int j = 0; j < mymaxsbins.size() - 1; j++) {
+            //  printf("spiker %d\t%d\n", intfitpoint, mymaxsbins[j]);
+            float cy = h1->GetBinContent(mymaxsbins[j]);
+            float oy = h1->GetBinContent(intfitpoint);
+            //    printf("sanTy %d\t%f\t%d\t%f\t%f\n\n\n\n", mymaxsbins[j], cy, intfitpoint, oy, FDCompton);
+            if (cy > oy && mymaxsbins[j] < FDCompton / step) {
+                intfitpoint = mymaxsbins[j];
+            }
+            //    printf("nasTy %d\t%f\t%d\t%f\t%f\n\n\n\n", mymaxsbins[j], cy, intfitpoint, oy, FDCompton);
+        }
+    }
+
+    startfitpoint = intfitpoint*step;
+
+
+    // FIT 
     h1->GetXaxis()->SetRange(Xmax * 0 / step, Xmax * 1.5 / step);
 
-    TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) +      [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", 0, 60);
+    TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) +      [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", startfitpoint, Xmax * 2);
     //                   0        1           2       3           4           5       6       7       8               9
     fsrc->SetParNames("BGAmp", "BGratio", "tau_1", "tau_2", "GaussAmp", "Peak", "sigma", "FDCAmp", "FDCShift", "FDCBeta");
     fsrc->SetParName(10, "FD2Amp");
@@ -540,39 +613,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     fsrc->SetParameter(11, 0.6); //basta che parte
     fsrc->SetParameter(12, 0.95);
 
-
-    //punto di partenza del fit
-    float startfitpoint = FDCompton;
-
-    int intfitpoint = startfitpoint / step;
-
-
-    if (mymaxsbins[0] < intfitpoint) intfitpoint = mymaxsbins[0];
-
-    if (mymaxsbins.size() == 1) {
-        intfitpoint = (FDCompton * 3 / 4 / step);
-        mypeak.anyproblems = NOT_COMPTON;
-        printf("%s\nThere is just one big spike in your plot. Are you cutting some good signal with this trigger? This fish will be thrown overboard.\n", ERROR_DEEPER);
-    }
-
-
-    if (mymaxsbins.size() > 2) {
-
-        for (int j = 0; j < mymaxsbins.size() - 1; j++) {
-            //  printf("spiker %d\t%d\n", intfitpoint, mymaxsbins[j]);
-            float cy = h1->GetBinContent(mymaxsbins[j]);
-            float oy = h1->GetBinContent(intfitpoint);
-            //    printf("sanTy %d\t%f\t%d\t%f\t%f\n\n\n\n", mymaxsbins[j], cy, intfitpoint, oy, FDCompton);
-            if (cy > oy && mymaxsbins[j] < FDCompton / step) {
-                intfitpoint = mymaxsbins[j];
-            }
-            //    printf("nasTy %d\t%f\t%d\t%f\t%f\n\n\n\n", mymaxsbins[j], cy, intfitpoint, oy, FDCompton);
-        }
-    }
-
-    startfitpoint = intfitpoint*step;
-
-    h1->Fit("fsrc", "vL", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3
+    h1->Fit("fsrc", "Lq", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
     h1->Draw();
 
 
@@ -608,7 +649,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     wow->SetLineColor(30);
     wow->SetLineStyle(3);
-    wow->Draw("same");
+    //   wow->Draw("same");
 
 
     //Replot doppio exp
@@ -618,7 +659,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     BG->FixParameter(2, fsrc->GetParameter(2));
     BG->FixParameter(3, fsrc->GetParameter(3));
 
-    //   BG->SetLineColor(0);
+    BG->SetLineColor(2);
     BG->SetLineStyle(2);
 
     BG->Draw("same");
@@ -630,7 +671,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     FD2->FixParameter(8, fsrc->GetParameter(8));
     FD2->FixParameter(9, fsrc->GetParameter(9));
 
-    FD2->SetLineColor(46);
+    FD2->SetLineColor(45);
     FD2->SetLineStyle(2);
 
     FD2->Draw("same");
@@ -685,6 +726,15 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     fitmax->FixParameter(11, fsrc->GetParameter(11));
     fitmax->FixParameter(12, fsrc->GetParameter(12));
 
+    //  TF1 *fitregionF = new TF1("G1", " [0] ", Xmax * 0.3, Xmax * 1.6);
+    //
+    //    fitregionF->FixParameter(0, Ymax*1.5);
+    //
+    //    fitregionF->SetLineColor(3);
+    //    fitregionF->SetLineStyle(2);
+    //
+    //    fitregionF->Draw("same");
+
 
     mypeak.sigma = fsrc->GetParameter("sigma");
     mypeak.peakpos = fsrc->GetParameter("Peak");
@@ -723,6 +773,8 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
         c40->Draw();
     }
 
+
+    mySetting_histoprint(st, PMTid);
 
     return mypeak;
 

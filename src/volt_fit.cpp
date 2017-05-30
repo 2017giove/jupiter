@@ -11,6 +11,8 @@
 
 #include "WaveAnalysis.h"
 
+void bestresolution_find(char * peaksfile, char* wheretosave) ;
+
 /**
  * Esegue il fit lineare di un file nel formato
  * TENSIONE     POSIZIONE_PICCO     SIGMA     VALORE_PICCO    INTEGRALE_FONDO    INTEGRALE_SEGNALE
@@ -18,72 +20,46 @@
  * 
  * @param nome del file contenente la lista di misure Tensione-PosizionePicco
  */
+void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
-
-
-
-void volt_fit(char * peaksfile) {
-
-    std::ifstream myfile1;
-    std::string myline;
-
-    myfile1.open(peaksfile);
-
-    const int n = 50;
-    Double_t voltage[n];
-    Double_t esfpeakpos[n];
-    Double_t peakpos[n];
-    Double_t sigma[n];
-    Double_t peakval[n];
-    Double_t resolution[n];
-    Double_t nBG[n];
-    Double_t nSGN[n];
-        int PMTid[n];
+    std::vector<peak> peaks = peak_load(peaksfile);
 
     int i = 0;
     int tresh = 0;
 
     char temp[STR_LENGTH ];
 
-    std::string fout = peaksfile;
-    std::string whattolook = ".expert";
-    std::string whattoput = "calib.root";
-    fout = fout.replace(fout.find(whattolook), whattolook.length(), whattoput);
+    sprintf(temp,"%s.root",wheretosave);
+    
+    printf("\n\nfile %s\n\n", temp);
+    TFile *FOut = new TFile(temp, "UPDATE");
 
-    printf("\n\nfile %s\n\n", fout.c_str());
-    TFile *FOut = new TFile(fout.c_str(), "UPDATE");
+    float voltage[500] = {0};
+    float peakpos[500] = {0};
+    float peakposLog[500] = {0};
+    float resolution[500] = {0};
 
+    for (i = 0; i < peaks.size(); i++) {
+        voltage[i] = peaks[i].voltage;
+        peakpos[i] = peaks[i].peakpos;
+        peakposLog[i] = TMath::Log(peakpos[i]);
+        resolution[i] = peaks[i].resolution;
+        i++;
 
-    while (std::getline(myfile1, myline)) {
-        std::istringstream strm(myline);
-        if (strm >> PMTid[i]>>voltage[i] >> tresh >> peakpos[i] >> sigma[i] >> peakval[i] >> nSGN[i] >> nBG[i]) {
-            std::cout << i << " " << PMTid[i]<<" "<< voltage[i] << " " << tresh << " " << peakpos[i] << " " << sigma[i] << " " << peakval[i] << " " << nSGN[i] << " " << nBG[i] << std::endl;
-            esfpeakpos[i] = peakpos[i];
-     
-
-            resolution[i] = sigma[i] / peakpos[i];// / TMath::Sqrt(nSGN[i]);
-            
-                   peakpos[i] = TMath::Log(peakpos[i]);
-            i++;
-
-            if (resolution[i] < 0) {
-                printf("Il fit a %f volt sarà rigettato in acqua.\n%s\n", voltage[i], ERROR_FISHERMAN);
-                i--;
-            }
-
-
-        } else {
-            printf("(riga ignorata)\n");
+        if (peaks[i].resolution < 0 or peaks[i].anyproblems!=0) {
+            printf("Il fit a %f volt sarà rigettato in acqua. E' un astropesce.\n%s\n", voltage[i], ERROR_FISHERMAN);
+            i--;
         }
+
     }
 
 
     TCanvas *c40 = new TCanvas("linear", PLOTS_TITLE, 640, 480);
     c40->SetFillColor(10);
     c40->SetGrid();
-//    gStyle->SetOptFit(1111);
+    //    gStyle->SetOptFit(1111);
 
-    TGraph* mygraph1 = new TGraph(i, voltage, peakpos);
+    TGraph* mygraph1 = new TGraph(i, voltage, peakposLog);
     //    TGraphErrors* mygraph1 = new TGraphErrors(i, voltage, peakpos, err_voltage, err_peakpos);
     mygraph1->SetTitle("Calibrazione");
     mygraph1->GetXaxis()->SetTitle("Tensione PMT [V]");
@@ -106,10 +82,8 @@ void volt_fit(char * peaksfile) {
     c40->Write();
 
 
-
-
     TCanvas *c4001 = new TCanvas("expo", PLOTS_TITLE, 640, 480);
-    TGraph* mygraph2 = new TGraph(i, voltage, esfpeakpos);
+    TGraph* mygraph2 = new TGraph(i, voltage, peakpos);
 
 
     mygraph2->SetTitle("Calibrazione");
@@ -121,7 +95,6 @@ void volt_fit(char * peaksfile) {
     mygraph2->SetMarkerSize(1);
     mygraph2->Draw("AP");
 
-
     TF1* fit_function2 = new TF1("rett2", "TMath::Exp([0]*x+[1])", 1000, 2000);
     fit_function2->SetParameter(0, fit_function->GetParameter(0));
     fit_function2->SetParameter(1, fit_function->GetParameter(1));
@@ -130,12 +103,11 @@ void volt_fit(char * peaksfile) {
     c4001->Write();
 
 
-
     TCanvas *c402 = new TCanvas("resol", PLOTS_TITLE, 640, 480);
     TGraph* mygraph3 = new TGraph(i, voltage, resolution);
 
     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E #sqrt{N}}");
-     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E}");
+    mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E}");
     mygraph3->GetXaxis()->SetTitle("Tensione PMT [V]");
     mygraph3->GetYaxis()->SetTitle("Risoluzione [#sigma/E] ");
 
@@ -145,9 +117,51 @@ void volt_fit(char * peaksfile) {
     mygraph3->Draw("AP");
     c402->Write();
 
+    
     std::cout << fit_function->GetChisquare() << std::endl;
-
+    bestresolution_find(peaksfile,wheretosave);
+    
+    sprintf(temp,"%s.calibration");
+     std::ofstream savefile(temp, std::ios_base::app);
+     savefile << peaks[0].PMTid << " " << fit_function->GetParameter(0) << " " << fit_function->GetParameter(1);
     //  FOut->Close();
+}
+
+/**
+ * Evaluates best resolution for provided file with fixed voltage and many triggers
+ * @param peaksfile Path to file with fits
+ * @param wheretosave Where to save result of choice 
+ */
+void bestresolution_find(char * peaksfile, char* wheretosave) {
+
+    std::vector<peak> peaks = peak_load(peaksfile);
+    double minres = 5000;
+    int minresPOS = -1;
+
+    for (int i = 0; i < peaks.size(); i++) {
+        //  printf("\n myres %lf\n\n", peaks[i].resolution);
+        if (peaks[i].anyproblems != 0) {
+            printf("Il fit a %f volt sarà rigettato in acqua. Codice errore:%d\n%s\n", (int)peaks[i].voltage, peaks[i].anyproblems, ERROR_FISHERMAN);
+
+        } else {
+            //   printf("resol %f ; minres %f = \n\n", peaks[i].resolution, minres);
+            if (peaks[i].resolution < minres) {
+                minres = peaks[i].resolution;
+                minresPOS = i;
+            }
+            i++;
+        }
+
+
+    }
+
+    if (minresPOS != -1) {
+        printf("best one is %d\t%f\n\n", minresPOS, peaks[minresPOS].peakpos);
+        peak_save(wheretosave, &(peaks[minresPOS]));
+    } else {
+        printf("Non è stato trovato nessun buon trigger per questa tensione!\n");
+    }
+
 }
 
 #endif

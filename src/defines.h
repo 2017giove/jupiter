@@ -354,10 +354,20 @@ void mySetting_print(mySetting *st) {
 
 void mySetting_histoprint(mySetting *st, int PMTid) {
     char temp[STR_LENGTH];
-       TPaveText* tbox = new TPaveText(.05, .1, .95, .8);
+
     int CH = PMTtoCH(PMTid, st);
-    sprintf(temp, "Data acquired on %s\nPMT %d, Voltage %f, Threshold %f.", st->date, st->PmtID[CH], st->voltage[CH], st->thresh[CH]);
-    tbox->AddText(temp);
+
+    sprintf(temp, "PMT %d - data acquired on %s ", st->PmtID[CH], st->date);
+    TText *label1 = new TText();
+    label1->SetNDC();
+    label1->SetTextSize(0.03);
+    label1->DrawText(0.01, 0.04, temp);
+
+    sprintf(temp, "Voltage = %d V, Threshold = %2.0f mV", st->voltage[CH], st->thresh[CH]);
+    TText *label2 = new TText();
+    label2->SetNDC();
+    label2->SetTextSize(0.03);
+    label2->DrawText(0.01, 0.0, temp);
 
 }
 

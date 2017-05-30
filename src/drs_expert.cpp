@@ -115,6 +115,7 @@ float getTriggerSource(myEvent *ev, mySetting *st);
 void startCapture(char* fileName, mySetting cset);
 void preCalibra(char* fileName, mySetting cset);
 void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
+void Calibra(char* fileName, mySetting cset) ;
 
 int main(int argc, char* argv[]) {
 
@@ -127,13 +128,13 @@ int main(int argc, char* argv[]) {
     }
 
     if (argc < 2) {
-        printf("Sintax: ./drs_expert SETTINGSFILE.jpt deltaT filename\n");
+        printf("Sintax: ./drs_expert filename deltaT SETTINGSFILE.jpt\n");
         return -1;
     }
 
     mySetting cset;
 
-    char *fileName = argv[3];
+    char *fileName = argv[1];
     char tmp[STR_LENGTH];
 
 
@@ -143,13 +144,12 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    char* settingsFilename = argv[1];
+    char* settingsFilename = argv[3];
 
     std::vector<myPMTconfig> myPMTs = PMT_ReadConfig(settingsFilename, &cset.triggerSetting, &cset.delayns);
     std::vector<myHVchannel> myChannels = HV_ReadConfig("channelsHV.cfg");
 
     int maxchan = myPMTs.size();
-    // printf("\nmaxch %d\n%d\t%d\n", maxchan, cset.triggerSetting, cset.delayns);
 
     allocateSetting(&cset, maxchan);
 
@@ -168,12 +168,6 @@ int main(int argc, char* argv[]) {
         printf("%d\n", cset.PmtID[i]);
     }
 
-
-    mySetting_print(&cset);
-
-
-
-    printf("Ready to land in the spacetime continuum.\n");
 
 
     for (int k = 0; k < myArgs.size(); k++) {
@@ -204,8 +198,14 @@ int main(int argc, char* argv[]) {
             preCalibra_analyze(fileName);
 
 
+        } else {
+            mySetting_print(&cset);
+            startCapture(fileName, cset);
         }
     }
+
+
+
 
 
 
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     //        printf("%d\n", cset.PmtID[i]);
     //    }
     //
-    //    startCapture(fileName, cset, triggerSource);
+    //    
 
 }
 
@@ -320,10 +320,11 @@ void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels
         printf("\n");
 
     } while (isready == 0);
+    printf("Ready to land in the spacetime continuum.\n");
 }
 
 void preCalibra(char* fileName, mySetting cset) {
-    printf("He is filling his fountain pen...\n");
+    printf("He is washing his fountain pen...\n");
     int thresh;
     char tmp[STR_LENGTH];
     for (int thresh = 20; thresh <= 120; thresh += 20) {
@@ -333,6 +334,24 @@ void preCalibra(char* fileName, mySetting cset) {
         }
 
         sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], thresh);
+        startCapture(tmp, cset);
+    }
+
+    preCalibra_analyze(fileName);
+
+}
+
+void Calibra(char* fileName, mySetting cset) {
+    printf("He is filling his fountain pen again...\n");
+  
+    char tmp[STR_LENGTH];
+    for (int volt = 1500; volt <= 1900; volt += 50) {
+
+        for (int i = 0; i < cset.Nchan; i++) {
+            cset.voltage[i] = volt;
+        }
+
+        sprintf(tmp, "%s_%d.cal", fileName, (int) cset.voltage[0]);
         startCapture(tmp, cset);
     }
 
