@@ -49,13 +49,13 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
     int min = RAND_MAX;
     int imin;
     int currentmin;
-    printf("\n\nfrom %d\t to%d\n", from, to);
+  //  printf("\n\nfrom %d\t to%d\n", from, to);
     for (i = from; i < to; i++) {
         currentmin = hist->GetBinContent(i);
         if (currentmin < min) {
             min = currentmin;
             imin = i;
-            printf("%d\t%d\n", imin, currentmin);
+          //  printf("%d\t%d\n", imin, currentmin);
         }
 
     }
@@ -91,10 +91,16 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 
     int nsumR = 0;
     int nsumL = 0;
+
+
+    int windowSize = ( 60.* 0.1 / hist->GetXaxis()->GetBinWidth(3));
+        printf("%f\n\n",windowSize);
+ //   if (windowSize==0) windowSize =1;
+    
     for (i = from; i < to; i++) {
         nsumR = 0;
         nearmeR[i] = 0;
-        for (int j = i; j < i + 60; j++) {
+        for (int j = i; j < i + windowSize; j++) {
             if (j >= from && j < to && j != i) {
                 nearmeR[i] += hist->GetBinContent(j)*1.1;
             }
@@ -104,14 +110,15 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 
         nsumL = 0;
         nearmeL[i] = 0;
-        for (int j = i - 60; j < i; j++) {
+
+        for (int j = i - windowSize; j < i; j++) {
             if (j >= from && j < to && j != i) {
                 nearmeL[i] += hist->GetBinContent(j)*1.1;
             }
             nsumL++;
         }
         nearmeL[i] /= (float) nsumL;
-        // printf("nearme %f\t%f\n", hist->GetBinContent(i), nearmeR[i]);
+     //    printf("nearme %f\t%f\n", hist->GetBinContent(i), nearmeR[i]);
     }
 
     bool isabove = 0;
@@ -134,7 +141,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
                 isabove = 0;
                 myMins.push_back(cmax);
                 myMinsX.push_back(cpos);
-                //     printf("csono %d\t%f\t%f\t%f\n", cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+                     printf("csono %d\t%f\t%f\t%f\n", cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
 
 
             } else {
@@ -147,10 +154,10 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     }
 
 
-    //printf("media %f\n", media);
+    printf("media %f\n", media);
     for (i = 0; i < myMins.size(); i++) {
 
-        //      printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
+             printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
 
     }
     return myMinsX;
@@ -316,12 +323,12 @@ void trigger_fit(char * peaksfile, char* wheretosave) {
     int minresPOS = -1;
 
     for (int i = 0; i < peaks.size(); i++) {
-      //  printf("\n myres %lf\n\n", peaks[i].resolution);
+        //  printf("\n myres %lf\n\n", peaks[i].resolution);
         if (peaks[i].anyproblems != 0) {
             printf("Il fit a %f volt sarà rigettato in acqua. Codice errore:%d\n%s\n", peaks[i].voltage, peaks[i].anyproblems, ERROR_FISHERMAN);
 
         } else {
-         //   printf("resol %f ; minres %f = \n\n", peaks[i].resolution, minres);
+            //   printf("resol %f ; minres %f = \n\n", peaks[i].resolution, minres);
             if (peaks[i].resolution < minres) {
                 minres = peaks[i].resolution;
                 minresPOS = i;
@@ -362,11 +369,11 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     sprintf(tname, "h%d", PMTid);
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
-  
+
     sprintf(tname, "img/%s_%d_csfit.eps", filenameFromPath(src_name).c_str(), PMTid);
-  printf("Salva in %s\n",tname);
-    
-    
+    printf("Salva in %s\n", tname);
+
+
     mypeak = Cs_fit(h1, tname);
     mypeak.PMTid = PMTid;
     mypeak.voltage = st.voltage[CH];
@@ -416,9 +423,9 @@ void Cs_fit() {
                 //  TCanvas *c41 = new TCanvas();
                 printf("\n\n********************************\n");
                 printf("Fit per il PMT %d\n", PMTid);
-    
+
                 sprintf(tname, "img/%s_csfit%d.eps", filenameFromPath(sorgente_file->GetName()).c_str(), PMTid);
-                         
+
                 Cs_fit(h1, tname);
                 h1->Write();
             }
@@ -435,6 +442,8 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     TCanvas *c40 = new TCanvas();
     c40->SetFillColor(0);
 
+ //   h1->Rebin(5);
+
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
 
@@ -443,7 +452,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     int maxBin = mymaxsbins.back();
 
     float Xmax = maxBin*step; //80
-    printf("\nxmax=%f\n", Xmax);
+    // printf("\nxmax=%f\n", Xmax);
 
     float Xwindow = 3.8; // larghezza su cui eseguire a occhio il fit gaussiano rispetto a xmax rilevato
     float Ymax = h1->GetBinContent(maxBin);
@@ -495,32 +504,30 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     fsrc->SetParName(11, "FD2Beta");
     fsrc->SetParName(12, "FD2Modulation");
 
-    fsrc->SetParLimits(0, FD2minAmp, Ymax * 10);
+    fsrc->SetParLimits(0, FD2minAmp * 5, Ymax * 10);
     fsrc->SetParLimits(1, 0.01, 0.99); //OK
-    //     fsrc->SetParLimits(2, 0.9 * p1, 1.1 * p1);
-    //      fsrc->SetParLimits(3, 0.9 * p2, 1.1 * p2);
-    //     fsrc->SetParLimits(3, 0, 10000000);
     fsrc->SetParLimits(2, Xmax / 10, Xmax * 2);
     fsrc->SetParLimits(3, Xmax / 10, Xmax * 2);
     fsrc->SetParLimits(4, Ymax * 0.8, Ymax * 1.2); //OK!
     fsrc->SetParLimits(5, Xmax * 0.9, Xmax * 1.1);
     fsrc->SetParLimits(6, sigma * 0.7, sigma * 1.3);
-    fsrc->SetParLimits(7, 3, Ymax * 10);
+    fsrc->SetParLimits(7, 0, Ymax * 10);
     fsrc->SetParLimits(8, FDCompton * 0.90, FDCompton * 1.10);
     fsrc->SetParLimits(9, 0.1, 2);
     fsrc->SetParLimits(10, FD2minAmp, 2 * FD2minAmp);
+    fsrc->SetParLimits(11, 0.1, 1);
     fsrc->SetParLimits(12, 0.01, 10000);
+    //    
+    // se il minimo tra i due picchi è zero
     if (FD2minAmp == 0) {
         FD2minAmp = 1;
         fsrc->SetParLimits(10, FD2minAmp, 5 * FD2minAmp);
     }
 
-    fsrc->SetParLimits(11, 0.1, 1);
 
-    ////    Parametri (che erano) fissati dal fit del rumore
-    // fsrc->FixParameter(1, p3);
-    // fsrc->SetParameter(2, p1);
-    // fsrc->SetParameter(3, p2);
+    fsrc->SetParameter(0, Ymax);
+    fsrc->SetParameter(1, 0.5);
+    fsrc->SetParameter(2, FDCompton);
     fsrc->SetParameter(3, FDCompton);
     fsrc->SetParameter(4, Ymax);
     fsrc->SetParameter(5, Xmax);
@@ -528,7 +535,8 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     fsrc->SetParameter(7, Ymax / 3);
     fsrc->SetParameter(8, FDCompton);
     fsrc->SetParameter(9, sigma * 0.5296);
-    fsrc->SetParameter(10, FD2minAmp);
+    fsrc->SetParameter(10, FD2minAmp * 1.5);
+    fsrc->SetParameter(11, 0.6); //basta che parte
     fsrc->SetParameter(12, 0.95);
 
 
@@ -547,7 +555,6 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
     }
 
 
-
     if (mymaxsbins.size() > 2) {
 
         for (int j = 0; j < mymaxsbins.size() - 1; j++) {
@@ -564,10 +571,11 @@ struct peak Cs_fit(TH1D* h1, std::string savepath) {
 
     startfitpoint = intfitpoint*step;
 
-
-    h1->Fit("fsrc", "q", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3
+    h1->Fit("fsrc", "vL", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3
     h1->Draw();
 
+
+    //Quando la seconda spalla è più alta della prima
     if (fsrc->GetParameter(7) < fsrc->GetParameter(10)) {
         printf("Il fit è tildato\n");
 

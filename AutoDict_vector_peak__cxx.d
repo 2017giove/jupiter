@@ -78,6 +78,11 @@ AutoDict_vector_peak__cxx.so: /usr/local/include/root/TMatrixFBasefwd.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TMatrixDBasefwd.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TGraph2D.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TVirtualHistPainter.h
+AutoDict_vector_peak__cxx.so: /usr/local/include/root/TPaveText.h
+AutoDict_vector_peak__cxx.so: /usr/local/include/root/TPave.h
+AutoDict_vector_peak__cxx.so: /usr/local/include/root/TBox.h
+AutoDict_vector_peak__cxx.so: /usr/local/include/root/TText.h
+AutoDict_vector_peak__cxx.so: /usr/local/include/root/TLine.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TF1.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TFormula.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TBits.h
@@ -91,10 +96,7 @@ AutoDict_vector_peak__cxx.so: /usr/local/include/root/TROOT.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TGraphErrors.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TH1F.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TLegend.h
-AutoDict_vector_peak__cxx.so: /usr/local/include/root/TPave.h
-AutoDict_vector_peak__cxx.so: /usr/local/include/root/TBox.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TArrow.h
-AutoDict_vector_peak__cxx.so: /usr/local/include/root/TLine.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TSystem.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TInetAddress.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TTimer.h

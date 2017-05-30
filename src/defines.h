@@ -25,6 +25,8 @@
 #include "TH2.h"
 #include "TGraph2D.h"
 
+#include "TPaveText.h"
+
 #include "TF1.h"
 #include "TMath.h"
 #include "TGraph.h"
@@ -138,6 +140,8 @@ struct peak {
     float thresh;
     int anyproblems;
 };
+
+int PMTtoCH(int PMT, mySetting* st);
 
 void allocateSetting(struct mySetting* st, int NCHAN) {
     int i;
@@ -345,6 +349,16 @@ void mySetting_print(mySetting *st) {
         printf("Threshold(mV)\t=\t%f\n", st->thresh[i]);
         printf("\n");
     }
+
+}
+
+void mySetting_histoprint(mySetting *st, TCanvas * c40, int PMTid) {
+    char temp[STR_LENGTH];
+    c40->cd();
+    TPaveText* tbox = new TPaveText(.05, .1, .95, .8);
+    int CH = PMTtoCH(PMTid, st);
+    sprintf(temp, "Data acquired on %s\nPMT %d, Voltage %f, Threshold %f.", st->date, st->PmtID[CH], st->voltage[CH], st->thresh[CH]);
+    tbox->AddText(temp);
 
 }
 
