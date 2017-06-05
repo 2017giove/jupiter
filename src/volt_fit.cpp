@@ -11,7 +11,7 @@
 
 #include "WaveAnalysis.h"
 
-void bestresolution_find(char * peaksfile, char* wheretosave) ;
+void bestresolution_find(char * peaksfile, char* wheretosave);
 
 /**
  * Esegue il fit lineare di un file nel formato
@@ -29,8 +29,8 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     char temp[STR_LENGTH ];
 
-    sprintf(temp,"%s.root",wheretosave);
-    
+    sprintf(temp, "%s.root", wheretosave);
+
     printf("\n\nfile %s\n\n", temp);
     TFile *FOut = new TFile(temp, "UPDATE");
 
@@ -39,14 +39,21 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     float peakposLog[500] = {0};
     float resolution[500] = {0};
 
+    std::vector<float> TVoltage;
+    std::vector<float> TPeakposLog;
+
     for (i = 0; i < peaks.size(); i++) {
+
+        TVoltage.push_back(peaks[i].voltage);
+        TPeakposLog.push_back(TMath::Log(peakpos[i]));
+
         voltage[i] = peaks[i].voltage;
         peakpos[i] = peaks[i].peakpos;
         peakposLog[i] = TMath::Log(peakpos[i]);
         resolution[i] = peaks[i].resolution;
         i++;
 
-        if (peaks[i].resolution < 0 or peaks[i].anyproblems!=0) {
+        if (peaks[i].resolution < 0 or peaks[i].anyproblems != 0) {
             printf("Il fit a %f volt sarà rigettato in acqua. E' un astropesce.\n%s\n", voltage[i], ERROR_FISHERMAN);
             i--;
         }
@@ -59,7 +66,10 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     c40->SetGrid();
     //    gStyle->SetOptFit(1111);
 
-    TGraph* mygraph1 = new TGraph(i, voltage, peakposLog);
+    TGraph* mygraph1 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TPeakposLog[0]));
+
+    sprintf(temp, "%s_%d", acqname, peaks[0].PMTid);
+    mygraph1->SetName(temp);
     //    TGraphErrors* mygraph1 = new TGraphErrors(i, voltage, peakpos, err_voltage, err_peakpos);
     mygraph1->SetTitle("Calibrazione");
     mygraph1->GetXaxis()->SetTitle("Tensione PMT [V]");
@@ -117,13 +127,13 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     mygraph3->Draw("AP");
     c402->Write();
 
-    
+
     std::cout << fit_function->GetChisquare() << std::endl;
-    bestresolution_find(peaksfile,wheretosave);
-    
-    sprintf(temp,"%s.calibration");
-     std::ofstream savefile(temp, std::ios_base::app);
-     savefile << peaks[0].PMTid << " " << fit_function->GetParameter(0) << " " << fit_function->GetParameter(1);
+    bestresolution_find(peaksfile, wheretosave);
+
+    sprintf(temp, "%s.calibration",acqname);
+    std::ofstream savefile(temp, std::ios_base::app);
+    savefile << peaks[0].PMTid << " " << fit_function->GetParameter(0) << " " << fit_function->GetParameter(1)<< std::endl;
     //  FOut->Close();
 }
 
@@ -141,15 +151,15 @@ void bestresolution_find(char * peaksfile, char* wheretosave) {
     for (int i = 0; i < peaks.size(); i++) {
         //  printf("\n myres %lf\n\n", peaks[i].resolution);
         if (peaks[i].anyproblems != 0) {
-            printf("Il fit a %f volt sarà rigettato in acqua. Codice errore:%d\n%s\n", (int)peaks[i].voltage, peaks[i].anyproblems, ERROR_FISHERMAN);
+            printf("Il fit a %f volt sarà rigettato in acqua. Codice errore:%d\n%s\n", peaks[i].voltage, peaks[i].anyproblems, ERROR_FISHERMAN);
 
         } else {
-            //   printf("resol %f ; minres %f = \n\n", peaks[i].resolution, minres);
+            // printf("resol %f ; minres  =%f \n fatti dire %d\n", peaks[i].resolution, minres,peaks.size());
             if (peaks[i].resolution < minres) {
                 minres = peaks[i].resolution;
                 minresPOS = i;
             }
-            i++;
+
         }
 
 

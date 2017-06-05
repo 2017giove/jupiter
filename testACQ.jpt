@@ -2,7 +2,7 @@
 # This is the file that handles your data acquisition
 # There was a competition...
 #
-#   PMT_ID  VOLTAGE THRESHOLD   CHANNELNAME 
+#PMT VOLTAGE THRESHOLD CHANNELNAME 
 505 1700    75  r06
 313 1700    50  r29
 209 1700    100 r26

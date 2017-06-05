@@ -113,7 +113,8 @@ void WaveProfile() {
     int CH;
 
     for (i = 0; i < st.Nchan; i++) {
-        CH = i;
+ //     for (i = 0; i < 1; i++) {
+    CH = i;
 
 
         TTree* t1 = (TTree*) f->Get("t1");
@@ -193,10 +194,10 @@ void WaveProfile() {
         //        aaaa->SetLineColor(4);
         //        aaaa->Draw( "same"   );
 
-        for (int i = 0; i < 200; i += 10) {
-            sprintf(tname, "x%d", i);
-            TProfile *a = sprofh->ProfileX(tname, i, i + 5);
-            a->SetLineColor(i + 1);
+        for (int ii = 10; ii < 200; ii += 10) {
+            sprintf(tname, "x%d", ii);
+            TProfile *a = sprofh->ProfileX(tname, ii, ii + 10);
+            a->SetLineColor(ii + 1);
             a->Draw("same");
         }
 
@@ -210,8 +211,10 @@ void WaveProfile() {
 
         //sprofh->Draw("surf3"  );
         c41->Write();
-        sprintf(tname, "img/%s_wp%d.jpg", filenameFromPath(f->GetName()).c_str(), st.PmtID[i]);
-        c41->SaveAs(tname);
+            char tname2 [STR_LENGTH];
+        sprintf(tname2, "img/%s_wp%d.eps", filenameFromPath(f->GetName()).c_str(), st.PmtID[i]);
+        printf("nome: %s\n\n",tname2);
+        c41->SaveAs(tname2);
     }
 
 

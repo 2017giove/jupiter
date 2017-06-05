@@ -115,7 +115,8 @@ float getTriggerSource(myEvent *ev, mySetting *st);
 void startCapture(char* fileName, mySetting cset);
 void preCalibra(char* fileName, mySetting cset);
 void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
-void Calibra(char* fileName, mySetting cset) ;
+void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels ) ;
+
 
 int main(int argc, char* argv[]) {
 
@@ -174,10 +175,13 @@ int main(int argc, char* argv[]) {
         if (strcmp(myArgs[k].c_str(), "precalib") == 0) {
             initHV(myPMTs, myChannels);
             preCalibra(fileName, cset);
+            return 0;
 
         } else if (strcmp(myArgs[k].c_str(), "calib") == 0) {
 
-
+           // initHV(myPMTs, myChannels);
+            Calibra(fileName, cset, myPMTs,myChannels);
+            return 0;
 
             //            char tempc[STR_LENGTH];
             //            sprintf(tempc, "data/%s.expert", fileName);
@@ -196,15 +200,22 @@ int main(int argc, char* argv[]) {
         } else if (strcmp(myArgs[k].c_str(), "analyze_precalib") == 0) {
 
             preCalibra_analyze(fileName);
+            return 0;
+            
+                    } else if (strcmp(myArgs[k].c_str(), "analyze_calib") == 0) {
+
+            Calibra_analyze(fileName);
+            return 0;
 
 
         } else {
-            mySetting_print(&cset);
-            startCapture(fileName, cset);
+
         }
     }
 
-
+    mySetting_print(&cset);
+    initHV(myPMTs, myChannels);
+    startCapture(fileName, cset);
 
 
 
@@ -321,6 +332,7 @@ void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels
 
     } while (isready == 0);
     printf("Ready to land in the spacetime continuum.\n");
+    delete dev;
 }
 
 void preCalibra(char* fileName, mySetting cset) {
@@ -341,21 +353,45 @@ void preCalibra(char* fileName, mySetting cset) {
 
 }
 
-void Calibra(char* fileName, mySetting cset) {
+
+
+void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels ) {
     printf("He is filling his fountain pen again...\n");
-  
+
     char tmp[STR_LENGTH];
-    for (int volt = 1500; volt <= 1900; volt += 50) {
+    sprintf(tmp, "data/%s.besttrigger", fileName);
+    std::vector<peak> peaks = peak_load(tmp);
+
+
+
+
+    for (int volt = 1850; volt < 1900; volt += 50) {
 
         for (int i = 0; i < cset.Nchan; i++) {
+
+
+            // find pmt position in peaks file from pmt id
+            int j = NOT_FOUND_INT;
+            for (int k = 0; k < peaks.size(); k++) {
+                if (peaks[k].PMTid == CHtoPMT(i, &cset)) {
+                    j = k;
+                }
+            }
+
+            myPMTs[i].volt=volt;
             cset.voltage[i] = volt;
+            cset.thresh[i] = peaks[j].thresh * volt / peaks[j].voltage;
+            printf("Soglia a %f\n", cset.thresh[i]);
         }
 
+
+        initHV(myPMTs,myChannels);
+        
         sprintf(tmp, "%s_%d.cal", fileName, (int) cset.voltage[0]);
         startCapture(tmp, cset);
     }
 
-    preCalibra_analyze(fileName);
+    Calibra_analyze(fileName);
 
 }
 

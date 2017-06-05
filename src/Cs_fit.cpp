@@ -590,7 +590,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     fsrc->SetParLimits(9, 0.1, 2);
     fsrc->SetParLimits(10, FD2minAmp, 2 * FD2minAmp);
     fsrc->SetParLimits(11, 0.1, 1);
-    fsrc->SetParLimits(12, 0.01, 10000);
+    fsrc->SetParLimits(12, 0.01, 2);
     //    
     // se il minimo tra i due picchi è zero
     if (FD2minAmp == 0) {
@@ -677,11 +677,11 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     FD2->Draw("same");
 
     //Replot Fermi-Dirac Multipla  (Multiple Compton)
-    TF1 *FD1 = new TF1("FDMultiplo", "[12]/(TMath::Exp((x-[5])*[13]*[14])+1) ", Xmax * 0.3, Xmax * 1.6);
+    TF1 *FD1 = new TF1("FDMultiplo", "[10]/([12]*TMath::Exp((x-[5])*[11])+1) ", Xmax * 0.3, Xmax * 1.6);
 
-    FD1->FixParameter(12, fsrc->GetParameter(10));
-    FD1->FixParameter(13, fsrc->GetParameter(11));
-    FD1->FixParameter(14, fsrc->GetParameter(12));
+    FD1->FixParameter(10, fsrc->GetParameter(10));
+    FD1->FixParameter(11, fsrc->GetParameter(11));
+    FD1->FixParameter(12, fsrc->GetParameter(12));
     FD1->FixParameter(5, fsrc->GetParameter(5));
 
     FD1->SetLineColor(41);

@@ -61,8 +61,10 @@
       </toolsSet>
       <flagsDictionary>
         <element flagsID="0" commonFlags="-O2 -std=c++11 -m64"/>
-        <element flagsID="1" commonFlags="-std=c++14"/>
-        <element flagsID="2" commonFlags="-std=c89"/>
+        <element flagsID="1" commonFlags="-O2 -std=gnu++0x -m64"/>
+        <element flagsID="2" commonFlags="-std=c++11"/>
+        <element flagsID="3" commonFlags="-std=c++14"/>
+        <element flagsID="4" commonFlags="-std=c89"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -84,7 +86,7 @@
         </preBuild>
       </makefileType>
       <item path="src/AboutDialog.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -98,7 +100,7 @@
         </ccTool>
       </item>
       <item path="src/ChargeHist.cpp" ex="false" tool="1" flavor2="11">
-        <ccTool flags="1">
+        <ccTool flags="3">
           <incDir>
             <pElem>../../root/include</pElem>
             <pElem>../../root/lib</pElem>
@@ -114,7 +116,7 @@
         </ccTool>
       </item>
       <item path="src/ConfigDialog.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -136,7 +138,7 @@
         </ccTool>
       </item>
       <item path="src/DOFrame.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -151,7 +153,7 @@
         </ccTool>
       </item>
       <item path="src/DOScreen.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -166,7 +168,7 @@
         </ccTool>
       </item>
       <item path="src/DRS.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -181,7 +183,7 @@
         </ccTool>
       </item>
       <item path="src/DRSOsc.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -195,7 +197,7 @@
         </ccTool>
       </item>
       <item path="src/DisplayDialog.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -210,7 +212,7 @@
         </ccTool>
       </item>
       <item path="src/EPThread.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -225,7 +227,7 @@
         </ccTool>
       </item>
       <item path="src/HVPowerSupply.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>src</pElem>
             <pElem>include</pElem>
@@ -234,7 +236,7 @@
         </ccTool>
       </item>
       <item path="src/InfoDialog.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -249,7 +251,7 @@
         </ccTool>
       </item>
       <item path="src/MeasureDialog.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -263,7 +265,7 @@
         </ccTool>
       </item>
       <item path="src/Measurement.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -277,7 +279,7 @@
         </ccTool>
       </item>
       <item path="src/Osci.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -292,7 +294,7 @@
         </ccTool>
       </item>
       <item path="src/PowerExpert.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>src</pElem>
             <pElem>include</pElem>
@@ -303,7 +305,7 @@
       <item path="src/Timer.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="src/TriggerDialog.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -340,7 +342,7 @@
         </ccTool>
       </item>
       <item path="src/averager.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>src</pElem>
             <pElem>include</pElem>
@@ -349,7 +351,7 @@
         </ccTool>
       </item>
       <item path="src/drs_exam.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>src</pElem>
             <pElem>include</pElem>
@@ -359,7 +361,7 @@
         </ccTool>
       </item>
       <item path="src/drs_exam_multi.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>src</pElem>
             <pElem>include</pElem>
@@ -369,17 +371,23 @@
         </ccTool>
       </item>
       <item path="src/drs_expert.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="1">
           <incDir>
-            <pElem>src</pElem>
             <pElem>include</pElem>
-            <pElem>/usr/local/include/libusb-1.0</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>/usr/local/include/root</pElem>
             <pElem>.</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>HAVE_LIBUSB10</Elem>
+            <Elem>HAVE_USB</Elem>
+            <Elem>OS_LINUX</Elem>
+            <Elem>USE_DRS_MUTEX</Elem>
+          </preprocessorList>
         </ccTool>
       </item>
       <item path="src/drs_jupiter.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>src</pElem>
             <pElem>include</pElem>
@@ -389,7 +397,7 @@
         </ccTool>
       </item>
       <item path="src/drs_sub.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>src</pElem>
             <pElem>include</pElem>
@@ -399,7 +407,7 @@
         </ccTool>
       </item>
       <item path="src/drscl.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>include</pElem>
             <pElem>src</pElem>
@@ -409,7 +417,7 @@
         </ccTool>
       </item>
       <item path="src/main.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>/usr/local/include/wx-3.0/wx</pElem>
             <pElem>/usr/local/include/wx-3.0/wx/gtk</pElem>
@@ -423,7 +431,7 @@
         </ccTool>
       </item>
       <item path="src/musbstd.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="2">
+        <cTool flags="4">
           <incDir>
             <pElem>/usr/local/include/libusb-1.0</pElem>
             <pElem>include</pElem>
@@ -432,7 +440,7 @@
         </cTool>
       </item>
       <item path="src/mxml.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="2">
+        <cTool flags="4">
           <incDir>
             <pElem>include</pElem>
             <pElem>.</pElem>
@@ -440,7 +448,7 @@
         </cTool>
       </item>
       <item path="src/rb.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool>
+        <ccTool flags="2">
           <incDir>
             <pElem>src</pElem>
             <pElem>.</pElem>
@@ -448,14 +456,14 @@
         </ccTool>
       </item>
       <item path="src/strlcpy.c" ex="false" tool="0" flavor2="2">
-        <cTool flags="2">
+        <cTool flags="4">
           <incDir>
             <pElem>.</pElem>
           </incDir>
         </cTool>
       </item>
       <item path="src/volt_fit.cpp" ex="false" tool="1" flavor2="11">
-        <ccTool flags="1">
+        <ccTool flags="3">
           <incDir>
             <pElem>../../root/include</pElem>
           </incDir>
