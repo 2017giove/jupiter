@@ -21,7 +21,6 @@
         <in>MeasureDialog.h</in>
         <in>Measurement.h</in>
         <in>Osci.h</in>
-        <in>SerialClass.h</in>
         <in>TriggerDialog.h</in>
         <in>averager.h</in>
         <in>musbstd.h</in>
@@ -30,7 +29,6 @@
         <in>strlcpy.h</in>
       </df>
       <df name="src">
-        <in>.c</in>
         <in>AboutDialog.cpp</in>
         <in>ChargeHist.cpp</in>
         <in>ConfigDialog.cpp</in>
@@ -51,37 +49,28 @@
         <in>ThermoParanoid.cpp</in>
         <in>Timer.cpp</in>
         <in>TriggerDialog.cpp</in>
-        <in>WaveAnalysis.h</in>
         <in>Waveform.cpp</in>
         <in>averager.cpp</in>
-        <in>defines.h</in>
-        <in>down.xpm</in>
         <in>drs_exam.cpp</in>
         <in>drs_exam_multi.cpp</in>
         <in>drs_expert.cpp</in>
         <in>drs_jupiter.cpp</in>
         <in>drs_sub.cpp</in>
         <in>drscl.cpp</in>
-        <in>drsosc.xpm</in>
-        <in>left.xpm</in>
         <in>main.cpp</in>
         <in>musbstd.c</in>
         <in>mxml.c</in>
-        <in>neg.xpm</in>
-        <in>pos.xpm</in>
         <in>rb.cpp</in>
-        <in>right.xpm</in>
         <in>strlcpy.c</in>
-        <in>up.xpm</in>
         <in>volt_fit.cpp</in>
+      </df>
+      <df name="thermoexample">
       </df>
       <in>ChargeHist_RUN.c</in>
       <in>Cs_fit_RUN.c</in>
       <in>WaveformCharge_RUN.c</in>
-      <in>WaveformProfile_RUN.c</in>
       <in>Waveform_RUN.c</in>
       <in>file_plot.cpp</in>
-      <in>refillDRS.c</in>
     </df>
     <itemPath>channelsHV.cfg</itemPath>
     <itemPath>src/testACQ.jpt</itemPath>
