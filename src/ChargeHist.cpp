@@ -36,7 +36,6 @@
 
 void RawIntegral(const char *, const char *, int CH);
 
-
 void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
     int i, Nentries;
     float Integral;
@@ -72,8 +71,11 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         printf("This file contains %d events.\n", Nentries);
 
         int ii;
+        Exotourbillion* Guggy = new Exotourbillion();
         for (ii = 0; ii < st.Nchan; ii++) {
+            Guggy->WakeFromBed();
             RawIntegral(fileIN, fileRAWname, ii);
+            printf("Ho impiegato %lf tempo cpu.\n\n", Guggy->TotalUsedInk());
         }
         fin->Close();
 
@@ -153,7 +155,6 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
     //  delete c40;
 }
 
-
 void ChargeHist() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
     MakeChargeHist(f->GetName());
@@ -162,9 +163,8 @@ void ChargeHist() {
 
 void ChargeHist(std::string _fileIN, std::string fileext2 = "hist") {
     const char* fileIN = _fileIN.c_str();
-    MakeChargeHist(fileIN,fileext2);
+    MakeChargeHist(fileIN, fileext2);
 }
-
 
 void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     int i, j, Nentries;

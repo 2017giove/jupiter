@@ -115,5 +115,6 @@ AutoDict_random_access_iterator_peak_long__cxx.so: /usr/local/include/root/TVect
 AutoDict_random_access_iterator_peak_long__cxx.so: /usr/local/include/root/TRint.h
 AutoDict_random_access_iterator_peak_long__cxx.so: /usr/local/include/root/TApplication.h
 AutoDict_random_access_iterator_peak_long__cxx.so: /usr/local/include/root/TApplicationImp.h
+AutoDict_random_access_iterator_peak_long__cxx.so: /usr/local/include/root/TStopwatch.h
 AutoDict_random_access_iterator_peak_long__cxx.so: /usr/local/include/root/cintdictversion.h /usr/local/include/root/RVersion.h
 AutoDict_random_access_iterator_peak_long__cxx__ROOTBUILDVERSION= 5.34/28

@@ -115,5 +115,6 @@ AutoDict_vector_peak__cxx.so: /usr/local/include/root/TVectorfwd.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TRint.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TApplication.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/TApplicationImp.h
+AutoDict_vector_peak__cxx.so: /usr/local/include/root/TStopwatch.h
 AutoDict_vector_peak__cxx.so: /usr/local/include/root/cintdictversion.h /usr/local/include/root/RVersion.h
 AutoDict_vector_peak__cxx__ROOTBUILDVERSION= 5.34/28

@@ -70,40 +70,6 @@
 
 #include "defines.h"
 
-/** -------------------- Rieussec Class -------------------- 
- This class is used to analyze code performance using an exclusive Montblanc Rieussec Cronograph.
- * The automatic chronograph in the Nicolas Rieussec Collection is one of Montblanc's tributes to the inventor of the first patented chronograph. 
- * Its innovative minute display, along with the modern design of its rotating discs for elapsed seconds and minutes, creates purity and clarity 
- * that consistently continue into luminous hands for the time in the primary zone and a skeletonized hand for the hour in the second time zone. 
- * Equipped with a monopusher mechanism, a column-wheel and vertical disc coupling, the self-winding manufacture caliber MB R200 features several 
- * additional complications that complement its classical appearance. 
- * These include a day-night display for the second time zone and a rapid-reset mechanism for the hours-hand.
- * 
- * For information and documentation: 
- * http://www.montblanc.com/en-us/collection/watches/montblanc-nicolas-rieussec-collection/109996-Montblanc-Nicolas-Rieussec-Chronograph-Automatic.html
- * 
- * Usage: just declare a variable 
- *          rieussec mynewmbclock;
- *          [... the piece of code you want to measure ...]
- *          double timeelapsed = mynewmbclock.elapsed();
- * 
- */
-class exotourbillion {
-public:
-    std::chrono::time_point<std::chrono::high_resolution_clock> lastTime;
-
-    exotourbillion() : lastTime(std::chrono::high_resolution_clock::now()) {
-    }
-
-    inline double elapsed() {
-        std::chrono::time_point<std::chrono::high_resolution_clock> thisTime = std::chrono::high_resolution_clock::now();
-        double deltaTime = std::chrono::duration<double>(thisTime - lastTime).count();
-        lastTime = thisTime;
-        return deltaTime;
-    }
-};
-
-/*-------------------- end of Rieussec Class ----------------------------------------------*/
 
 
 
@@ -115,8 +81,7 @@ float getTriggerSource(myEvent *ev, mySetting *st);
 void startCapture(char* fileName, mySetting cset);
 void preCalibra(char* fileName, mySetting cset);
 void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
-void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels ) ;
-
+void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
 
 int main(int argc, char* argv[]) {
 
@@ -179,8 +144,8 @@ int main(int argc, char* argv[]) {
 
         } else if (strcmp(myArgs[k].c_str(), "calib") == 0) {
 
-           // initHV(myPMTs, myChannels);
-            Calibra(fileName, cset, myPMTs,myChannels);
+            // initHV(myPMTs, myChannels);
+            Calibra(fileName, cset, myPMTs, myChannels);
             return 0;
 
             //            char tempc[STR_LENGTH];
@@ -201,8 +166,8 @@ int main(int argc, char* argv[]) {
 
             preCalibra_analyze(fileName);
             return 0;
-            
-                    } else if (strcmp(myArgs[k].c_str(), "analyze_calib") == 0) {
+
+        } else if (strcmp(myArgs[k].c_str(), "analyze_calib") == 0) {
 
             Calibra_analyze(fileName);
             return 0;
@@ -339,6 +304,7 @@ void preCalibra(char* fileName, mySetting cset) {
     printf("He is washing his fountain pen...\n");
     int thresh;
     char tmp[STR_LENGTH];
+
     for (int thresh = 20; thresh <= 120; thresh += 20) {
 
         for (int i = 0; i < cset.Nchan; i++) {
@@ -346,16 +312,23 @@ void preCalibra(char* fileName, mySetting cset) {
         }
 
         sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], thresh);
-        startCapture(tmp, cset);
+        
+        char temp2[STR_LENGTH];
+        sprintf(temp2, "%s.root", tmp);
+        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
+        if (myrottenfish.size() == 0) {
+            startCapture(tmp, cset);
+        } else {
+            printf("You already acquired %s.\n", tmp);
+        }
     }
+
 
     preCalibra_analyze(fileName);
 
 }
 
-
-
-void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels ) {
+void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels) {
     printf("He is filling his fountain pen again...\n");
 
     char tmp[STR_LENGTH];
@@ -365,7 +338,7 @@ void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, st
 
 
 
-    for (int volt = 1850; volt < 1900; volt += 50) {
+    for (int volt = 1500; volt < 1900; volt += 50) {
 
         for (int i = 0; i < cset.Nchan; i++) {
 
@@ -378,18 +351,28 @@ void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, st
                 }
             }
 
-            myPMTs[i].volt=volt;
+            myPMTs[i].volt = volt;
             cset.voltage[i] = volt;
             cset.thresh[i] = peaks[j].thresh * volt / peaks[j].voltage;
             printf("Soglia a %f\n", cset.thresh[i]);
         }
 
 
-        initHV(myPMTs,myChannels);
-        
+        initHV(myPMTs, myChannels);
+
         sprintf(tmp, "%s_%d.cal", fileName, (int) cset.voltage[0]);
-        startCapture(tmp, cset);
+        // printf("%s_%d.cal", fileName, (int) cset.voltage[0]);
+
+        char temp2[STR_LENGTH];
+        sprintf(temp2, "%s.root", tmp);
+        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
+        if (myrottenfish.size() == 0) {
+            startCapture(tmp, cset);
+        } else {
+            printf("You already acquired %s.\n", tmp);
+        }
     }
+
 
     Calibra_analyze(fileName);
 
@@ -451,6 +434,8 @@ void startCapture(char* fileName, mySetting cset) {
     Tset->Branch("Date", cset.date, "date/C");
 
     Tset->Branch("deltaT", &cset.deltaT, "deltaT/I");
+    
+        Tset->Branch("triggersetting", &cset.triggerSetting, "triggersetting/I");
 
     Tset->Branch("description", cset.description, "description/C");
 
@@ -463,6 +448,8 @@ void startCapture(char* fileName, mySetting cset) {
     sprintf(branchDef, "threshold[%d]/F", WANDANA_MAX);
     Tset->Branch("threshold", cset.thresh, branchDef);
 
+    
+    
     Tset->Fill();
 
 
@@ -567,28 +554,26 @@ void startCapture(char* fileName, mySetting cset) {
     // Ciclo Eventi - Acquisizione per un intervallo di tempo deltaT
     totevents = 0;
 
-    double drstime = 0;
-    double pctime = 0;
 
-    exotourbillion totaltr;
-    exotourbillion tr;
-    exotourbillion tr2;
-    totaltr.elapsed();
+    Exotourbillion totaltr;
+    Exotourbillion tr;
+    Exotourbillion tr2;
+    totaltr.WashAndRefill();
     while ((time(0) - t0) < cset.deltaT) {
         /* start board (activate domino wave) */
 
 
-        tr.elapsed();
+        tr.WakeFromBed();
         b->StartDomino();
 
         /* wait for trigger - write to console only first time */
         if (totevents == 0) cout << "Waiting for trigger..." << endl;
 
         while (b->IsBusy());
-        drstime += tr.elapsed();
+        tr.GoToBed();
 
 
-        tr2.elapsed();
+        tr2.WakeFromBed();
         if (totevents == 0) cout << "Trigger found, session started..." << endl;
 
         /* read all waveforms */
@@ -624,10 +609,10 @@ void startCapture(char* fileName, mySetting cset) {
         totevents++;
 
 
-        pctime += tr2.elapsed();
+        tr2.GoToBed();
     }
 
-    double total = totaltr.elapsed();
+    totaltr.GoToBed();
     // is trig?
     TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
     for (i = 0; i < tree->GetEntries(); i++) {
@@ -640,9 +625,9 @@ void startCapture(char* fileName, mySetting cset) {
     tree->Write();
     f1->Write();
     f1->Close();
-    printf("\nTempo totale\t%lf\n", total);
-    printf("\nTempo DRS:\t%lf\t(%lf )\nTempo PC:\t%lf\t(%lf )\n", drstime, pctime, (double) drstime / (drstime + pctime), (double) pctime / (drstime + pctime));
-    printf("\n*** ACQUISITION IS COMPLETE ***\n");
+    printf("\nTempo totale\t%lf\n", totaltr.TotalUsedInk());
+    printf("\nTempo DRS:\t%lf\t(%lf )\nTempo PC:\t%lf\t(%lf )\n", tr.TotalUsedInk(), tr2.TotalUsedInk(), tr.TotalUsedInk() / (tr.TotalUsedInk() + tr2.TotalUsedInk()), (double) tr.TotalUsedInk() / (tr2.TotalUsedInk() + tr.TotalUsedInk()));
+    printf("\n*** ACQUISITION IS COMPLETE ***\n\n\n");
 
 
     //  fclose(tempofile    );

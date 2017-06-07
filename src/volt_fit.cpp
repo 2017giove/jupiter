@@ -34,41 +34,36 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     printf("\n\nfile %s\n\n", temp);
     TFile *FOut = new TFile(temp, "UPDATE");
 
-    float voltage[500] = {0};
-    float peakpos[500] = {0};
-    float peakposLog[500] = {0};
-    float resolution[500] = {0};
-
     std::vector<float> TVoltage;
+    std::vector<float> TPeakpos;
     std::vector<float> TPeakposLog;
+    std::vector<float> TResolution;
 
     for (i = 0; i < peaks.size(); i++) {
 
         TVoltage.push_back(peaks[i].voltage);
-        TPeakposLog.push_back(TMath::Log(peakpos[i]));
+        TPeakposLog.push_back(TMath::Log(peaks[i].peakpos));
+        TPeakpos.push_back(peaks[i].peakpos);
+        TResolution.push_back(peaks[i].resolution);
 
-        voltage[i] = peaks[i].voltage;
-        peakpos[i] = peaks[i].peakpos;
-        peakposLog[i] = TMath::Log(peakpos[i]);
-        resolution[i] = peaks[i].resolution;
         i++;
 
         if (peaks[i].resolution < 0 or peaks[i].anyproblems != 0) {
-            printf("Il fit a %f volt sarà rigettato in acqua. E' un astropesce.\n%s\n", voltage[i], ERROR_FISHERMAN);
+            printf("Il fit a %f volt sarà rigettato in acqua. E' un astropesce.\n%s\n", peaks[i].voltage, ERROR_FISHERMAN);
             i--;
         }
 
     }
 
-
-    TCanvas *c40 = new TCanvas("linear", PLOTS_TITLE, 640, 480);
+    sprintf(temp, "linear_%d", peaks[0].PMTid);
+    TCanvas *c40 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
     c40->SetFillColor(10);
     c40->SetGrid();
-    //    gStyle->SetOptFit(1111);
+        gStyle->SetOptFit(1111);
 
     TGraph* mygraph1 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TPeakposLog[0]));
 
-    sprintf(temp, "%s_%d", acqname, peaks[0].PMTid);
+    sprintf(temp, "linear_%d", peaks[0].PMTid);
     mygraph1->SetName(temp);
     //    TGraphErrors* mygraph1 = new TGraphErrors(i, voltage, peakpos, err_voltage, err_peakpos);
     mygraph1->SetTitle("Calibrazione");
@@ -87,13 +82,15 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     fit_function->SetLineColor(2);
     fit_function->SetLineWidth(1);
     fit_function->Draw("Same");
-    //gROOT->SetStyle("Plain");
-    //gStyle->SetOptFit(1111);
+    gROOT->SetStyle("Plain");
+    gStyle->SetOptFit(1111);
     c40->Write();
+    sprintf(temp, "img/%s_linear_%d.eps", acqname, peaks[0].PMTid);
+    c40->SaveAs(temp);
 
-
-    TCanvas *c4001 = new TCanvas("expo", PLOTS_TITLE, 640, 480);
-    TGraph* mygraph2 = new TGraph(i, voltage, peakpos);
+    sprintf(temp, "expo_%d", peaks[0].PMTid);
+    TCanvas *c4001 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
+    TGraph* mygraph2 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TPeakpos[0]));
 
 
     mygraph2->SetTitle("Calibrazione");
@@ -111,10 +108,12 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     fit_function2->Draw("Same");
     c4001->Write();
+    sprintf(temp, "img/%s_expo_%d.eps", acqname, peaks[0].PMTid);
+    c4001->SaveAs(temp);
 
-
-    TCanvas *c402 = new TCanvas("resol", PLOTS_TITLE, 640, 480);
-    TGraph* mygraph3 = new TGraph(i, voltage, resolution);
+    sprintf(temp, "resol%s_%d", acqname, peaks[0].PMTid);
+    TCanvas *c402 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
+    TGraph* mygraph3 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TResolution[0]));
 
     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E #sqrt{N}}");
     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E}");
@@ -126,15 +125,17 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     mygraph3->SetMarkerSize(1);
     mygraph3->Draw("AP");
     c402->Write();
+    sprintf(temp, "img/%s_resol_%d.eps", acqname, peaks[0].PMTid);
+    c402->SaveAs(temp);
 
 
     std::cout << fit_function->GetChisquare() << std::endl;
     bestresolution_find(peaksfile, wheretosave);
 
-    sprintf(temp, "%s.calibration",acqname);
+    sprintf(temp, "data/%s.calibration", acqname);
     std::ofstream savefile(temp, std::ios_base::app);
-    savefile << peaks[0].PMTid << " " << fit_function->GetParameter(0) << " " << fit_function->GetParameter(1)<< std::endl;
-    //  FOut->Close();
+    savefile << peaks[0].PMTid << " " << fit_function->GetParameter(0) << " " << fit_function->GetParameter(1) << std::endl;
+    FOut->Close();
 }
 
 /**

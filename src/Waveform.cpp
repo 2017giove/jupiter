@@ -109,12 +109,15 @@ void WaveProfile() {
     struct mySetting st;
     mySetting_get(tset, &st);
     mySetting_print(&st);
-    TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+
     int CH;
 
+
+    Exotourbillion* Rieussec = new Exotourbillion();
     for (i = 0; i < st.Nchan; i++) {
- //     for (i = 0; i < 1; i++) {
-    CH = i;
+        TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+        //     for (i = 0; i < 1; i++) {
+        CH = i;
 
 
         TTree* t1 = (TTree*) f->Get("t1");
@@ -132,7 +135,7 @@ void WaveProfile() {
         WaveForm Wave;
 
         sprintf(tname, "wp%d", st.PmtID[i]);
-        TProfile2D * sprofh = new TProfile2D(tname, "Profile della waveform", N_SAMPLES + 1, 0, N_SAMPLES, 200 + 1, 0, 200);
+        TProfile2D * sprofh = new TProfile2D(tname, "Profile della waveform", N_SAMPLES/5, 0, N_SAMPLES, 200 + 1, 0, 200);
         // sprofh->SetBinEntries(200,1);
         int totEventiQ[100] = {0};
 
@@ -157,8 +160,9 @@ void WaveProfile() {
                 //  sprofh->SetBinContent(j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
                 //sprofh->Fill(j, cQ, (-temp.wave_array[CH][j] / Integral));
                 //printf("\n%d\t%d\t%f\n\n", j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
-                
-                sprofh->Fill(j,Integral / sprofh->GetYaxis()->GetBinWidth(j),  temp.wave_array[CH][j] / Integral);
+
+                //  sprofh->Fill(j,Integral / sprofh->GetYaxis()->GetBinWidth(j),  temp.wave_array[CH][j] / Integral);
+                sprofh->Fill(j, Integral, temp.wave_array[CH][j] / Integral);
                 totEventiQ[cQ]++;
 
             }
@@ -169,7 +173,7 @@ void WaveProfile() {
             printStatus((float) jentry / (float) nentries);
 
         }
-
+        printf("Ho impiegato %lf\n\n", Rieussec->TotalUsedInk());
 
         // ananas inutile
         //        int jj = sprofh->GetNbinsY();
@@ -194,10 +198,15 @@ void WaveProfile() {
         //        aaaa->SetLineColor(4);
         //        aaaa->Draw( "same"   );
 
+        int col = 1;
         for (int ii = 10; ii < 200; ii += 10) {
             sprintf(tname, "x%d", ii);
             TProfile *a = sprofh->ProfileX(tname, ii, ii + 10);
-            a->SetLineColor(ii + 1);
+            //a->SetLineColor(ii + 1);
+            // a->SetLineWidth(7);
+            a->SetMarkerStyle(8);
+            a->SetMarkerSize(0.4);
+            a->SetMarkerColor(col++);
             a->Draw("same");
         }
 
@@ -210,11 +219,16 @@ void WaveProfile() {
 
 
         //sprofh->Draw("surf3"  );
+
         c41->Write();
-            char tname2 [STR_LENGTH];
-        sprintf(tname2, "img/%s_wp%d.eps", filenameFromPath(f->GetName()).c_str(), st.PmtID[i]);
-        printf("nome: %s\n\n",tname2);
-        c41->SaveAs(tname2);
+        char tname22 [STR_LENGTH];
+        std::string myname = filenameFromPath((f->GetName()));
+        
+        sprintf(tname22, "img/%s_wp%d.eps", myname.c_str(),st.PmtID[i]);
+
+        printf("nome: %s\n\n", tname22);
+        c41->SaveAs(tname22);
+        delete c41;
     }
 
 

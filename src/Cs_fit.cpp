@@ -94,7 +94,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 
 
     int windowSize = (50. * 0.1 / hist->GetXaxis()->GetBinWidth(0));
-    printf("%f\n\n", windowSize);
+  //  printf("%f\n\n", windowSize);
     //   if (windowSize==0) windowSize =1;
 
     for (i = from; i < to; i++) {
@@ -155,7 +155,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 
                     myMins.push_back(cmax);
                     myMinsX.push_back(cpos);
-                    printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+                 //   printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
                 }
             }
         }
@@ -165,7 +165,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     printf("media %f\n", media);
     for (i = 0; i < myMins.size(); i++) {
 
-        printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
+       // printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
 
     }
     return myMinsX;
@@ -397,7 +397,7 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
 
     TTree* tset1 = (TTree*) sorgente_file->Get("tset");
     mySetting_get(tset1, &st);
-    mySetting_print(&st);
+  // mySetting_print(&st);
 
     int CH = PMTtoCH(PMTid, &st);
 
@@ -481,8 +481,6 @@ void Cs_fit() {
 struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     TCanvas *c40 = new TCanvas();
-
-
 
     c40->SetFillColor(0);
 
@@ -708,7 +706,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     h1->GetYaxis()->SetTitle("Eventi");
     gPad->SetGrid();
 
-    c40->SaveAs(savepath.c_str());
+
 
     TF1 *fitmax = new TF1("fsrc", "[0]*([1]*TMath::Exp((-[2])*x)+  (1-[1])*TMath::Exp((-[3])*x))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/(TMath::Exp((x-[8])*[9])+1)        +[10]/([12]*TMath::Exp((x-[5])*[11])+1)", 20, 60);
 
@@ -776,6 +774,9 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     mySetting_histoprint(st, PMTid);
 
+    
+        c40->SaveAs(savepath.c_str());
+        
     return mypeak;
 
 }

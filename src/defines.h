@@ -48,6 +48,7 @@
 #include "TRint.h"
 #include <TApplication.h>
 
+#include "TStopwatch.h"
 
 #include <vector>
 #include <algorithm>
@@ -93,6 +94,54 @@
 #define ENERGY_CESIO 663.
 #define MASS_ELECTRON 511.
 
+/** -------------------- Exotourbillion Class -------------------- 
+ This class is used to analyze code performance using an exclusive Montblanc Rieussec Cronograph.
+ * The automatic chronograph in the Nicolas Rieussec Collection is one of Montblanc's tributes to the inventor of the first patented chronograph. 
+ * Its innovative minute display, along with the modern design of its rotating discs for elapsed seconds and minutes, creates purity and clarity 
+ * that consistently continue into luminous hands for the time in the primary zone and a skeletonized hand for the hour in the second time zone. 
+ * Equipped with a monopusher mechanism, a column-wheel and vertical disc coupling, the self-winding manufacture caliber MB R200 features several 
+ * additional complications that complement its classical appearance. 
+ * These include a day-night display for the second time zone and a rapid-reset mechanism for the hours-hand.
+ * 
+ * For information and documentation: 
+ * http://www.montblanc.com/en-us/collection/watches/montblanc-nicolas-rieussec-collection/109996-Montblanc-Nicolas-Rieussec-Chronograph-Automatic.html
+ * 
+ * Usage: just declare a variable 
+ *          rieussec mynewmbclock;
+ *          [... the piece of code you want to measure ...]
+ *          double timeelapsed = mynewmbclock.elapsed();
+ * 
+ */
+class Exotourbillion {
+public:
+    TStopwatch * ExotourbWatch;
+
+    Exotourbillion() {
+        ExotourbWatch = new TStopwatch();
+    }
+    //    }
+
+    inline void WashAndRefill() {
+        ExotourbWatch->Start();
+    }
+
+    inline void GoToBed() {
+        ExotourbWatch->Stop();
+    }
+
+    inline void WakeFromBed() {
+        ExotourbWatch->Continue();
+    }
+
+    inline double TotalUsedInk() {
+        return ExotourbWatch->CpuTime();
+    }
+
+};
+
+/*-------------------- end of Exotourbillion Class ----------------------------------------------*/
+
+
 struct myEvent {
     /*
      * Che altre informazioni servono?
@@ -137,7 +186,7 @@ struct peak {
     float nBG;
     float nSGN;
     float voltage;
-    float PMTid;
+    int PMTid;
     float resolution;
     float thresh;
     int anyproblems;
@@ -365,7 +414,7 @@ void mySetting_histoprint(mySetting *st, int PMTid) {
     label1->SetTextSize(0.03);
     label1->DrawText(0.01, 0.04, temp);
 
-    sprintf(temp, "Voltage = %d V, Threshold = %2.0f mV", st->voltage[CH], st->thresh[CH]);
+    sprintf(temp, "Voltage = %2.0f V, Threshold = %2.0f mV", st->voltage[CH], st->thresh[CH]);
     TText *label2 = new TText();
     label2->SetNDC();
     label2->SetTextSize(0.03);
@@ -389,7 +438,8 @@ void mySetting_get(TTree* tset1, mySetting* st) {
     tset1->SetBranchAddress("Delay_ns", &st->delayns);
     tset1->SetBranchAddress("Date", st->date);
     tset1->SetBranchAddress("description", st->description);
-
+    
+    tset1->SetBranchAddress("triggersetting", &st->triggerSetting);
     tset1->GetEntry(0);
 }
 
@@ -523,7 +573,7 @@ std::vector<peak> peak_load(char* peaksfile) {
 
     std::ifstream myfile1;
     std::string myline;
-    printf("file %s\n", peaksfile);
+    printf("Peak file read: %s\n", peaksfile);
     myfile1.open(peaksfile);
 
     std::vector<peak> peaks;
