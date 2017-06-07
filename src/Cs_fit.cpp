@@ -484,7 +484,12 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     c40->SetFillColor(0);
 
- //   h1->Rebin(5);
+ 
+    if (st.voltage[PMTtoCH(PMTid,st)] >1600){
+       h1->Rebin(5); 
+    }
+        
+    
 
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth

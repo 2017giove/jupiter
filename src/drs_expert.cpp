@@ -333,6 +333,10 @@ void preCalibra(char* fileName, mySetting cset) {
 
 }
 
+/**
+ * Analizza automaticamente una serie di dati relativa all'acquisizione con nome capturenae
+ * @param capturename
+ */
 void LolFit(char* capturename) {
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
@@ -351,7 +355,7 @@ void LolFit(char* capturename) {
     removeFileList(myrottencal);
 
 
-        // Cerca tutti i file appartenenti alla presa dati indicata
+    // Cerca tutti i file appartenenti alla presa dati indicata
     sprintf(capturename_, "%s_", capturename);
     std::vector<std::string> myfiles = list_files("data/", capturename, "0.root");
 
@@ -637,7 +641,7 @@ void startCapture(char* fileName, mySetting cset) {
     while ((time(0) - t0) < cset.deltaT) {
         /* start board (activate domino wave) */
 
-
+        tr2.GoToBed();
         tr.WakeFromBed();
         b->StartDomino();
 
@@ -646,9 +650,9 @@ void startCapture(char* fileName, mySetting cset) {
 
         while (b->IsBusy());
         tr.GoToBed();
-
-
         tr2.WakeFromBed();
+        
+        
         if (totevents == 0) cout << "Trigger found, session started..." << endl;
 
         /* read all waveforms */
@@ -684,7 +688,7 @@ void startCapture(char* fileName, mySetting cset) {
         totevents++;
 
 
-        tr2.GoToBed();
+
     }
 
     totaltr.GoToBed();
