@@ -44,9 +44,9 @@ OBJECTS       = musbstd.o mxml.o strlcpy.o
 
 
 ifeq ($(OS),Darwin)
-all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app PowerExpert drs_expert
+all: drsosc drscl drs_exam drs_sub drs_exam_multi DRSOsc.app PowerExpert drs_expert ThermoParanoid
 else
-all: drsosc drscl drs_exam drs_sub drs_exam_multi PowerExpert drs_expert
+all: drsosc drscl drs_exam drs_sub drs_exam_multi PowerExpert drs_expert ThermoParanoid
 endif
 
 
@@ -65,8 +65,12 @@ PowerExpert: HVPowerSupply.o PowerExpert.o HVPowerSupply.o
 
 PowerExpert.o: src/PowerExpert.cpp src/HVPowerSupply.cpp  include/HVPowerSupply.h  
 	g++ $(CFLAGS) $(CINCLUDEDIR) -c $<
+	
+ThermoParanoid: ThermoParanoid.o 
+	g++ $(FLAGS)  $(CINCLUDEDIR)  ThermoParanoid.o -o ThermoParanoid $(CLIBS) 
 
-
+ThermoParanoid.o: src/ThermoParanoid.cpp src/SerialClass.cpp  include/SerialClass.h  
+	g++ $(CFLAGS) $(CINCLUDEDIR) -c $<
 
 DRSOsc.app: drsosc
 	-mkdir DRSOsc.app

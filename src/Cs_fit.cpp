@@ -485,7 +485,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     c40->SetFillColor(0);
 
  
-    if (st.voltage[PMTtoCH(PMTid,st)] >1600){
+    if (st->voltage[PMTtoCH(PMTid,st)] >1600){
        h1->Rebin(5); 
     }
         

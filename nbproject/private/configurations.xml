@@ -21,6 +21,7 @@
         <in>MeasureDialog.h</in>
         <in>Measurement.h</in>
         <in>Osci.h</in>
+        <in>SerialClass.h</in>
         <in>TriggerDialog.h</in>
         <in>averager.h</in>
         <in>musbstd.h</in>
@@ -46,6 +47,8 @@
         <in>Measurement.cpp</in>
         <in>Osci.cpp</in>
         <in>PowerExpert.cpp</in>
+        <in>SerialClass.cpp</in>
+        <in>ThermoParanoid.cpp</in>
         <in>Timer.cpp</in>
         <in>TriggerDialog.cpp</in>
         <in>WaveAnalysis.h</in>
@@ -72,12 +75,6 @@
         <in>up.xpm</in>
         <in>volt_fit.cpp</in>
       </df>
-      <in>AutoDict_random_access_iterator_myHVchannel_long_.cxx</in>
-      <in>AutoDict_random_access_iterator_myPMTconfig_long_.cxx</in>
-      <in>AutoDict_random_access_iterator_peak_long_.cxx</in>
-      <in>AutoDict_vector_myHVchannel_.cxx</in>
-      <in>AutoDict_vector_myPMTconfig_.cxx</in>
-      <in>AutoDict_vector_peak_.cxx</in>
       <in>ChargeHist_RUN.c</in>
       <in>Cs_fit_RUN.c</in>
       <in>WaveformCharge_RUN.c</in>
