@@ -484,13 +484,13 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     c40->SetFillColor(0);
 
-    h1->Rebin(5);
+ //   h1->Rebin(5);
 
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
     printf("step %f\n\n", step);
     //int maxBin = GetMaximumBin(h1, 5. / step, nBins);
-    std::vector<int> mymaxsbins = GetMaximumBins(h1, 5. / step, nBins);
+    std::vector<int> mymaxsbins = GetMaximumBins(h1, 1. / step, nBins);
     int maxBin = mymaxsbins.back();
 
     float Xmax = maxBin*step; //80

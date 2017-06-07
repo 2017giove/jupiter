@@ -327,8 +327,8 @@ float BoundIntegral(float* test, int min, int max) {
 
 bool isaspike(float* test, int triggerpos, float baseline) {
 
-    float testint = -BoundIntegral(test, triggerpos, triggerpos + 100);
-    int minpos = get_minimum_pos(test, triggerpos, triggerpos + 100);
+    float testint = -BoundIntegral(test, triggerpos - 10, triggerpos + 90);
+    int minpos = get_minimum_pos(test, triggerpos - 10, triggerpos + 90);
     float maxspike = -test[minpos];
     float troppospike = (testint - baseline) / (maxspike - baseline);
     if (troppospike < 0.1) {

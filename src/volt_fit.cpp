@@ -41,17 +41,18 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     for (i = 0; i < peaks.size(); i++) {
 
-        TVoltage.push_back(peaks[i].voltage);
-        TPeakposLog.push_back(TMath::Log(peaks[i].peakpos));
-        TPeakpos.push_back(peaks[i].peakpos);
-        TResolution.push_back(peaks[i].resolution);
 
-        i++;
+        if (peaks[i].resolution < 0 || peaks[i].anyproblems != 0) {
+            printf("Il fit a %.1f volt, trigger %f sarà rigettato in acqua. E' un astropesce.\n%s\n", peaks[i].voltage, peaks[i].thresh, ERROR_FISHERMAN);
 
-        if (peaks[i].resolution < 0 or peaks[i].anyproblems != 0) {
-            printf("Il fit a %f volt sarà rigettato in acqua. E' un astropesce.\n%s\n", peaks[i].voltage, ERROR_FISHERMAN);
-            i--;
+
+        } else {
+            TVoltage.push_back(peaks[i].voltage);
+            TPeakposLog.push_back(TMath::Log(peaks[i].peakpos));
+            TPeakpos.push_back(peaks[i].peakpos);
+            TResolution.push_back(peaks[i].resolution);
         }
+
 
     }
 
@@ -59,7 +60,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     TCanvas *c40 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
     c40->SetFillColor(10);
     c40->SetGrid();
-        gStyle->SetOptFit(1111);
+    gStyle->SetOptFit(1111);
 
     TGraph* mygraph1 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TPeakposLog[0]));
 

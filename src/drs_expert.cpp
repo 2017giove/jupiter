@@ -82,6 +82,7 @@ void startCapture(char* fileName, mySetting cset);
 void preCalibra(char* fileName, mySetting cset);
 void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
 void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
+void LolFit(char* capturename);
 
 int main(int argc, char* argv[]) {
 
@@ -172,6 +173,10 @@ int main(int argc, char* argv[]) {
             Calibra_analyze(fileName);
             return 0;
 
+        } else if (strcmp(myArgs[k].c_str(), "LolFit") == 0) {
+
+            LolFit(fileName);
+            return 0;
 
         } else {
 
@@ -305,14 +310,14 @@ void preCalibra(char* fileName, mySetting cset) {
     int thresh;
     char tmp[STR_LENGTH];
 
-    for (int thresh = 20; thresh <= 120; thresh += 20) {
+    for (int thresh = 10; thresh <= 60; thresh += 10) {
 
         for (int i = 0; i < cset.Nchan; i++) {
             cset.thresh[i] = -thresh;
         }
 
         sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], thresh);
-        
+
         char temp2[STR_LENGTH];
         sprintf(temp2, "%s.root", tmp);
         std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
@@ -325,6 +330,76 @@ void preCalibra(char* fileName, mySetting cset) {
 
 
     preCalibra_analyze(fileName);
+
+}
+
+void LolFit(char* capturename) {
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+
+    // Rimuove i file vecchi eventualmente presenti
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".calfish");
+    removeFileList(myrottenfish);
+
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, "0hist.root");
+    removeFileList(myrottenhist);
+
+    std::vector<std::string> myrottencal = list_files("data/", capturename, ".bestcal");
+    removeFileList(myrottencal);
+
+
+        // Cerca tutti i file appartenenti alla presa dati indicata
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myfiles = list_files("data/", capturename, "0.root");
+
+    // Crea istogramma carica
+    for (int i = 0; i < myfiles.size(); i++) {
+        sprintf(capturename_, "data/%s", myfiles[i].c_str());
+        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        ChargeHist(capturename_, "0hist");
+    }
+
+
+    // sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, "0hist.root");
+
+    for (int i = 0; i < myHistfiles.size(); i++) {
+
+        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
+        TFile *sorgente_file = TFile::Open(temp1);
+
+        mySetting st;
+        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+        mySetting_get(tset1, &st);
+
+        for (int j = 0; j < st.Nchan; j++) {
+            int PMTid = CHtoPMT(j, &st);
+            int voltage = st.voltage[j];
+            sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
+            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
+            Cs_getPeak(temp1, PMTid, temp2);
+        }
+
+
+    }
+
+
+    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
+    //  sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myFish = list_files("data/", capturename, ".calfish");
+
+    char tempf[STR_LENGTH];
+    char tempf2[STR_LENGTH];
+    for (int f = 0; f < myFish.size(); f++) {
+        sprintf(tempf, "data/%s", myFish[f].c_str());
+        sprintf(tempf2, "data/%s.bestcal", capturename);
+        volt_fit(tempf, tempf2, capturename);
+    }
+
+
 
 }
 
@@ -434,8 +509,8 @@ void startCapture(char* fileName, mySetting cset) {
     Tset->Branch("Date", cset.date, "date/C");
 
     Tset->Branch("deltaT", &cset.deltaT, "deltaT/I");
-    
-        Tset->Branch("triggersetting", &cset.triggerSetting, "triggersetting/I");
+
+    Tset->Branch("triggersetting", &cset.triggerSetting, "triggersetting/I");
 
     Tset->Branch("description", cset.description, "description/C");
 
@@ -448,8 +523,8 @@ void startCapture(char* fileName, mySetting cset) {
     sprintf(branchDef, "threshold[%d]/F", WANDANA_MAX);
     Tset->Branch("threshold", cset.thresh, branchDef);
 
-    
-    
+
+
     Tset->Fill();
 
 

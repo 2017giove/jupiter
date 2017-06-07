@@ -83,6 +83,7 @@
       <in>WaveformCharge_RUN.c</in>
       <in>WaveformProfile_RUN.c</in>
       <in>Waveform_RUN.c</in>
+      <in>file_plot.cpp</in>
       <in>refillDRS.c</in>
     </df>
     <itemPath>channelsHV.cfg</itemPath>

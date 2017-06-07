@@ -36,6 +36,7 @@
         <in>strlcpy.c</in>
         <in>volt_fit.cpp</in>
       </df>
+      <in>file_plot.cpp</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -85,6 +86,8 @@
           <preBuildCommand></preBuildCommand>
         </preBuild>
       </makefileType>
+      <item path="file_plot.cpp" ex="false" tool="1" flavor2="4">
+      </item>
       <item path="src/AboutDialog.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="2">
           <incDir>
