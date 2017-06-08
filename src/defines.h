@@ -68,6 +68,7 @@
 #define ERROR_FISHERMAN "We did not find what you were looking for: the fish escaped the net."
 #define NOT_FOUND_INT -241
 #define NOT_CARING_INT 433
+#define NOT_GOODFISHERMAN 234
 #define NOT_CREDIBLE 233
 #define NOT_PROBABLE 232
 #define NOT_COMPTON 231
@@ -189,6 +190,7 @@ struct peak {
     int PMTid;
     float resolution;
     float thresh;
+    float IA; //figura di merito
     int anyproblems;
 };
 
@@ -415,6 +417,7 @@ void mySetting_histoprint(mySetting *st, int PMTid) {
     label1->DrawText(0.01, 0.04, temp);
 
     sprintf(temp, "Voltage = %2.0f V, Threshold = %2.0f mV", st->voltage[CH], st->thresh[CH]);
+    
     TText *label2 = new TText();
     label2->SetNDC();
     label2->SetTextSize(0.03);
@@ -565,7 +568,7 @@ void peak_save(char* wheretosave, peak* mypeak) {
     if (mypeak->anyproblems == NOT_CREDIBLE) {
         savefile << "#";
     }
-    savefile << mypeak->PMTid << " " << mypeak->voltage << " " << mypeak->thresh << " " << mypeak->peakpos << " " << mypeak->sigma << " " << mypeak->peakvalue << " " << mypeak->nSGN << " " << mypeak->nBG << " " << mypeak->resolution << " " << mypeak->anyproblems << std::endl;
+    savefile << mypeak->PMTid << " " << mypeak->voltage << " " << mypeak->thresh << " " << mypeak->peakpos << " " << mypeak->sigma << " " << mypeak->peakvalue << " " << mypeak->nSGN << " " << mypeak->nBG << " " << mypeak->resolution << " " <<mypeak->IA<<" "<< mypeak->anyproblems << std::endl;
 
 }
 
@@ -584,8 +587,8 @@ std::vector<peak> peak_load(char* peaksfile) {
     while (std::getline(myfile1, myline)) {
         peak temp;
         std::istringstream strm(myline);
-        if (strm >> temp.PMTid >> temp.voltage >> temp.thresh >> temp.peakpos >> temp.sigma >> temp.peakvalue >> temp.nSGN >> temp.nBG >> temp.resolution >> temp.anyproblems) {
-            std::cout << i << " " << temp.PMTid << " " << temp.voltage << " " << temp.thresh << " " << temp.peakpos << " " << temp.sigma << " " << temp.peakvalue << " " << temp.nSGN << " " << temp.nBG << " " << temp.resolution << " " << temp.anyproblems << std::endl;
+        if (strm >> temp.PMTid >> temp.voltage >> temp.thresh >> temp.peakpos >> temp.sigma >> temp.peakvalue >> temp.nSGN >> temp.nBG >> temp.resolution >> temp.IA>> temp.anyproblems) {
+            std::cout << i << " " << temp.PMTid << " " << temp.voltage << " " << temp.thresh << " " << temp.peakpos << " " << temp.sigma << " " << temp.peakvalue << " " << temp.nSGN << " " << temp.nBG << " " << temp.resolution << " "<<temp.IA<<" " << temp.anyproblems << std::endl;
             i++;
             peaks.push_back(temp);
         } else {

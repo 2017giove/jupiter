@@ -150,6 +150,9 @@ void bestresolution_find(char * peaksfile, char* wheretosave) {
     double minres = 5000;
     int minresPOS = -1;
 
+    double minresIA = 5000;
+    int minresPOSia = -1;
+
     for (int i = 0; i < peaks.size(); i++) {
         //  printf("\n myres %lf\n\n", peaks[i].resolution);
         if (peaks[i].anyproblems != 0) {
@@ -162,14 +165,23 @@ void bestresolution_find(char * peaksfile, char* wheretosave) {
                 minresPOS = i;
             }
 
+            if (peaks[i].IA < minresIA) {
+                minresIA = peaks[i].IA;
+                minresPOSia = i;
+            }
+
         }
 
 
     }
 
+    char tmpstring[STR_LENGTH];
+    sprintf(tmpstring, "%s.ia", wheretosave);
+
     if (minresPOS != -1) {
         printf("best one is %d\t%f\n\n", minresPOS, peaks[minresPOS].peakpos);
         peak_save(wheretosave, &(peaks[minresPOS]));
+        peak_save(tmpstring, &(peaks[minresPOSia]));
     } else {
         printf("Non è stato trovato nessun buon trigger per questa tensione!\n");
     }

@@ -531,7 +531,9 @@ void startCapture(char* fileName, mySetting cset) {
 
     Tset->Fill();
 
+   // FILE* thermo = popen("./ThermoParanoid 100");
 
+    
     //  Tset->Write();
     /*
     >t1

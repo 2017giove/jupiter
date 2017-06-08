@@ -168,6 +168,10 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
        // printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
 
     }
+    
+    if (myMinsX.size()==0){
+        myMinsX.push_back(1);
+    }
     return myMinsX;
 
 }
@@ -268,6 +272,11 @@ void Calibra_analyze(char* capturename) {
 
     std::vector<std::string> myrottencal = list_files("data/", capturename, ".bestcal");
     removeFileList(myrottencal);
+    
+            std::vector<std::string> myrottenia = list_files("data/", capturename, ".bestcal.ia");
+    removeFileList(myrottenia);
+    
+
 
     // Cerca tutti i file appartenenti alla presa dati indicata
     sprintf(capturename_, "%s_", capturename);
@@ -335,6 +344,10 @@ void preCalibra_analyze(char* capturename) {
 
     std::vector<std::string> myrottentrigger = list_files("data/", capturename, ".besttrigger");
     removeFileList(myrottentrigger);
+
+        std::vector<std::string> myrottenia = list_files("data/", capturename, ".besttrigger.ia");
+    removeFileList(myrottenia);
+    
 
 
     // Cerca tutti i file appartenenti alla presa dati indicata
@@ -415,6 +428,9 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     mypeak.voltage = st.voltage[CH];
     mypeak.thresh = st.thresh[CH];
     mypeak.resolution = mypeak.sigma / mypeak.peakpos;
+    
+    mypeak.IA = mypeak.resolution/TMath::Sqrt(mypeak.peakvalue *mypeak.sigma);
+    
     peak_save(wheretosave, &mypeak);
 
 }
@@ -746,7 +762,11 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     mypeak.nSGN = fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
     mypeak.nBG = nTOT - fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
 
+    
     float resolution = mypeak.sigma / mypeak.peakpos;
+    
+    
+    
     printf("RISOLUZIONE = %f\n", resolution);
 
 
@@ -768,6 +788,12 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
         printf("Questo pesce è una burla. Non ci sto credendo che hai pescato un elefante. Questo essere va rigettato in acqua. E' un granchio?\n");
     }
 
+        if (h1->GetEntries()<1000){
+        mypeak.anyproblems =NOT_GOODFISHERMAN;
+        printf("Questo pescatore non è stato esperto ed è tornato a mani vuote: solo %d pesciolini.\n", (int) h1->GetEntries());
+    }
+    
+    
 
     if (mypeak.anyproblems != 0) {
         printf("col\n");
@@ -777,6 +803,8 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     }
 
 
+
+    
     mySetting_histoprint(st, PMTid);
 
     
