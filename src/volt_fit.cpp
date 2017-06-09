@@ -9,6 +9,9 @@
 #ifndef VOLTFIT
 #define VOLTFIT
 
+
+#include "defines.h"
+
 #include "WaveAnalysis.h"
 
 void bestresolution_find(char * peaksfile, char* wheretosave);

@@ -83,6 +83,7 @@ void preCalibra(char* fileName, mySetting cset);
 void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
 void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
 void LolFit(char* capturename);
+void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
 
 int main(int argc, char* argv[]) {
 
@@ -135,6 +136,10 @@ int main(int argc, char* argv[]) {
         printf("%d\n", cset.PmtID[i]);
     }
 
+    time_t Current_Time;
+    time(&Current_Time);
+    sprintf(cset.date, "%s", asctime(localtime(&Current_Time)));
+    //cout << cset.date << endl;
 
 
     for (int k = 0; k < myArgs.size(); k++) {
@@ -173,9 +178,19 @@ int main(int argc, char* argv[]) {
             Calibra_analyze(fileName);
             return 0;
 
+        } else if (strcmp(myArgs[k].c_str(), "analyze_web") == 0) {
+
+            Web_analyze(fileName);
+            return 0;
+
         } else if (strcmp(myArgs[k].c_str(), "LolFit") == 0) {
 
             LolFit(fileName);
+            return 0;
+
+        } else if (strcmp(myArgs[k].c_str(), "web") == 0) {
+
+            WebParanoid(fileName, cset, myPMTs, myChannels);
             return 0;
 
         } else {
@@ -309,14 +324,19 @@ void preCalibra(char* fileName, mySetting cset) {
     printf("He is washing his fountain pen...\n");
     int thresh;
     char tmp[STR_LENGTH];
+    float frac[MAXCH];
 
-    for (int thresh = 10; thresh <= 60; thresh += 10) {
+    for (int i = 0; i < cset.Nchan; i++) {
+            frac[i] = cset.thresh[i]/4;
+        }
+    
+    for (int k = 1; k < 7; k ++) {
 
         for (int i = 0; i < cset.Nchan; i++) {
-            cset.thresh[i] = -thresh;
+            cset.thresh[i] = frac[i]*k;
         }
 
-        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], thresh);
+        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], k);
 
         char temp2[STR_LENGTH];
         sprintf(temp2, "%s.root", tmp);
@@ -328,6 +348,24 @@ void preCalibra(char* fileName, mySetting cset) {
         }
     }
 
+
+    for (int k = 1; k <= 4; k ++) {
+
+        for (int i = 0; i < cset.Nchan; i++) {
+            cset.thresh[i] = frac[i]*4*k;
+        }
+
+        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], 4*k);
+
+        char temp2[STR_LENGTH];
+        sprintf(temp2, "%s.root", tmp);
+        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
+        if (myrottenfish.size() == 0) {
+            startCapture(tmp, cset);
+        } else {
+            printf("You already acquired %s.\n", tmp);
+        }
+    }
 
     preCalibra_analyze(fileName);
 
@@ -404,6 +442,17 @@ void LolFit(char* capturename) {
     }
 
 
+
+}
+
+void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels) {
+    mySetting_print(&cset);
+    initHV(myPMTs, myChannels);
+    char tmp[STR_LENGTH];
+    sprintf(tmp, "%s.web", fileName);
+    startCapture(tmp, cset);
+
+    Web_analyze(fileName);
 
 }
 
@@ -531,9 +580,9 @@ void startCapture(char* fileName, mySetting cset) {
 
     Tset->Fill();
 
-   // FILE* thermo = popen("./ThermoParanoid 100");
+    // FILE* thermo = popen("./ThermoParanoid 100");
 
-    
+
     //  Tset->Write();
     /*
     >t1
@@ -653,8 +702,8 @@ void startCapture(char* fileName, mySetting cset) {
         while (b->IsBusy());
         tr.GoToBed();
         tr2.WakeFromBed();
-        
-        
+
+
         if (totevents == 0) cout << "Trigger found, session started..." << endl;
 
         /* read all waveforms */

@@ -55,7 +55,7 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
         if (currentmin < min) {
             min = currentmin;
             imin = i;
-            //  printf("%d\t%d\n", imin, currentmin);
+            printf("%d\t%d\n", imin, currentmin);
         }
 
     }
@@ -66,9 +66,10 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
 /**
  * Massimi locali
  */
+
 std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
-    std::vector<float> myMins;
-    std::vector<int> myMinsX;
+    std::vector<float> myMaxs;
+    std::vector<int> myMaxsX;
 
     int i;
     int max = 0;
@@ -77,6 +78,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 
     float totlength = 0;
     float media = 0;
+
     for (i = from; i < to; i++) {
         if (hist->GetBinContent(i) != 0) {
             media += (float) hist->GetBinContent(i);
@@ -85,26 +87,33 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     }
     media /= totlength;
 
-
     float nearmeR[10000] = {0};
     float nearmeL[10000] = {0};
 
     int nsumR = 0;
     int nsumL = 0;
 
+    int ultimoSopraX = -1;
 
-    int windowSize = (50. * 0.1 / hist->GetXaxis()->GetBinWidth(0));
-  //  printf("%f\n\n", windowSize);
-    //   if (windowSize==0) windowSize =1;
+    for (int i = to; i > from; i--) {
+        if (hist->GetBinContent(i) > media && ultimoSopraX == -1) {
+            ultimoSopraX = i;
+        }
+    }
+
+    float windowSize = ultimoSopraX * 0.05;
+    printf("windowsize %f\n", windowSize);
+
 
     for (i = from; i < to; i++) {
         nsumR = 0;
         nearmeR[i] = 0;
         for (int j = i; j < i + windowSize; j++) {
             if (j >= from && j < to && j != i) {
-                nearmeR[i] += hist->GetBinContent(j)*1.1;
+                nearmeR[i] += hist->GetBinContent(j);
+                nsumR++;
             }
-            nsumR++;
+
         }
         nearmeR[i] /= (float) nsumR;
 
@@ -113,68 +122,176 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 
         for (int j = i - windowSize; j < i; j++) {
             if (j >= from && j < to && j != i) {
-                nearmeL[i] += hist->GetBinContent(j)*1.1;
+                nearmeL[i] += hist->GetBinContent(j);
+                nsumL++;
             }
-            nsumL++;
+
         }
         nearmeL[i] /= (float) nsumL;
-        //  printf("nearme %f\t%f\n", hist->GetBinContent(i), nearmeR[i]);
+        printf("nearme %d\t%f\t%f\t%f\n", i, hist->GetBinContent(i), nearmeL[i], nearmeR[i]);
     }
 
-    bool isabove = 0;
+
+    bool foundmax = 0;
 
     float cmax = 0;
     int cpos = 0;
 
-    for (i = from; i < to; i++) {
-        if (isabove == 0) {//stava sotto soglia
 
-            if (hist->GetBinContent(i) > media && hist->GetBinContent(i) > nearmeR[i] && hist->GetBinContent(i) > nearmeL[i]) { //è andato sopra soglia
-                isabove = 1;
+    for (i = from; i < to; i++) {
+
+        if (foundmax == 0) {
+            if (hist->GetBinContent(i) > nearmeR[i] && hist->GetBinContent(i) > nearmeL[i] && hist->GetBinContent(i) > media) {
+                foundmax = 1;
                 cmax = hist->GetBinContent(i);
                 cpos = i;
             }
 
-        } else { //sta sopra soglia
-            if (hist->GetBinContent(i) < media && hist->GetBinContent(i) <= nearmeL[i]) { //è sceso sotto soglia
+        } else {
 
-                isabove = 0;
-                //                myMins.push_back(cmax);
-                //                myMinsX.push_back(cpos);
-                //                printf("csono %d\t%d\t%f\t%f\t%f\n", i,cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
-                //
-
-            } else {
-                if (hist->GetBinContent(i) > cmax) {
-                    cmax = hist->GetBinContent(i);
-                    cpos = i;
-                }
-
-                if (hist->GetBinContent(i) > hist->GetBinContent(i - 1) && hist->GetBinContent(i) >= hist->GetBinContent(i + 1) && hist->GetBinContent(i) > nearmeR[i] && hist->GetBinContent(i) > media) { //condizione ulteriore per massimi, non serve che scenda sempre sotto soglia...
-
-
-                    myMins.push_back(cmax);
-                    myMinsX.push_back(cpos);
-                 //   printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
-                }
+            if (hist->GetBinContent(i) > cmax) {
+                cmax = hist->GetBinContent(i);
+                cpos = i;
             }
+
+            if ((hist->GetBinContent(i) < nearmeR[i] && hist->GetBinContent(i) < nearmeL[i]) || hist->GetBinContent(i) < media) {
+                foundmax = 0;
+                myMaxs.push_back(cmax);
+                myMaxsX.push_back(cpos);
+                cmax = 0;
+                cpos = 0;
+                printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+            }
+
         }
     }
 
 
     printf("media %f\n", media);
-    for (i = 0; i < myMins.size(); i++) {
+    for (i = 0; i < myMaxs.size(); i++) {
 
-       // printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
+        printf("sono %d\t%d\n", myMaxsX[i], myMaxs[i]);
 
     }
-    
-    if (myMinsX.size()==0){
-        myMinsX.push_back(1);
+
+    if (myMaxsX.size() == 0) {
+
+        myMaxsX.push_back(1);
     }
-    return myMinsX;
+    return myMaxsX;
+
 
 }
+
+//std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
+//    std::vector<float> myMins;
+//    std::vector<int> myMinsX;
+//
+//    int i;
+//    int max = 0;
+//    int imax;
+//    int currentmax;
+//
+//    float totlength = 0;
+//    float media = 0;
+//    for (i = from; i < to; i++) {
+//        if (hist->GetBinContent(i) != 0) {
+//            media += (float) hist->GetBinContent(i);
+//            totlength++;
+//        }
+//    }
+//    media /= totlength;
+//
+//
+//    float nearmeR[10000] = {0};
+//    float nearmeL[10000] = {0};
+//
+//    int nsumR = 0;
+//    int nsumL = 0;
+//
+//
+//    int windowSize = (50. * 0.1 / hist->GetXaxis()->GetBinWidth(0));
+//    //  printf("%f\n\n", windowSize);
+//    //   if (windowSize==0) windowSize =1;
+//
+//    for (i = from; i < to; i++) {
+//        nsumR = 0;
+//        nearmeR[i] = 0;
+//        for (int j = i; j < i + windowSize; j++) {
+//            if (j >= from && j < to && j != i) {
+//                nearmeR[i] += hist->GetBinContent(j)*1.1;
+//            }
+//            nsumR++;
+//        }
+//        nearmeR[i] /= (float) nsumR;
+//
+//        nsumL = 0;
+//        nearmeL[i] = 0;
+//
+//        for (int j = i - windowSize; j < i; j++) {
+//            if (j >= from && j < to && j != i) {
+//                nearmeL[i] += hist->GetBinContent(j)*1.1;
+//            }
+//            nsumL++;
+//        }
+//        nearmeL[i] /= (float) nsumL;
+//        //  printf("nearme %f\t%f\n", hist->GetBinContent(i), nearmeR[i]);
+//    }
+//
+//    bool isabove = 0;
+//
+//    float cmax = 0;
+//    int cpos = 0;
+//
+//    for (i = from; i < to; i++) {
+//        if (isabove == 0) {//stava sotto soglia
+//
+//            if (hist->GetBinContent(i) > media && hist->GetBinContent(i) > nearmeR[i] && hist->GetBinContent(i) > nearmeL[i]) { //è andato sopra soglia
+//                isabove = 1;
+//                cmax = hist->GetBinContent(i);
+//                cpos = i;
+//            }
+//
+//        } else { //sta sopra soglia
+//            if (hist->GetBinContent(i) < media && hist->GetBinContent(i) <= nearmeL[i]) { //è sceso sotto soglia
+//
+//                isabove = 0;
+//                //                myMins.push_back(cmax);
+//                //                myMinsX.push_back(cpos);
+//                //                printf("csono %d\t%d\t%f\t%f\t%f\n", i,cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+//                //
+//
+//            } else {
+//                if (hist->GetBinContent(i) > cmax) {
+//                    cmax = hist->GetBinContent(i);
+//                    cpos = i;
+//                }
+//
+//                if (hist->GetBinContent(i) > hist->GetBinContent(i - 1) && hist->GetBinContent(i) >= hist->GetBinContent(i + 1) && hist->GetBinContent(i) > nearmeR[i] && hist->GetBinContent(i) > media) { //condizione ulteriore per massimi, non serve che scenda sempre sotto soglia...
+//
+//
+//                    myMins.push_back(cmax);
+//                    myMinsX.push_back(cpos);
+//                    printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+//                }
+//            }
+//        }
+//    }
+//
+//
+//    printf("media %f\n", media);
+//    for (i = 0; i < myMins.size(); i++) {
+//
+//        printf("sono %d\t%d\n", myMinsX[i], myMins[i]);
+//
+//    }
+//
+//    if (myMinsX.size() == 0) {
+//        myMinsX.push_back(1);
+//    }
+//    return myMinsX;
+//
+//}
 
 
 
@@ -257,6 +374,57 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 //
 //}
 
+void Web_analyze(char* capturename) {
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+    // Rimuove i file vecchi eventualmente presenti
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".RAW.root");
+    removeFileList(myrottenfish);
+
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histoweb.root");
+    removeFileList(myrottenhist);
+
+
+
+    // Cerca tutti i file appartenenti alla presa dati indicata
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myfiles = list_files("data/", capturename, ".web.root");
+
+    // Crea istogramma carica
+    for (int i = 0; i < myfiles.size(); i++) {
+        sprintf(capturename_, "data/%s", myfiles[i].c_str());
+        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        ChargeHist(capturename_, ".histoweb");
+    }
+
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histoweb.root");
+
+    for (int i = 0; i < myHistfiles.size(); i++) {
+
+        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
+        TFile *sorgente_file = TFile::Open(temp1);
+
+        mySetting st;
+        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+        mySetting_get(tset1, &st);
+
+        for (int j = 0; j < st.Nchan; j++) {
+            int PMTid = CHtoPMT(j, &st);
+            int voltage = st.voltage[j];
+            sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
+            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
+            Cs_getPeak(temp1, PMTid, temp2);
+        }
+
+
+    }
+    printf("Esecuzione terminata\n");
+}
+
 void Calibra_analyze(char* capturename) {
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
@@ -272,10 +440,10 @@ void Calibra_analyze(char* capturename) {
 
     std::vector<std::string> myrottencal = list_files("data/", capturename, ".bestcal");
     removeFileList(myrottencal);
-    
-            std::vector<std::string> myrottenia = list_files("data/", capturename, ".bestcal.ia");
+
+    std::vector<std::string> myrottenia = list_files("data/", capturename, ".bestcal.ia");
     removeFileList(myrottenia);
-    
+
 
 
     // Cerca tutti i file appartenenti alla presa dati indicata
@@ -304,7 +472,7 @@ void Calibra_analyze(char* capturename) {
         for (int j = 0; j < st.Nchan; j++) {
             int PMTid = CHtoPMT(j, &st);
             int voltage = st.voltage[j];
-            sprintf(temp2, "data/%s_%d.calfish", capturename,  PMTid);
+            sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
             printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
         }
@@ -345,9 +513,9 @@ void preCalibra_analyze(char* capturename) {
     std::vector<std::string> myrottentrigger = list_files("data/", capturename, ".besttrigger");
     removeFileList(myrottentrigger);
 
-        std::vector<std::string> myrottenia = list_files("data/", capturename, ".besttrigger.ia");
+    std::vector<std::string> myrottenia = list_files("data/", capturename, ".besttrigger.ia");
     removeFileList(myrottenia);
-    
+
 
 
     // Cerca tutti i file appartenenti alla presa dati indicata
@@ -410,7 +578,7 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
 
     TTree* tset1 = (TTree*) sorgente_file->Get("tset");
     mySetting_get(tset1, &st);
-  // mySetting_print(&st);
+    // mySetting_print(&st);
 
     int CH = PMTtoCH(PMTid, &st);
 
@@ -428,9 +596,9 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     mypeak.voltage = st.voltage[CH];
     mypeak.thresh = st.thresh[CH];
     mypeak.resolution = mypeak.sigma / mypeak.peakpos;
-    
-    mypeak.IA = mypeak.resolution/TMath::Sqrt(mypeak.peakvalue *mypeak.sigma);
-    
+
+    mypeak.IA = mypeak.resolution / TMath::Sqrt(mypeak.peakvalue * mypeak.sigma);
+
     peak_save(wheretosave, &mypeak);
 
 }
@@ -500,18 +668,25 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     c40->SetFillColor(0);
 
- 
-    if (st->voltage[PMTtoCH(PMTid,st)] >1600){
-       h1->Rebin(5); 
+
+    if (st->voltage[PMTtoCH(PMTid, st)] > 1600) {
+            h1->Rebin(2);
     }
-        
-    
+
+    struct peak mypeak;
+    mypeak.anyproblems = 0;
 
     int nBins = h1->GetSize() - 2;
     float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
     printf("step %f\n\n", step);
     //int maxBin = GetMaximumBin(h1, 5. / step, nBins);
-    std::vector<int> mymaxsbins = GetMaximumBins(h1, 1. / step, nBins);
+    std::vector<int> mymaxsbins = GetMaximumBins(h1, 0.5 / step, nBins);
+
+    if (mymaxsbins[0] == -1) {
+        mypeak.anyproblems = NOT_FOUND_MAX;
+        printf("WARNING: I did not find any max!");
+    }
+
     int maxBin = mymaxsbins.back();
 
     float Xmax = maxBin*step; //80
@@ -525,8 +700,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     //    gStyle->SetOptFit(1111);
 
 
-    struct peak mypeak;
-    mypeak.anyproblems = 0;
+
 
 
 
@@ -609,7 +783,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     fsrc->SetParLimits(9, 0.1, 2);
     fsrc->SetParLimits(10, FD2minAmp, 2 * FD2minAmp);
     fsrc->SetParLimits(11, 0.1, 1);
-    fsrc->SetParLimits(12, 0.01, 2);
+    fsrc->SetParLimits(12, 0.01, 20);
     //    
     // se il minimo tra i due picchi è zero
     if (FD2minAmp == 0) {
@@ -630,9 +804,10 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     fsrc->SetParameter(9, sigma * 0.5296);
     fsrc->SetParameter(10, FD2minAmp * 1.5);
     fsrc->SetParameter(11, 0.6); //basta che parte
-    fsrc->SetParameter(12, 0.95);
+       fsrc->SetParameter(12, 0.95);
+    //fsrc->FixParameter(12, 1);
 
-    h1->Fit("fsrc", "Lq", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
+    h1->Fit("fsrc", "ILv", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
     h1->Draw();
 
 
@@ -757,16 +932,19 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     mypeak.sigma = fsrc->GetParameter("sigma");
     mypeak.peakpos = fsrc->GetParameter("Peak");
+    mypeak.sigma_err = fsrc->GetParError(6);
+    mypeak.peakpos_err = fsrc->GetParError(5);
+    
     mypeak.peakvalue = fitmax->Eval(mypeak.peakpos);
     float nTOT = h1->Integral(h1->GetXaxis()->FindBin(mypeak.peakpos - mypeak.sigma), h1->GetXaxis()->FindBin(mypeak.peakpos + mypeak.sigma));
     mypeak.nSGN = fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
     mypeak.nBG = nTOT - fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
 
-    
+
     float resolution = mypeak.sigma / mypeak.peakpos;
-    
-    
-    
+
+
+
     printf("RISOLUZIONE = %f\n", resolution);
 
 
@@ -788,12 +966,12 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
         printf("Questo pesce è una burla. Non ci sto credendo che hai pescato un elefante. Questo essere va rigettato in acqua. E' un granchio?\n");
     }
 
-        if (h1->GetEntries()<1000){
-        mypeak.anyproblems =NOT_GOODFISHERMAN;
+    if (h1->GetEntries() < 1000) {
+        mypeak.anyproblems = NOT_GOODFISHERMAN;
         printf("Questo pescatore non è stato esperto ed è tornato a mani vuote: solo %d pesciolini.\n", (int) h1->GetEntries());
     }
-    
-    
+
+
 
     if (mypeak.anyproblems != 0) {
         printf("col\n");
@@ -804,12 +982,12 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
 
 
-    
+
     mySetting_histoprint(st, PMTid);
 
-    
-        c40->SaveAs(savepath.c_str());
-        
+
+    c40->SaveAs(savepath.c_str());
+
     return mypeak;
 
 }

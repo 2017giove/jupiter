@@ -52,9 +52,14 @@ int main(int argc, char* argv[]) {
         printf("There is a problem and it's deeper: please buy a microSD card and an adapter.\n");
         return 0;
     }
-
-    FILE* myfile = fopen("santatemp.txt", "w");
-
+//
+    FILE* myfile = fopen("/home/sfera/Desktop/jupiter/santatemp2.txt", "w");
+    if (myfile== NULL){
+        printf("ho finito l'inchiostro per scrivere su file \n");
+    }
+    
+    fflush(stdout);
+        
     while ((time(0) - t0) < deltat) {
         memset(readBuffer, 0, 1024);
         fread(readBuffer, sizeof (char), 1024, serPort);
@@ -62,11 +67,12 @@ int main(int argc, char* argv[]) {
         if (sizeof (readBuffer) != 0) {
 
             fprintf(myfile, readBuffer);
-            printf(readBuffer);
-
+          printf(readBuffer);
+      
         }
     }
     
     printf("Saved in santatemp.txt for future analysis.\n");
+    fclose(myfile);
     return 0;
 }

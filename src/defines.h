@@ -53,9 +53,20 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+
 #include <stdlib.h>
 #include <stdio.h> 
 #include <ostream>
+
+#include <stdio.h>
+#include <string.h>
+#include <cstdlib>
+#include <stdlib.h>
+#include <istream>
+#include <fstream>
+#include <string>
+#include <sstream>
+
 
 //#include "Waveform.cpp"
 
@@ -72,6 +83,7 @@
 #define NOT_CREDIBLE 233
 #define NOT_PROBABLE 232
 #define NOT_COMPTON 231
+#define NOT_FOUND_MAX 235
 #define NOT_CARING_STRING "Blessed are they who hold lively conversations with the helplessly mute, for they shall be called dentists."
 #define EXT_ROOT ".root"
 #define STR_LENGTH 300
@@ -80,7 +92,7 @@
 #define TRIGGER_EDGE "neg"
 //#define THRESH -25 // non ha senso definirlo perche è utile cambiarlo
 
-#define NBIN 2000
+#define NBIN 4000
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024
@@ -182,7 +194,9 @@ struct myPMTconfig {
 
 struct peak {
     float sigma;
+    float sigma_err;
     float peakpos;
+    float peakpos_err;
     float peakvalue;
     float nBG;
     float nSGN;
@@ -417,7 +431,7 @@ void mySetting_histoprint(mySetting *st, int PMTid) {
     label1->DrawText(0.01, 0.04, temp);
 
     sprintf(temp, "Voltage = %2.0f V, Threshold = %2.0f mV", st->voltage[CH], st->thresh[CH]);
-    
+
     TText *label2 = new TText();
     label2->SetNDC();
     label2->SetTextSize(0.03);
@@ -441,7 +455,7 @@ void mySetting_get(TTree* tset1, mySetting* st) {
     tset1->SetBranchAddress("Delay_ns", &st->delayns);
     tset1->SetBranchAddress("Date", st->date);
     tset1->SetBranchAddress("description", st->description);
-    
+
     tset1->SetBranchAddress("triggersetting", &st->triggerSetting);
     tset1->GetEntry(0);
 }
@@ -568,7 +582,7 @@ void peak_save(char* wheretosave, peak* mypeak) {
     if (mypeak->anyproblems == NOT_CREDIBLE) {
         savefile << "#";
     }
-    savefile << mypeak->PMTid << " " << mypeak->voltage << " " << mypeak->thresh << " " << mypeak->peakpos << " " << mypeak->sigma << " " << mypeak->peakvalue << " " << mypeak->nSGN << " " << mypeak->nBG << " " << mypeak->resolution << " " <<mypeak->IA<<" "<< mypeak->anyproblems << std::endl;
+    savefile << mypeak->PMTid << " " << mypeak->voltage << " " << mypeak->thresh << " " << mypeak->peakpos << " " << mypeak->peakpos_err << " " << mypeak->sigma << " " << mypeak->sigma_err << " " << mypeak->peakvalue << " " << mypeak->nSGN << " " << mypeak->nBG << " " << mypeak->resolution << " " << mypeak->IA << " " << mypeak->anyproblems << std::endl;
 
 }
 
@@ -587,8 +601,8 @@ std::vector<peak> peak_load(char* peaksfile) {
     while (std::getline(myfile1, myline)) {
         peak temp;
         std::istringstream strm(myline);
-        if (strm >> temp.PMTid >> temp.voltage >> temp.thresh >> temp.peakpos >> temp.sigma >> temp.peakvalue >> temp.nSGN >> temp.nBG >> temp.resolution >> temp.IA>> temp.anyproblems) {
-            std::cout << i << " " << temp.PMTid << " " << temp.voltage << " " << temp.thresh << " " << temp.peakpos << " " << temp.sigma << " " << temp.peakvalue << " " << temp.nSGN << " " << temp.nBG << " " << temp.resolution << " "<<temp.IA<<" " << temp.anyproblems << std::endl;
+        if (strm >> temp.PMTid >> temp.voltage >> temp.thresh >> temp.peakpos >> temp.peakpos_err >> temp.sigma >> temp.sigma_err >> temp.peakvalue >> temp.nSGN >> temp.nBG >> temp.resolution >> temp.IA >> temp.anyproblems) {
+            std::cout << i << " " << temp.PMTid << " " << temp.voltage << " " << temp.thresh << " " << temp.peakpos << " " << temp.peakpos_err << " " << temp.sigma << " " << temp.sigma_err << " " << temp.peakvalue << " " << temp.nSGN << " " << temp.nBG << " " << temp.resolution << " " << temp.IA << " " << temp.anyproblems << std::endl;
             i++;
             peaks.push_back(temp);
         } else {
