@@ -15,6 +15,8 @@
 
 #include "defines.h"
 #include "WaveAnalysis.h"
+ 
+
 
 int GetMaximumBin(TH1D* hist, int from, int to);
 int GetMinimumBin(TH1D* hist, int from, int to);
@@ -43,6 +45,8 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
     return imax;
 
 }
+
+
 
 int GetMinimumBin(TH1D* hist, int from, int to) {
     int i;
@@ -581,11 +585,17 @@ void PMTRangeLT(char * capturename) {
     TFile *FOut = new TFile("data/Smearing.root", "UPDATE");
     TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
 
+     
+
+
     TGraph2D * confPlot = new TGraph2D();
     TGraph2D * confPlotProblematic = new TGraph2D();
     confPlotProblematic->SetMarkerColor(kRed);
-    confPlot->SetMarkerSize(20);
-    confPlotProblematic->SetMarkerSize(20);
+    confPlot->SetMarkerStyle(8);
+    confPlot->SetMarkerSize(0.8);
+    confPlotProblematic->SetMarkerStyle(8);
+    confPlotProblematic->SetMarkerSize(0.8);
+
 
     for (int i = 0; i < myFish.size(); i++) {
         sprintf(temp1, "data/%s", myFish[i].c_str());
@@ -605,14 +615,16 @@ void PMTRangeLT(char * capturename) {
     }
 
 
-    confPlot->Draw("p");
-    confPlotProblematic->Draw("psame");
+    confPlot->Draw("text0");
+    confPlotProblematic->Draw("text0 same");
+
+    c41->SaveAs("img/barbonata.jpg");
+    c41->Write();
 
     confPlot->Write("lollo");
     confPlotProblematic->Write("lollo");
-    
-    c41->SaveAs("img/barbonata.jpg");
-    c41->Write();
+
+
     FOut->Close();
 
 

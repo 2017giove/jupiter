@@ -55,7 +55,7 @@ void Waveform(int PMTid) {
 void MakeWaveform(const char* fileIN, int PMTid) {
 
     char histOUT[STR_LENGTH];
-    std::strcpy(histOUT, appendToRootFilename(fileIN, "wave").c_str());
+    strcpy(histOUT, appendToRootFilename(fileIN, "wave").c_str());
     TFile *f = TFile::Open(histOUT);
 
     if (!f || f->IsZombie()) {
@@ -99,7 +99,7 @@ void WaveProfile() {
 
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
     char fileOUT[STR_LENGTH];
-    std::strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
+    strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
     TFile *FOut = new TFile(fileOUT, "UPDATE");
     int i, j;
 
@@ -336,7 +336,7 @@ void WaveProfile() {
 void plotWaveStepCharge() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
     char fileOUT[STR_LENGTH];
-    std::strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
+    strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
     TFile *FOut = new TFile(fileOUT, "UPDATE");
     int i, j;
 

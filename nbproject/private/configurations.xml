@@ -36,12 +36,6 @@
       <df name="src">
         <in>.c</in>
         <in>AboutDialog.cpp</in>
-        <in>AutoDict_random_access_iterator_myHVchannel_long_.cxx</in>
-        <in>AutoDict_random_access_iterator_myPMTconfig_long_.cxx</in>
-        <in>AutoDict_random_access_iterator_peak_long_.cxx</in>
-        <in>AutoDict_vector_myHVchannel_.cxx</in>
-        <in>AutoDict_vector_myPMTconfig_.cxx</in>
-        <in>AutoDict_vector_peak_.cxx</in>
         <in>ChargeHist.cpp</in>
         <in>ConfigDialog.cpp</in>
         <in>Cs_fit.cpp</in>
@@ -87,12 +81,8 @@
       </df>
       <df name="thermoexample">
       </df>
-      <in>AutoDict_random_access_iterator_myHVchannel_long_.cxx</in>
-      <in>AutoDict_random_access_iterator_myPMTconfig_long_.cxx</in>
-      <in>AutoDict_random_access_iterator_peak_long_.cxx</in>
-      <in>AutoDict_vector_myHVchannel_.cxx</in>
       <in>AutoDict_vector_myPMTconfig_.cxx</in>
-      <in>AutoDict_vector_peak_.cxx</in>
+      <in>AutoDict_vector_structmyPMTconfig_.cxx</in>
       <in>ChargeHist_RUN.c</in>
       <in>Cs_fit_RUN.c</in>
       <in>WaveformCharge_RUN.c</in>
