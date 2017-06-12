@@ -67,6 +67,7 @@
 #include <string>
 #include <sstream>
 
+
 //#include "Waveform.cpp"
 
 
@@ -630,11 +631,5 @@ extern "C" {
 
 
 
-//#include "Waveform.cpp"
-//#include "volt_fit.cpp"
-//#include "ChargeHist.cpp"
-//#include "Cs_fit.cpp"
-//
-//
 
 #endif
