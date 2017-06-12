@@ -51,7 +51,7 @@
 #include <ctime>
 #include "time.h" 
 
-//#include <chrono>
+#include <chrono>
 
 #include <math.h>
 
@@ -69,6 +69,7 @@
 
 
 #include "defines.h"
+
 
 
 
@@ -196,9 +197,10 @@ int main(int argc, char* argv[]) {
 
             PMTRangeLT(fileName);
             return 0;
+           
 
-
-        } else {
+        }
+        else {
 
         }
     }
@@ -332,13 +334,13 @@ void preCalibra(char* fileName, mySetting cset) {
     float frac[MAXCH];
 
     for (int i = 0; i < cset.Nchan; i++) {
-        frac[i] = cset.thresh[i] / 4;
-    }
-
-    for (int k = 1; k < 7; k++) {
+            frac[i] = cset.thresh[i]/4;
+        }
+    
+    for (int k = 1; k < 7; k ++) {
 
         for (int i = 0; i < cset.Nchan; i++) {
-            cset.thresh[i] = frac[i] * k;
+            cset.thresh[i] = frac[i]*k;
         }
 
         sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], k);
@@ -354,13 +356,13 @@ void preCalibra(char* fileName, mySetting cset) {
     }
 
 
-    for (int k = 1; k <= 4; k++) {
+    for (int k = 1; k <= 4; k ++) {
 
         for (int i = 0; i < cset.Nchan; i++) {
-            cset.thresh[i] = frac[i]*4 * k;
+            cset.thresh[i] = frac[i]*4*k;
         }
 
-        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], 4 * k);
+        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], 4*k);
 
         char temp2[STR_LENGTH];
         sprintf(temp2, "%s.root", tmp);
@@ -582,7 +584,7 @@ void startCapture(char* fileName, mySetting cset) {
     Tset->Branch("threshold", cset.thresh, branchDef);
 
 
- 
+
     Tset->Fill();
 
     // FILE* thermo = popen("./ThermoParanoid 100");
