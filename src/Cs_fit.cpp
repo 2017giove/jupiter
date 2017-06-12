@@ -21,7 +21,7 @@ int GetMinimumBin(TH1D* hist, int from, int to);
 void Cs_fit();
 struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid);
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
-
+void PMTRangeLT(char * capturename);
 //void Cs_fit(char* src_name);
 
 /**
@@ -565,6 +565,59 @@ void preCalibra_analyze(char* capturename) {
 
 }
 
+void PMTRangeLT(char * capturename) {
+
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
+
+    gStyle->SetOptFit(1111);
+
+    TFile *FOut = new TFile("data/Smearing.root", "UPDATE");
+    TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+
+    TGraph2D * confPlot = new TGraph2D();
+    TGraph2D * confPlotProblematic = new TGraph2D();
+    confPlotProblematic->SetMarkerColor(kRed);
+    confPlot->SetMarkerSize(20);
+    confPlotProblematic->SetMarkerSize(20);
+
+    for (int i = 0; i < myFish.size(); i++) {
+        sprintf(temp1, "data/%s", myFish[i].c_str());
+        std::vector<peak> peaks = peak_load(temp1);
+
+        for (int j = 0; j < peaks.size(); j++) {
+
+            if (peaks[j].anyproblems == 0) {
+                confPlot->SetPoint((confPlot->GetN()), peaks[j].voltage, -peaks[j].thresh, 100 * peaks[j].resolution);
+
+            } else {
+                confPlotProblematic->SetPoint((confPlotProblematic->GetN()), peaks[j].voltage, -peaks[j].thresh, 100 * peaks[j].resolution);
+            }
+
+        }
+
+    }
+
+
+    confPlot->Draw("p");
+    confPlotProblematic->Draw("psame");
+
+    confPlot->Write("lollo");
+    confPlotProblematic->Write("lollo");
+    
+    c41->SaveAs("img/barbonata.jpg");
+    c41->Write();
+    FOut->Close();
+
+
+}
+
 /**
  * Salva il picco trovato e la tensione di acquisizione, e i rispettivi errori, in una nuova riga del file specificato
  * @param nome file hist.root contenente l'istogramma
@@ -669,8 +722,8 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     c40->SetFillColor(0);
 
 
-    if (st->voltage[PMTtoCH(PMTid, st)] > 1600) {
-            h1->Rebin(2);
+    if (st->voltage[PMTtoCH(PMTid, st)] > 1650) {
+        h1->Rebin(4);
     }
 
     struct peak mypeak;
@@ -804,10 +857,10 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     fsrc->SetParameter(9, sigma * 0.5296);
     fsrc->SetParameter(10, FD2minAmp * 1.5);
     fsrc->SetParameter(11, 0.6); //basta che parte
-       fsrc->SetParameter(12, 0.95);
+    fsrc->SetParameter(12, 0.95);
     //fsrc->FixParameter(12, 1);
 
-    h1->Fit("fsrc", "ILv", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
+    h1->Fit("fsrc", "Lv", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
     h1->Draw();
 
 
@@ -934,7 +987,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     mypeak.peakpos = fsrc->GetParameter("Peak");
     mypeak.sigma_err = fsrc->GetParError(6);
     mypeak.peakpos_err = fsrc->GetParError(5);
-    
+
     mypeak.peakvalue = fitmax->Eval(mypeak.peakpos);
     float nTOT = h1->Integral(h1->GetXaxis()->FindBin(mypeak.peakpos - mypeak.sigma), h1->GetXaxis()->FindBin(mypeak.peakpos + mypeak.sigma));
     mypeak.nSGN = fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);

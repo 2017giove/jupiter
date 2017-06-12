@@ -92,7 +92,7 @@
 #define TRIGGER_EDGE "neg"
 //#define THRESH -25 // non ha senso definirlo perche è utile cambiarlo
 
-#define NBIN 4000
+#define NBIN 8000
 #define QMAX 200
 #define QMIN 0
 #define N_SAMPLES 1024

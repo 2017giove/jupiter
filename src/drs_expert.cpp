@@ -193,7 +193,14 @@ int main(int argc, char* argv[]) {
             WebParanoid(fileName, cset, myPMTs, myChannels);
             return 0;
 
-        } else {
+        } else if (strcmp(myArgs[k].c_str(), "PMTRangeLT") == 0) {
+
+            PMTRangeLT(fileName);
+            return 0;
+           
+
+        }
+        else {
 
         }
     }
