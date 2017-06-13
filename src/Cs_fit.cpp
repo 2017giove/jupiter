@@ -21,7 +21,7 @@ int GetMinimumBin(TH1D* hist, int from, int to);
 void Cs_fit();
 struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid);
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
-void PMTRangeLT(char * capturename);
+void PMTRangeLT(char * capturename, int PMTid) ;
 //void Cs_fit(char* src_name);
 
 /**
@@ -67,7 +67,7 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
  * Massimi locali
  */
 
-std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
+ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     std::vector<float> myMaxs;
     std::vector<int> myMaxsX;
 
@@ -565,7 +565,7 @@ void preCalibra_analyze(char* capturename) {
 
 }
 
-void PMTRangeLT(char * capturename) {
+void PMTRangeLT(char * capturename, int PMTid) {
 
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
@@ -576,42 +576,64 @@ void PMTRangeLT(char * capturename) {
     sprintf(capturename_, "%s_", capturename);
     std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
 
-    gStyle->SetOptFit(1111);
-
-    TFile *FOut = new TFile("data/Smearing.root", "UPDATE");
+    //  gStyle->SetOptFit(1111);
+    sprintf(rottentemp, "data/%s_%d.eps",capturename,PMTid);
+    TFile *FOut = new TFile(rottentemp, "UPDATE");
     TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
 
-    TGraph2D * confPlot = new TGraph2D();
-    TGraph2D * confPlotProblematic = new TGraph2D();
+    TGraph * confPlot = new TGraph();
+    TGraph * confPlotProblematic = new TGraph();
+
     confPlotProblematic->SetMarkerColor(kRed);
-    confPlot->SetMarkerSize(20);
-    confPlotProblematic->SetMarkerSize(20);
+    confPlot->SetMarkerStyle(8);
+    confPlot->SetMarkerSize(1);
+    confPlotProblematic->SetMarkerSize(1);
+    confPlotProblematic->SetMarkerStyle(8);
+
+
+
 
     for (int i = 0; i < myFish.size(); i++) {
         sprintf(temp1, "data/%s", myFish[i].c_str());
         std::vector<peak> peaks = peak_load(temp1);
 
         for (int j = 0; j < peaks.size(); j++) {
+            if (PMTid == peaks[j].PMTid) {
+                TLatex * lbl = new TLatex(peaks[j].voltage + 0.2, -peaks[j].thresh + 0.2, Form("%1.5f", peaks[j].resolution));
+                lbl->SetTextSize(0.025);
+                lbl->SetTextFont(42);
 
-            if (peaks[j].anyproblems == 0) {
-                confPlot->SetPoint((confPlot->GetN()), peaks[j].voltage, -peaks[j].thresh, 100 * peaks[j].resolution);
 
-            } else {
-                confPlotProblematic->SetPoint((confPlotProblematic->GetN()), peaks[j].voltage, -peaks[j].thresh, 100 * peaks[j].resolution);
+                if (peaks[j].anyproblems == 0) {
+                    confPlot->SetPoint((confPlot->GetN()), peaks[j].voltage, -peaks[j].thresh);
+
+                } else {
+                    confPlotProblematic->SetPoint((confPlotProblematic->GetN()), peaks[j].voltage, -peaks[j].thresh);
+                    lbl->SetTextColor(kRed);
+                }
+
+
+                confPlot->GetListOfFunctions()->Add(lbl);
             }
-
         }
-
     }
 
 
-    confPlot->Draw("p");
+    confPlot->Draw("ap");
     confPlotProblematic->Draw("psame");
 
     confPlot->Write("lollo");
     confPlotProblematic->Write("lollo");
+
     
-    c41->SaveAs("img/barbonata.jpg");
+    
+    sprintf(rottentemp, "Risoluzione - PMT %d",PMTid);
+    confPlot->SetTitle(rottentemp);
+    confPlot->GetXaxis()->SetTitle("Tensione (V)");
+    confPlot->GetYaxis()->SetTitle("Soglia Trigger (-mV)");
+
+    sprintf(rottentemp, "img/%s_%d.eps",capturename,PMTid);
+    c41->SaveAs(rottentemp);
     c41->Write();
     FOut->Close();
 

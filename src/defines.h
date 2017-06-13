@@ -43,6 +43,8 @@
 #include "TBranch.h"
 #include "TStyle.h"
 
+#include "TLatex.h"
+
 #include "TVector.h"
 
 #include "TRint.h"
@@ -209,6 +211,9 @@ struct peak {
 };
 
 int PMTtoCH(int PMT, mySetting* st);
+bool PMTisThere(int PMTid, std::vector<int> myPMTlist);
+std::vector<int> PMTList(char * filename);
+std::vector<peak> peak_load(char* peaksfile);
 
 void allocateSetting(struct mySetting* st, int NCHAN) {
     int i;
@@ -576,6 +581,36 @@ void removeFileList(std::vector<std::string> rottenf) {
         remove(temp);
     }
 }
+
+std::vector<int> PMTList(char * filename) {
+    std::vector<int> myPMTlist;
+    char temp1[STR_LENGTH];
+    std::vector<std::string> myFish = list_files("data/", filename, ".fish");
+    for (int i = 0; i < myFish.size(); i++) {
+        sprintf(temp1, "data/%s", myFish[i].c_str());
+        std::vector<peak> peaks = peak_load(temp1);
+
+        for (int j = 0; j < peaks.size(); j++) {
+            if (PMTisThere(peaks[j].PMTid,myPMTlist) == 0){
+                myPMTlist.push_back(peaks[j].PMTid);
+            }
+        }
+    }
+
+    return myPMTlist;
+}
+
+bool PMTisThere(int PMTid, std::vector<int> myPMTlist){
+    
+    for (int i=0;i<myPMTlist.size();i++){
+        if (myPMTlist[i] == PMTid){
+            return 1;
+        }
+    }
+    
+    return 0;
+}
+
 
 void peak_save(char* wheretosave, peak* mypeak) {
     std::ofstream savefile(wheretosave, std::ios_base::app);

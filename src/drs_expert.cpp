@@ -24,7 +24,7 @@
 \********************************************************************/
 
 
-#ifdef _MSC_VER
+#ifdef _MSC_VER 
 
 #include <windows.h>
 
@@ -86,6 +86,8 @@ void LolFit(char* capturename);
 void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
 
 int main(int argc, char* argv[]) {
+
+    TApplication theApp("App", &argc, argv);
 
     vector<std::string> myArgs;
     std::string tempstring;
@@ -193,14 +195,33 @@ int main(int argc, char* argv[]) {
             WebParanoid(fileName, cset, myPMTs, myChannels);
             return 0;
 
-        } else if (strcmp(myArgs[k].c_str(), "PMTRangeLT") == 0) {
+        } else if (strcmp(myArgs[k].c_str(), "voltfit") == 0) {
 
-            PMTRangeLT(fileName);
+            
+            // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
+
+            char tempf[STR_LENGTH];
+            char tempf2[STR_LENGTH];
+ 
+                sprintf(tempf, "data/%s", myArgs[k+1]);
+                sprintf(tempf2, "data/%s.bestcal", myArgs[k+1]);
+                volt_fit(tempf, tempf2, fileName);
+
             return 0;
-           
 
-        }
-        else {
+        } else if (strcmp(myArgs[k].c_str(), "PMTRangeLT") == 0) {
+            std::vector<int> mylst = PMTList(fileName);
+            for (int k = 0; k < mylst.size(); k++) {
+                PMTRangeLT(fileName, mylst[k]);
+
+            }
+
+            getchar();
+
+            return 0;
+
+
+        } else {
 
         }
     }
@@ -208,7 +229,6 @@ int main(int argc, char* argv[]) {
     mySetting_print(&cset);
     initHV(myPMTs, myChannels);
     startCapture(fileName, cset);
-
 
 
 
@@ -334,13 +354,13 @@ void preCalibra(char* fileName, mySetting cset) {
     float frac[MAXCH];
 
     for (int i = 0; i < cset.Nchan; i++) {
-            frac[i] = cset.thresh[i]/4;
-        }
-    
-    for (int k = 1; k < 7; k ++) {
+        frac[i] = cset.thresh[i] / 4;
+    }
+
+    for (int k = 1; k < 7; k++) {
 
         for (int i = 0; i < cset.Nchan; i++) {
-            cset.thresh[i] = frac[i]*k;
+            cset.thresh[i] = frac[i] * k;
         }
 
         sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], k);
@@ -356,13 +376,13 @@ void preCalibra(char* fileName, mySetting cset) {
     }
 
 
-    for (int k = 1; k <= 4; k ++) {
+    for (int k = 1; k <= 4; k++) {
 
         for (int i = 0; i < cset.Nchan; i++) {
-            cset.thresh[i] = frac[i]*4*k;
+            cset.thresh[i] = frac[i]*4 * k;
         }
 
-        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], 4*k);
+        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], 4 * k);
 
         char temp2[STR_LENGTH];
         sprintf(temp2, "%s.root", tmp);
