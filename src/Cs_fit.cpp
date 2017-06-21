@@ -22,6 +22,7 @@ void Cs_fit();
 struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid);
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
 void PMTRangeLT(char * capturename, int PMTid);
+void Cs_getPeakTot(char*src_name);
 //void Cs_fit(char* src_name);
 
 /**
@@ -55,7 +56,7 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
         if (currentmin < min) {
             min = currentmin;
             imin = i;
-            printf("%d\t%d\n", imin, currentmin);
+         //   printf("%d\t%d\n", imin, currentmin);
         }
 
     }
@@ -102,7 +103,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     }
 
     float windowSize = ultimoSopraX * 0.05;
-    printf("windowsize %f\n", windowSize);
+  //  printf("windowsize %f\n", windowSize);
 
 
     for (i = from; i < to; i++) {
@@ -128,7 +129,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 
         }
         nearmeL[i] /= (float) nsumL;
-        printf("nearme %d\t%f\t%f\t%f\n", i, hist->GetBinContent(i), nearmeL[i], nearmeR[i]);
+      //  printf("nearme %d\t%f\t%f\t%f\n", i, hist->GetBinContent(i), nearmeL[i], nearmeR[i]);
     }
 
 
@@ -160,17 +161,17 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
                 myMaxsX.push_back(cpos);
                 cmax = 0;
                 cpos = 0;
-                printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+            //    printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
             }
 
         }
     }
 
 
-    printf("media %f\n", media);
+   // printf("media %f\n", media);
     for (i = 0; i < myMaxs.size(); i++) {
 
-        printf("sono %d\t%d\n", myMaxsX[i], myMaxs[i]);
+     //   printf("sono %d\t%d\n", myMaxsX[i], myMaxs[i]);
 
     }
 
@@ -533,6 +534,7 @@ void preCalibra_analyze(char* capturename) {
     sprintf(capturename_, "%s_", capturename);
     std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histprec.root");
 
+
     for (int i = 0; i < myHistfiles.size(); i++) {
 
         sprintf(temp1, "data/%s", myHistfiles[i].c_str());
@@ -549,6 +551,9 @@ void preCalibra_analyze(char* capturename) {
             printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
         }
+
+
+
     }
 
     // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
@@ -646,6 +651,29 @@ void PMTRangeLT(char * capturename, int PMTid) {
 
 }
 
+void Cs_getPeakTot(char*src_name) {
+    printf("Good People mi chiamano così!\n\n");
+    TFile *sorgente_file = TFile::Open(src_name);
+    peak mypeak;
+    mySetting st;
+    TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+    mySetting_get(tset1, &st);
+
+    char tname[STR_LENGTH];
+    sprintf(tname, "hctot");
+    TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
+
+    if (h1 != nullptr) {
+    sprintf(tname, "img/%s_tot_csfit.eps", filenameFromPath(src_name).c_str());
+    printf("Salva in %s\n", tname);
+    mypeak = Cs_fit(h1, tname, &st, 0);
+
+    }else {
+        printf("\nBOMB! Big Histofrish doesn't exist!!\n");
+    }
+
+}
+
 /**
  * Salva il picco trovato e la tensione di acquisizione, e i rispettivi errori, in una nuova riga del file specificato
  * @param nome file hist.root contenente l'istogramma
@@ -665,23 +693,29 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
 
     char tname[STR_LENGTH];
     sprintf(tname, "h%d", PMTid);
+
+    //
+
+
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
+    if (h1 != nullptr) {
+        sprintf(tname, "img/%s_%d_csfit.eps", filenameFromPath(src_name).c_str(), PMTid);
+        printf("Salva in %s\n", tname);
 
-    sprintf(tname, "img/%s_%d_csfit.eps", filenameFromPath(src_name).c_str(), PMTid);
-    printf("Salva in %s\n", tname);
 
+        mypeak = Cs_fit(h1, tname, &st, PMTid);
+        mypeak.PMTid = PMTid;
+        mypeak.voltage = st.voltage[CH];
+        mypeak.thresh = st.thresh[CH];
+        mypeak.resolution = mypeak.sigma / mypeak.peakpos;
 
-    mypeak = Cs_fit(h1, tname, &st, PMTid);
-    mypeak.PMTid = PMTid;
-    mypeak.voltage = st.voltage[CH];
-    mypeak.thresh = st.thresh[CH];
-    mypeak.resolution = mypeak.sigma / mypeak.peakpos;
+        mypeak.IA = mypeak.resolution / TMath::Sqrt(mypeak.peakvalue * mypeak.sigma);
 
-    mypeak.IA = mypeak.resolution / TMath::Sqrt(mypeak.peakvalue * mypeak.sigma);
-
-    peak_save(wheretosave, &mypeak);
-
+        peak_save(wheretosave, &mypeak);
+    } else {
+        printf("\nBOMB! Histofrish doesn't exist!!\n");
+    }
 }
 
 // non implementato
@@ -749,9 +783,10 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     c40->SetFillColor(0);
 
-
-    if (st->voltage[PMTtoCH(PMTid, st)] > 1650) {
-        h1->Rebin(4);
+    if (PMTid != 0) {
+        if (st->voltage[PMTtoCH(PMTid, st)] > 1650) {
+            h1->Rebin(4);
+        }
     }
 
     struct peak mypeak;
@@ -774,6 +809,11 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     // printf("\nxmax=%f\n", Xmax);
 
     float Xwindow = 3.8; // larghezza su cui eseguire a occhio il fit gaussiano rispetto a xmax rilevato
+    
+    if (PMTid==0){
+        Xwindow=150;
+    }
+    
     float Ymax = h1->GetBinContent(maxBin);
 
 
@@ -888,7 +928,7 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     fsrc->SetParameter(12, 0.95);
     //fsrc->FixParameter(12, 1);
 
-    h1->Fit("fsrc", "Lv", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
+    h1->Fit("fsrc", "L", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
     h1->Draw();
 
 

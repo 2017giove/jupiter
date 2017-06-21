@@ -311,18 +311,11 @@
       <item path="src/SerialClass.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="src/ThermoParanoid.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="1">
+        <ccTool flags="3">
           <incDir>
-            <pElem>include</pElem>
-            <pElem>/usr/local/include</pElem>
+            <pElem>src</pElem>
             <pElem>.</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>HAVE_LIBUSB10</Elem>
-            <Elem>HAVE_USB</Elem>
-            <Elem>OS_LINUX</Elem>
-            <Elem>USE_DRS_MUTEX</Elem>
-          </preprocessorList>
         </ccTool>
       </item>
       <item path="src/Timer.cpp" ex="false" tool="1" flavor2="4">

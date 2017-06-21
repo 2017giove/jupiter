@@ -197,15 +197,15 @@ int main(int argc, char* argv[]) {
 
         } else if (strcmp(myArgs[k].c_str(), "voltfit") == 0) {
 
-            
+
             // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
 
             char tempf[STR_LENGTH];
             char tempf2[STR_LENGTH];
- 
-                sprintf(tempf, "data/%s", myArgs[k+1]);
-                sprintf(tempf2, "data/%s.bestcal", myArgs[k+1]);
-                volt_fit(tempf, tempf2, fileName);
+
+            sprintf(tempf, "data/%s", myArgs[k + 1].c_str());
+            sprintf(tempf2, "data/%s.bestcal", myArgs[k + 1].c_str());
+            volt_fit(tempf, tempf2, fileName);
 
             return 0;
 
@@ -421,7 +421,7 @@ void LolFit(char* capturename) {
 
 
     // Cerca tutti i file appartenenti alla presa dati indicata
-    sprintf(capturename_, "%s_", capturename);
+    sprintf(capturename_,  "%s_", capturename);
     std::vector<std::string> myfiles = list_files("data/", capturename, "0.root");
 
     // Crea istogramma carica
@@ -451,7 +451,7 @@ void LolFit(char* capturename) {
             printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
         }
-
+        Cs_getPeakTot(temp1);
 
     }
 

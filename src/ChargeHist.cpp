@@ -29,7 +29,6 @@
 #define CHARGEHIST
 
 #include "WaveAnalysis.h"
-
 #include <string.h>
 #include <stdio.h>
 
@@ -95,8 +94,21 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
 
     TCanvas *c40 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
 
+    //Codice per istogramma in kev
+    bool amIcalibratedFish = isthisfilepublic(CALIB_FILE);
+    std::vector<myPMTcalib> calibs;
+   if (amIcalibratedFish) {
+        calibs = calib_load(CALIB_FILE);
+    }
+    sprintf(tname, "hctot");
+    TH1D *htot = new TH1D(tname, "Istogramma energia tot", NBIN / 4, QMIN, 3 * CAESIUM_PEAK);
+ 
+
     for (CH = 0; CH < st.Nchan; CH++) {
         cPMT = CHtoPMT(CH, &st);
+        int calibIndex = PMTidToCalibIndex(cPMT, calibs);
+        double scalingAnanas = CAESIUM_PEAK / TMath::Exp(calibs[calibIndex].A * st.voltage[CH] + calibs[calibIndex].B);
+
         sprintf(tname, "t%d", cPMT);
         t1 = (TTree*) f->Get(tname);
         sprintf(tname, "tbase%d", cPMT);
@@ -117,9 +129,19 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         sprintf(tname, "hbase%d", cPMT);
         TH1D *hbase = new TH1D(tname, "Istogramma baseline", NBIN, -QMAX / 10, QMAX / 10);
 
+        //Istogramma calibrato
+        sprintf(tname, "hc%d", cPMT);
+        TH1D *h2 = new TH1D(tname, "Istogramma energia 661", NBIN, QMIN, 3 * CAESIUM_PEAK);
+
+
         for (i = 0; i < Nentries; i++) {
             t1->GetEntry(i);
             h1->Fill(Integral);
+
+            if (amIcalibratedFish && (calibIndex != NOT_FOUND_INT)) {
+                h2->Fill(Integral * scalingAnanas);
+                htot->Fill(Integral * scalingAnanas);
+            }
 
             tbase->GetEntry(i);
             hbase->Fill(BaseIntegral);
@@ -133,6 +155,18 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         h1->Draw("");
         c40->SaveAs(tname);
 
+        if (amIcalibratedFish && (calibIndex != NOT_FOUND_INT)) {
+
+            h2->GetXaxis()->SetTitle("keV");
+            h2->GetYaxis()->SetTitle("# eventi");
+            h2->Write();
+            sprintf(tname, "img/%s_charge_calib%d.eps", filenameFromPath(fileIN).c_str(), cPMT);
+            h2->Draw("");
+            c40->SaveAs(tname);
+
+        }
+
+
 
         //sprintf(tname, "cbase%d", CH);
         //TCanvas *c42 = new TCanvas(tname, PLOTS_TITLE, 640, 480);
@@ -141,6 +175,17 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         hbase->Write();
         sprintf(tname, "img/%s_base%d.eps", filenameFromPath(fileIN).c_str(), cPMT);
         hbase->Draw();
+        c40->SaveAs(tname);
+
+    }
+
+    if (amIcalibratedFish) {
+
+        htot->GetXaxis()->SetTitle("keV");
+        htot->GetYaxis()->SetTitle("# eventi");
+        htot->Write();
+        sprintf(tname, "img/%s_charge_calibTOT.eps", filenameFromPath(fileIN).c_str());
+        htot->Draw("");
         c40->SaveAs(tname);
 
     }

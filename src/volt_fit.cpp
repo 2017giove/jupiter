@@ -39,6 +39,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     std::vector<float> TVoltage;
     std::vector<float> TPeakpos;
+        std::vector<float> TPeakposErr;
     std::vector<float> TPeakposLog;
     std::vector<float> TResolution;
 
@@ -53,6 +54,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
             TVoltage.push_back(peaks[i].voltage);
             TPeakposLog.push_back(TMath::Log(peaks[i].peakpos));
             TPeakpos.push_back(peaks[i].peakpos);
+            TPeakposErr.push_back(peaks[i].peakpos_err);
             TResolution.push_back(peaks[i].resolution);
         }
 
@@ -94,7 +96,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     sprintf(temp, "expo_%d", peaks[0].PMTid);
     TCanvas *c4001 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
-    TGraph* mygraph2 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TPeakpos[0]));
+    TGraphErrors* mygraph2 = new TGraphErrors(TVoltage.size(), &(TVoltage[0]), &(TPeakpos[0]),&(TPeakposErr[0]),0);
 
 
     mygraph2->SetTitle("Calibrazione");
@@ -102,9 +104,9 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     mygraph2->GetYaxis()->SetTitle("Posizione picco[adc count] ");
 
     mygraph2->SetMarkerColor(4);
-    mygraph2->SetMarkerStyle(20);
+//    mygraph2->SetMarkerStyle(20);
     mygraph2->SetMarkerSize(1);
-    mygraph2->Draw("AP");
+    mygraph2->Draw("APE");
 
     TF1* fit_function2 = new TF1("rett2", "TMath::Exp([0]*x+[1])", 1000, 2000);
     fit_function2->SetParameter(0, fit_function->GetParameter(0));

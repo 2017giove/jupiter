@@ -91,6 +91,8 @@
 #define STR_LENGTH 300
 #define BASE_SPAGO 70
 
+
+#define CALIB_FILE "feroci.jpt"
 #define TRIGGER_EDGE "neg"
 //#define THRESH -25 // non ha senso definirlo perche è utile cambiarlo
 
@@ -108,6 +110,8 @@
 
 #define ENERGY_CESIO 663.
 #define MASS_ELECTRON 511.
+
+#define CAESIUM_PEAK 661.7 //kioV
 
 /** -------------------- Exotourbillion Class -------------------- 
  This class is used to analyze code performance using an exclusive Montblanc Rieussec Cronograph.
@@ -192,6 +196,15 @@ struct myPMTconfig {
     float volt;
     float thresh;
     char chname[STR_LENGTH];
+};
+
+/**
+ Working point information: peakpos = e^(Ax+B)
+ */
+struct myPMTcalib {
+    int PMTid;
+    float A;
+    float B;
 };
 
 struct peak {
@@ -427,21 +440,34 @@ void mySetting_print(mySetting *st) {
 void mySetting_histoprint(mySetting *st, int PMTid) {
     char temp[STR_LENGTH];
 
-    int CH = PMTtoCH(PMTid, st);
+    if (PMTid != 0) {
+        int CH = PMTtoCH(PMTid, st);
 
-    sprintf(temp, "PMT %d - data acquired on %s ", st->PmtID[CH], st->date);
-    TText *label1 = new TText();
-    label1->SetNDC();
-    label1->SetTextSize(0.03);
-    label1->DrawText(0.01, 0.04, temp);
+        sprintf(temp, "PMT %d - data acquired on %s ", st->PmtID[CH], st->date);
+        TText *label1 = new TText();
+        label1->SetNDC();
+        label1->SetTextSize(0.03);
+        label1->DrawText(0.01, 0.04, temp);
 
-    sprintf(temp, "Voltage = %2.0f V, Threshold = %2.0f mV", st->voltage[CH], st->thresh[CH]);
+        sprintf(temp, "Voltage = %2.0f V, Threshold = %2.0f mV", st->voltage[CH], st->thresh[CH]);
 
-    TText *label2 = new TText();
-    label2->SetNDC();
-    label2->SetTextSize(0.03);
-    label2->DrawText(0.01, 0.0, temp);
+        TText *label2 = new TText();
+        label2->SetNDC();
+        label2->SetTextSize(0.03);
+        label2->DrawText(0.01, 0.0, temp);
+    } else {
+        sprintf(temp, "Fit complesivo - data acquired on %s ", st->date);
+        TText *label1 = new TText();
+        label1->SetNDC();
+        label1->SetTextSize(0.03);
+        label1->DrawText(0.01, 0.04, temp);
 
+        sprintf(temp, "SANATNAS");
+        TText *label2 = new TText();
+        label2->SetNDC();
+        label2->SetTextSize(0.03);
+        label2->DrawText(0.01, 0.0, temp);
+    }
 }
 
 void mySetting_get(TTree* tset1, mySetting* st) {
@@ -591,7 +617,7 @@ std::vector<int> PMTList(char * filename) {
         std::vector<peak> peaks = peak_load(temp1);
 
         for (int j = 0; j < peaks.size(); j++) {
-            if (PMTisThere(peaks[j].PMTid,myPMTlist) == 0){
+            if (PMTisThere(peaks[j].PMTid, myPMTlist) == 0) {
                 myPMTlist.push_back(peaks[j].PMTid);
             }
         }
@@ -600,17 +626,16 @@ std::vector<int> PMTList(char * filename) {
     return myPMTlist;
 }
 
-bool PMTisThere(int PMTid, std::vector<int> myPMTlist){
-    
-    for (int i=0;i<myPMTlist.size();i++){
-        if (myPMTlist[i] == PMTid){
+bool PMTisThere(int PMTid, std::vector<int> myPMTlist) {
+
+    for (int i = 0; i < myPMTlist.size(); i++) {
+        if (myPMTlist[i] == PMTid) {
             return 1;
         }
     }
-    
+
     return 0;
 }
-
 
 void peak_save(char* wheretosave, peak* mypeak) {
     std::ofstream savefile(wheretosave, std::ios_base::app);
@@ -646,6 +671,53 @@ std::vector<peak> peak_load(char* peaksfile) {
     }
 
     return peaks;
+}
+
+std::vector<myPMTcalib> calib_load(char* calibfile) {
+    std::ifstream myfile1;
+    std::string myline;
+    printf("Calib file read: %s\n", calibfile);
+    myfile1.open(calibfile);
+
+    std::vector<myPMTcalib> calibs;
+
+
+    int i = 0;
+
+    while (std::getline(myfile1, myline)) {
+        myPMTcalib temp;
+        std::istringstream strm(myline);
+        if (strm >> temp.PMTid >> temp.A >> temp.B) {
+            std::cout << i << " " << temp.PMTid << " " << temp.A << " " << temp.B << std::endl;
+            i++;
+            calibs.push_back(temp);
+        } else {
+            printf("(riga ignorata)\n");
+        }
+    }
+
+    return calibs;
+
+}
+
+int PMTidToCalibIndex(int PMTid, std::vector<myPMTcalib> calibs) {
+    int i = NOT_FOUND_INT;
+    for (int k = 0; k < calibs.size(); k++) {
+        if (calibs[k].PMTid == PMTid) {
+            i = k;
+        }
+    }
+
+    return i;
+}
+
+bool isthisfilepublic(const char *fname) {
+    FILE *file;
+    if (file = fopen(fname, "r")) {
+        fclose(file);
+        return 1;
+    }
+    return 0;
 }
 
 #ifndef DEFINES_H
