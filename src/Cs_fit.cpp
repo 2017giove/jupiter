@@ -21,7 +21,7 @@ int GetMinimumBin(TH1D* hist, int from, int to);
 void Cs_fit();
 struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid);
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
-void PMTRangeLT(char * capturename, int PMTid) ;
+void PMTRangeLT(char * capturename, int PMTid);
 //void Cs_fit(char* src_name);
 
 /**
@@ -67,7 +67,7 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
  * Massimi locali
  */
 
- std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
+std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     std::vector<float> myMaxs;
     std::vector<int> myMaxsX;
 
@@ -577,12 +577,18 @@ void PMTRangeLT(char * capturename, int PMTid) {
     std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
 
     //  gStyle->SetOptFit(1111);
-    sprintf(rottentemp, "data/%s_%d.eps",capturename,PMTid);
+    sprintf(rottentemp, "data/%s_%d.root", capturename, PMTid);
     TFile *FOut = new TFile(rottentemp, "UPDATE");
     TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
 
+    c41->SetLogy();
+
+
     TGraph * confPlot = new TGraph();
     TGraph * confPlotProblematic = new TGraph();
+
+    confPlot->GetYaxis()->SetRange(0, 200);
+    confPlotProblematic->GetYaxis()->SetRange(0, 200);
 
     confPlotProblematic->SetMarkerColor(kRed);
     confPlot->SetMarkerStyle(8);
@@ -625,14 +631,14 @@ void PMTRangeLT(char * capturename, int PMTid) {
     confPlot->Write("lollo");
     confPlotProblematic->Write("lollo");
 
-    
-    
-    sprintf(rottentemp, "Risoluzione - PMT %d",PMTid);
+
+
+    sprintf(rottentemp, "Risoluzione - PMT %d", PMTid);
     confPlot->SetTitle(rottentemp);
     confPlot->GetXaxis()->SetTitle("Tensione (V)");
     confPlot->GetYaxis()->SetTitle("Soglia Trigger (-mV)");
 
-    sprintf(rottentemp, "img/%s_%d.eps",capturename,PMTid);
+    sprintf(rottentemp, "img/%s_%d.eps", capturename, PMTid);
     c41->SaveAs(rottentemp);
     c41->Write();
     FOut->Close();
