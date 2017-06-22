@@ -56,7 +56,7 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
         if (currentmin < min) {
             min = currentmin;
             imin = i;
-         //   printf("%d\t%d\n", imin, currentmin);
+            //   printf("%d\t%d\n", imin, currentmin);
         }
 
     }
@@ -103,7 +103,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     }
 
     float windowSize = ultimoSopraX * 0.05;
-  //  printf("windowsize %f\n", windowSize);
+    //  printf("windowsize %f\n", windowSize);
 
 
     for (i = from; i < to; i++) {
@@ -129,7 +129,7 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 
         }
         nearmeL[i] /= (float) nsumL;
-      //  printf("nearme %d\t%f\t%f\t%f\n", i, hist->GetBinContent(i), nearmeL[i], nearmeR[i]);
+        //  printf("nearme %d\t%f\t%f\t%f\n", i, hist->GetBinContent(i), nearmeL[i], nearmeR[i]);
     }
 
 
@@ -161,17 +161,17 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
                 myMaxsX.push_back(cpos);
                 cmax = 0;
                 cpos = 0;
-            //    printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
+                //    printf("csono %d\t%d\t%f\t%f\t%f\n", i, cpos, cmax, nearmeL[cpos], nearmeR[cpos]);
             }
 
         }
     }
 
 
-   // printf("media %f\n", media);
+    // printf("media %f\n", media);
     for (i = 0; i < myMaxs.size(); i++) {
 
-     //   printf("sono %d\t%d\n", myMaxsX[i], myMaxs[i]);
+        //   printf("sono %d\t%d\n", myMaxsX[i], myMaxs[i]);
 
     }
 
@@ -659,16 +659,21 @@ void Cs_getPeakTot(char*src_name) {
     TTree* tset1 = (TTree*) sorgente_file->Get("tset");
     mySetting_get(tset1, &st);
 
+
+    char fileOUT[STR_LENGTH];
+    strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
+    TFile *FOut = new TFile(fileOUT, "UPDATE");
+
     char tname[STR_LENGTH];
     sprintf(tname, "hctot");
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
     if (h1 != nullptr) {
-    sprintf(tname, "img/%s_tot_csfit.eps", filenameFromPath(src_name).c_str());
-    printf("Salva in %s\n", tname);
-    mypeak = Cs_fit(h1, tname, &st, 0);
-
-    }else {
+        sprintf(tname, "img/%s_tot_csfit.eps", filenameFromPath(src_name).c_str());
+        printf("Salva in %s\n", tname);
+        mypeak = Cs_fit(h1, tname, &st, 0);
+        h1->Write();
+    } else {
         printf("\nBOMB! Big Histofrish doesn't exist!!\n");
     }
 
@@ -695,7 +700,9 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     sprintf(tname, "h%d", PMTid);
 
     //
-
+    char fileOUT[STR_LENGTH];
+    strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
+    TFile *FOut = new TFile(fileOUT, "UPDATE");
 
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
@@ -713,6 +720,8 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
         mypeak.IA = mypeak.resolution / TMath::Sqrt(mypeak.peakvalue * mypeak.sigma);
 
         peak_save(wheretosave, &mypeak);
+
+        h1->Write();
     } else {
         printf("\nBOMB! Histofrish doesn't exist!!\n");
     }
@@ -809,11 +818,11 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
     // printf("\nxmax=%f\n", Xmax);
 
     float Xwindow = 3.8; // larghezza su cui eseguire a occhio il fit gaussiano rispetto a xmax rilevato
-    
-    if (PMTid==0){
-        Xwindow=150;
+
+    if (PMTid == 0) {
+        Xwindow = 150;
     }
-    
+
     float Ymax = h1->GetBinContent(maxBin);
 
 
