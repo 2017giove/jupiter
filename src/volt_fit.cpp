@@ -39,9 +39,11 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     std::vector<float> TVoltage;
     std::vector<float> TPeakpos;
-        std::vector<float> TPeakposErr;
+    std::vector<float> TPeakposErr;
     std::vector<float> TPeakposLog;
+    std::vector<float> TPeakposLogErr;
     std::vector<float> TResolution;
+    std::vector<float> TResolutionErr;
 
     for (i = 0; i < peaks.size(); i++) {
 
@@ -53,9 +55,12 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
         } else {
             TVoltage.push_back(peaks[i].voltage);
             TPeakposLog.push_back(TMath::Log(peaks[i].peakpos));
+            TPeakposLogErr.push_back(peaks[i].peakpos_err/peaks[i].resolution);
             TPeakpos.push_back(peaks[i].peakpos);
             TPeakposErr.push_back(peaks[i].peakpos_err);
             TResolution.push_back(peaks[i].resolution);
+            TResolutionErr.push_back(peaks[i].resolution*TMath::Sqrt(((peaks[i].sigma_err)/peaks[i].sigma)*((peaks[i].sigma_err)/peaks[i].sigma) + (peaks[i].sigma/peaks[i].peakpos)*(peaks[i].sigma/peaks[i].peakpos) ));
+         //   TResolutionErr.push_back(peaks[i].resolution*TMath::Sqrt(((peaks[i].sigma_err)/peaks[i].sigma)*((peaks[i].sigma_err)/peaks[i].sigma) + (peaks[i].peakpos_err/peaks[i].peakpos)*(peaks[i].peakpos_err/peaks[i].peakpos) ));
         }
 
 
@@ -64,10 +69,10 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     sprintf(temp, "linear_%d", peaks[0].PMTid);
     TCanvas *c40 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
     c40->SetFillColor(10);
-    c40->SetGrid();
+    //  c40->SetGrid();
     gStyle->SetOptFit(1111);
 
-    TGraph* mygraph1 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TPeakposLog[0]));
+    TGraphErrors* mygraph1 = new TGraphErrors(TVoltage.size(), &(TVoltage[0]), &(TPeakposLog[0]), 0, &(TPeakposLogErr[0]));
 
     sprintf(temp, "linear_%d", peaks[0].PMTid);
     mygraph1->SetName(temp);
@@ -77,9 +82,9 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     mygraph1->GetYaxis()->SetTitle("Log(posizione picco[adc count]) ");
 
     mygraph1->SetMarkerColor(4);
-    mygraph1->SetMarkerStyle(20);
-    mygraph1->SetMarkerSize(1);
-    mygraph1->Draw("AP");
+    //mygraph1->SetMarkerStyle(20);
+    mygraph1->SetMarkerSize(4);
+    mygraph1->Draw("APE");
 
 
     TF1* fit_function = new TF1("retta", "[0]*x+[1]", 1000, 2000);
@@ -96,7 +101,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     sprintf(temp, "expo_%d", peaks[0].PMTid);
     TCanvas *c4001 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
-    TGraphErrors* mygraph2 = new TGraphErrors(TVoltage.size(), &(TVoltage[0]), &(TPeakpos[0]),&(TPeakposErr[0]),0);
+    TGraphErrors* mygraph2 = new TGraphErrors(TVoltage.size(), &(TVoltage[0]), &(TPeakpos[0]), 0, &(TPeakposErr[0]));
 
 
     mygraph2->SetTitle("Calibrazione");
@@ -104,7 +109,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     mygraph2->GetYaxis()->SetTitle("Posizione picco[adc count] ");
 
     mygraph2->SetMarkerColor(4);
-//    mygraph2->SetMarkerStyle(20);
+    //    mygraph2->SetMarkerStyle(20);
     mygraph2->SetMarkerSize(1);
     mygraph2->Draw("APE");
 
@@ -119,7 +124,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     sprintf(temp, "resol%s_%d", acqname, peaks[0].PMTid);
     TCanvas *c402 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
-    TGraph* mygraph3 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TResolution[0]));
+    TGraphErrors* mygraph3 = new TGraphErrors(TVoltage.size(), &(TVoltage[0]), &(TResolution[0]), 0,&(TResolutionErr[0]));
 
     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E #sqrt{N}}");
     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E}");
@@ -127,7 +132,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     mygraph3->GetYaxis()->SetTitle("Risoluzione [#sigma/E] ");
 
     mygraph3->SetMarkerColor(4);
-    mygraph3->SetMarkerStyle(20);
+    // mygraph3->SetMarkerStyle(20);
     mygraph3->SetMarkerSize(1);
     mygraph3->Draw("AP");
     c402->Write();

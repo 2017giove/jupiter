@@ -1067,8 +1067,10 @@ struct peak Cs_fit(TH1D* h1, std::string savepath, mySetting* st, int PMTid) {
 
     mypeak.peakvalue = fitmax->Eval(mypeak.peakpos);
     float nTOT = h1->Integral(h1->GetXaxis()->FindBin(mypeak.peakpos - mypeak.sigma), h1->GetXaxis()->FindBin(mypeak.peakpos + mypeak.sigma));
+
+    // lasciato al lettore volenteroso <<<<<
     mypeak.nSGN = fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
-    mypeak.nBG = nTOT - fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
+    mypeak.nBG = nTOT - mypeak.nSGN;
 
 
     float resolution = mypeak.sigma / mypeak.peakpos;

@@ -173,7 +173,7 @@ void WaveProfile() {
             printStatus((float) jentry / (float) nentries);
 
         }
-        printf("Ho impiegato %lf\n\n", Rieussec->TotalUsedInk());
+        printf("\nHo impiegato %lf\n\n", Rieussec->TotalUsedInk());
 
         // ananas inutile
         //        int jj = sprofh->GetNbinsY();
@@ -199,9 +199,10 @@ void WaveProfile() {
         //        aaaa->Draw( "same"   );
 
         int col = 1;
-        for (int ii = 10; ii < 200; ii += 10) {
+        //Qual è l'intervallo che ci interessa???
+        for (int ii = 10; ii < 40; ii += 5) {
             sprintf(tname, "x%d", ii);
-            TProfile *a = sprofh->ProfileX(tname, ii, ii + 10);
+            TProfile *a = sprofh->ProfileX(tname, ii, ii + 5);
             //a->SetLineColor(ii + 1);
             // a->SetLineWidth(7);
             a->SetMarkerStyle(8);
