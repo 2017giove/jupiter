@@ -55,7 +55,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
         } else {
             TVoltage.push_back(peaks[i].voltage);
             TPeakposLog.push_back(TMath::Log(peaks[i].peakpos));
-            TPeakposLogErr.push_back(peaks[i].peakpos_err/peaks[i].resolution);
+            TPeakposLogErr.push_back(peaks[i].resolution);
             TPeakpos.push_back(peaks[i].peakpos);
             TPeakposErr.push_back(peaks[i].peakpos_err);
             TResolution.push_back(peaks[i].resolution);

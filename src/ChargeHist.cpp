@@ -106,9 +106,14 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
 
     for (CH = 0; CH < st.Nchan; CH++) {
         cPMT = CHtoPMT(CH, &st);
-        int calibIndex = PMTidToCalibIndex(cPMT, calibs);
-        double scalingAnanas = CAESIUM_PEAK / TMath::Exp(calibs[calibIndex].A * st.voltage[CH] + calibs[calibIndex].B);
+        int calibIndex=-1; 
+        double scalingAnanas = -1;
 
+        if(amIcalibratedFish){
+            calibIndex = PMTidToCalibIndex(cPMT, calibs);
+            scalingAnanas  = CAESIUM_PEAK / TMath::Exp(calibs[calibIndex].A * st.voltage[CH] + calibs[calibIndex].B);
+        }
+        
         sprintf(tname, "t%d", cPMT);
         t1 = (TTree*) f->Get(tname);
         sprintf(tname, "tbase%d", cPMT);
