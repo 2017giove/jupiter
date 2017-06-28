@@ -79,13 +79,13 @@
 #define ERROR_CRUCIAL "Call a qualified expert: 27th Alpes Ave, view on Caprera Circus and all of Rome."
 #define ERROR_DEEPER "THERE IS A PROBLEM AND IT IS DEEPER."
 #define ERROR_FISHERMAN "We did not find what you were looking for: the fish escaped the net."
-#define NOT_FOUND_INT -241
-#define NOT_CARING_INT 433
-#define NOT_GOODFISHERMAN 234
-#define NOT_CREDIBLE 233
-#define NOT_PROBABLE 232
-#define NOT_COMPTON 231
-#define NOT_FOUND_MAX 235
+#define NOT_FOUND_INT -241      // il PMT non è stato acquisito 
+#define NOT_CARING_INT 433      // valore impostato di default (valore di zero)
+#define NOT_GOODFISHERMAN 234   // troppo pochi dati
+#define NOT_CREDIBLE 233        //risoluzione troppo piccola
+#define NOT_PROBABLE 232        // probabilità del fit troppo bassa
+#define NOT_COMPTON 231         // manca la spalla compton
+#define NOT_FOUND_MAX 235       // non si ha nessun picco buono nel grafico (siamo sicuri che sia cesio e non potassio?)
 #define NOT_CARING_STRING "Blessed are they who hold lively conversations with the helplessly mute, for they shall be called dentists."
 #define EXT_ROOT ".root"
 #define STR_LENGTH 300
