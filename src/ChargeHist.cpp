@@ -161,7 +161,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         c40->SaveAs(tname);
 
         if (amIcalibratedFish && (calibIndex != NOT_FOUND_INT)) {
-
+            h2->Rebin(4);
             h2->GetXaxis()->SetTitle("keV");
             h2->GetYaxis()->SetTitle("# eventi");
             h2->Write();

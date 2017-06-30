@@ -44,7 +44,7 @@
 #include "TStyle.h"
 
 #include "TLatex.h"
-
+#include "TPaveStats.h"
 #include "TVector.h"
 
 #include "TRint.h"
@@ -456,7 +456,7 @@ void mySetting_histoprint(mySetting *st, int PMTid) {
         label2->SetTextSize(0.03);
         label2->DrawText(0.01, 0.0, temp);
     } else {
-        sprintf(temp, "Fit complesivo - data acquired on %s ", st->date);
+        sprintf(temp, "Fit complessivo - data acquired on %s ", st->date);
         TText *label1 = new TText();
         label1->SetNDC();
         label1->SetTextSize(0.03);

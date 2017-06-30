@@ -29,7 +29,7 @@
 #include <windows.h>
 
 #elif defined(OS_LINUX)
-
+ 
 #define O_BINARY 0
 
 #include <unistd.h>

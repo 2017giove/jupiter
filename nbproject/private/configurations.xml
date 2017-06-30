@@ -2,10 +2,6 @@
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
-      <df name="arduino">
-        <df name="temperatura">
-        </df>
-      </df>
       <df name="data">
       </df>
       <df name="img">
@@ -34,6 +30,8 @@
         <in>strlcpy.h</in>
       </df>
       <df name="src">
+        <df name="arduino">
+        </df>
         <in>.c</in>
         <in>AboutDialog.cpp</in>
         <in>ChargeHist.cpp</in>
@@ -79,17 +77,6 @@
         <in>up.xpm</in>
         <in>volt_fit.cpp</in>
       </df>
-      <df name="thermoexample">
-      </df>
-      <in>AutoDict_random_access_iterator_myHVchannel_long_.cxx</in>
-      <in>AutoDict_random_access_iterator_myPMTcalib_long_.cxx</in>
-      <in>AutoDict_random_access_iterator_myPMTconfig_long_.cxx</in>
-      <in>AutoDict_random_access_iterator_peak_long_.cxx</in>
-      <in>AutoDict_vector_myHVchannel_.cxx</in>
-      <in>AutoDict_vector_myPMTcalib_.cxx</in>
-      <in>AutoDict_vector_myPMTconfig_.cxx</in>
-      <in>AutoDict_vector_peak_.cxx</in>
-      <in>AutoDict_vector_structmyPMTconfig_.cxx</in>
       <in>ChargeHist_RUN.c</in>
       <in>Cs_fit_RUN.c</in>
       <in>WaveformCharge_RUN.c</in>
