@@ -42,6 +42,7 @@
 #include "TSystem.h"
 #include "TBranch.h"
 #include "TStyle.h"
+#include "TBrowser.h"
 
 #include "TLatex.h"
 #include "TPaveStats.h"
@@ -291,13 +292,28 @@ std::string appendToRootFilename(const char* filename, const char* suffix) {
     return _final;
 }
 
-std::string filenameFromPath(const char*filename) {
-    std::string _final = filename;
+std::string filenameFromPath(const char*filepath) {
+    std::string _final = filepath;
     std::string _extension = EXT_ROOT;
     _final = _final.substr(_final.find_last_of("/") + 1);
     _final = _final.replace(_final.find(_extension), _extension.length(), "");
     return _final;
 
+}
+
+std::string acqnameFromPath(const char*filename) {
+    std::string _final = filename;
+    std::string _extension = EXT_ROOT;
+    _final = _final.substr(_final.find_last_of("/") + 1);
+    
+    int last_ = _final.find_first_of("_");
+    printf("First index %d\nString is %s\n",last_, _final.c_str());
+    if (last_ >0) {
+        _final = _final.substr(0, last_);
+    }else{
+        _final = _final.replace(_final.find(_extension), _extension.length(), "");
+    }
+    return _final;
 }
 
 void printStatus(float progress) {
@@ -438,6 +454,8 @@ void mySetting_print(mySetting *st) {
     }
 
 }
+
+
 
 void mySetting_histoprint(mySetting *st, int PMTid) {
     char temp[STR_LENGTH];
@@ -621,7 +639,7 @@ std::vector<int> PMTList(char * filename) {
         for (int j = 0; j < peaks.size(); j++) {
             if (PMTisThere(peaks[j].PMTid, myPMTlist) == 0) {
                 myPMTlist.push_back(peaks[j].PMTid);
-                printf("new pmt %d\n",peaks[j].PMTid);
+                printf("new pmt %d\n", peaks[j].PMTid);
             }
         }
     }
@@ -721,7 +739,7 @@ bool isthisfilepublic(const char *fname) {
 
         return 1;
     }
-       
+
     return 0;
 }
 

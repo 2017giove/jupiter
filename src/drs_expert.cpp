@@ -60,12 +60,13 @@
 
 
 #include "HVPowerSupply.h"
-#include "CAENHVWrapper.h"
+#include "CAENHVWrapper.h" 
 
 
 #include "volt_fit.cpp"
 #include "ChargeHist.cpp"
 #include "Cs_fit.cpp"
+#include "Waveform.cpp"
 #include "drs_menu.cpp"
 
 #include "defines.h"
@@ -81,9 +82,15 @@ float getTriggerSource(myEvent *ev, mySetting *st);
 void startCapture(char* fileName, mySetting cset);
 void preCalibra(char* fileName, mySetting cset);
 void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
+
 void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
-void LolFit(char* capturename);
 void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
+void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
+void Web_analyze(char* capturename) ;
+void Calibra_analyze(char* capturename) ;
+void preCalibra_analyze(char* capturename);
+void LolFit(char* capturename);
+void PMTRangeLT(char * capturename, int PMTid);
 
 int main(int argc, char* argv[]) {
 
@@ -95,13 +102,13 @@ int main(int argc, char* argv[]) {
     std::string tempstring;
     for (int j; j < argc; j++) {
         tempstring = argv[j];
-        printf("%d %s \n", j, tempstring.c_str());
+      //  printf("%d %s \n", j, tempstring.c_str());
         myArgs.push_back(tempstring);
     }
 
     // MENU PRINCIPALE (senza argomenti)
     if (argc == 1) {
-       // mainmenu();
+        mainmenu();
         return 0;
     }
 
@@ -111,7 +118,7 @@ int main(int argc, char* argv[]) {
         std::string argext = myArgs[1].substr(myArgs[1].length() - 4);
 
         if (!strcmp(argext.c_str(), "root")) {
-           // filemenu(myArgs[1].c_str());
+           filemenu(myArgs[1].c_str());
         }
         return 0;
     }
@@ -125,7 +132,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-
+ 
     //COMANDI PER ANALISI DATI
     if (strcmp(myArgs[1].c_str(), "analyze_precalib") == 0) {
 
@@ -246,61 +253,7 @@ int main(int argc, char* argv[]) {
 
 
         return 0;
-
-
-
-
     }
-
-
-
-
-
-
-    //    if (argc < 8) {
-    //        cout << argv[0] << ": Usage" << endl;
-    //        cout << argv[0] << " filename " << endl;
-    //        cout << "          deltaT   : time of the experiment in s" << endl;
-    //        cout << "          nchan : number of channels to acquire [1-4]" << endl;
-    //        cout << "          delay    : Trigger delay in ns" << endl; //<<--- ATTENZIONE: è veramente il tempo morto, o forse il ritardo del trigger (da quando far partire l'acquisizione???
-    //        cout << "          thresh   : Threshold in mV" << endl;
-    //        cout << "          source   : trigger source 1=ch1, 2=ch2, 3=ch1 or ch2" << endl;
-    //        cout << "          Voltage  : Voltage of PMT" << endl;
-    //        cout << "          PMT      : ID number of the crystal, put one for each channel specified in nchan" << endl;
-    //        //                              nome    DT  # del thr src V    pmtIDs
-    //        cout << " Example: drs_jupiter filename 300 1 900  25  1  1500 500" << endl;
-    //        //                                 1    2   3  4   5   6   7   8 -9-10-11
-    //        return 0;
-    //    }
-    //
-    //    printf("Loading settings...\n");
-    //
-    //    int i;
-    //
-    //    int maxchan = atoi(argv[3]);
-    //    /* Lettura impostazioni     */
-    //    mySetting cset;
-    //    allocateSetting(&cset, maxchan);
-    //
-    //    char *fileName = argv[1];
-    //
-    //    cset.deltaT = atoi(argv[2]);
-    //
-    //    cset.Nchan = maxchan;
-    //    cset.delayns = atoi(argv[4]);
-    //    int triggerSource = atoi(argv[6]);
-    //
-    //    printf("Canali da acquisire\n");
-    //
-    //    for (i = 0; i < maxchan; i++) {
-    //        cset.voltage[i] = atof(argv[7]);
-    //        cset.thresh[i] = -atof(argv[5]); //attenzione al segno -
-    //        //cset.thresh = -100.; //2*Voltage*THRESH/1200;
-    //        cset.PmtID[i] = atoi(argv[i + 8]);
-    //        printf("%d\n", cset.PmtID[i]);
-    //    }
-    //
-    //    
 
 }
 
@@ -368,118 +321,6 @@ void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels
     } while (isready == 0);
     printf("Ready to land in the spacetime continuum.\n");
     delete dev;
-}
-
-void preCalibra(char* fileName, mySetting cset) {
-    printf("He is washing his fountain pen...\n");
-    int thresh;
-    char tmp[STR_LENGTH];
-    float frac[MAXCH];
-
-    for (int i = 0; i < cset.Nchan; i++) {
-        frac[i] = cset.thresh[i] / 4;
-    }
-
-    for (int k = 1; k < 7; k++) {
-
-        for (int i = 0; i < cset.Nchan; i++) {
-            cset.thresh[i] = frac[i] * k;
-        }
-
-        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], k);
-
-        char temp2[STR_LENGTH];
-        sprintf(temp2, "%s.root", tmp);
-        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
-        if (myrottenfish.size() == 0) {
-            startCapture(tmp, cset);
-        } else {
-            printf("You already acquired %s.\n", tmp);
-        }
-    }
-
-
-    for (int k = 1; k <= 4; k++) {
-
-        for (int i = 0; i < cset.Nchan; i++) {
-            cset.thresh[i] = frac[i]*4 * k;
-        }
-
-        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], 4 * k);
-
-        char temp2[STR_LENGTH];
-        sprintf(temp2, "%s.root", tmp);
-        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
-        if (myrottenfish.size() == 0) {
-            startCapture(tmp, cset);
-        } else {
-            printf("You already acquired %s.\n", tmp);
-        }
-    }
-
-    preCalibra_analyze(fileName);
-
-}
-
-void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels) {
-    mySetting_print(&cset);
-    initHV(myPMTs, myChannels);
-    char tmp[STR_LENGTH];
-    sprintf(tmp, "%s.web", fileName);
-    startCapture(tmp, cset);
-
-    Web_analyze(fileName);
-
-}
-
-void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels) {
-    printf("He is filling his fountain pen again...\n");
-
-    char tmp[STR_LENGTH];
-    sprintf(tmp, "data/%s.besttrigger", fileName);
-    std::vector<peak> peaks = peak_load(tmp);
-
-
-
-
-    for (int volt = 1500; volt < 1900; volt += 50) {
-
-        for (int i = 0; i < cset.Nchan; i++) {
-
-
-            // find pmt position in peaks file from pmt id
-            int j = NOT_FOUND_INT;
-            for (int k = 0; k < peaks.size(); k++) {
-                if (peaks[k].PMTid == CHtoPMT(i, &cset)) {
-                    j = k;
-                }
-            }
-
-            myPMTs[i].volt = volt;
-            cset.voltage[i] = volt;
-            cset.thresh[i] = peaks[j].thresh * volt / peaks[j].voltage;
-            printf("Soglia a %f\n", cset.thresh[i]);
-        }
-
-
-        initHV(myPMTs, myChannels);
-
-        sprintf(tmp, "%s_%d.cal", fileName, (int) cset.voltage[0]);
-        // printf("%s_%d.cal", fileName, (int) cset.voltage[0]);
-
-        char temp2[STR_LENGTH];
-        sprintf(temp2, "%s.root", tmp);
-        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
-        if (myrottenfish.size() == 0) {
-            startCapture(tmp, cset);
-        } else {
-            printf("You already acquired %s.\n", tmp);
-        }
-    }
-
-
-    Calibra_analyze(fileName);
-
 }
 
 void startCapture(char* fileName, mySetting cset) {
@@ -780,4 +621,482 @@ float getTriggerSource(myEvent *ev, mySetting *st) {
 
 
 
+
+
+
+
+
+
+
+
+// ****************************************************************
+// EXPERT's SQUARE
+
+
+
+
+void preCalibra(char* fileName, mySetting cset) {
+    printf("He is washing his fountain pen...\n");
+    int thresh;
+    char tmp[STR_LENGTH];
+    float frac[MAXCH];
+
+    for (int i = 0; i < cset.Nchan; i++) {
+        frac[i] = cset.thresh[i] / 4;
+    }
+
+    for (int k = 1; k < 7; k++) {
+
+        for (int i = 0; i < cset.Nchan; i++) {
+            cset.thresh[i] = frac[i] * k;
+        }
+
+        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], k);
+
+        char temp2[STR_LENGTH];
+        sprintf(temp2, "%s.root", tmp);
+        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
+        if (myrottenfish.size() == 0) {
+            startCapture(tmp, cset);
+        } else {
+            printf("You already acquired %s.\n", tmp);
+        }
+    }
+
+
+    for (int k = 1; k <= 4; k++) {
+
+        for (int i = 0; i < cset.Nchan; i++) {
+            cset.thresh[i] = frac[i]*4 * k;
+        }
+
+        sprintf(tmp, "%s_%d_%d.th", fileName, (int) cset.voltage[0], 4 * k);
+
+        char temp2[STR_LENGTH];
+        sprintf(temp2, "%s.root", tmp);
+        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
+        if (myrottenfish.size() == 0) {
+            startCapture(tmp, cset);
+        } else {
+            printf("You already acquired %s.\n", tmp);
+        }
+    }
+
+    preCalibra_analyze(fileName);
+
+}
+
+void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels) {
+    mySetting_print(&cset);
+    initHV(myPMTs, myChannels);
+    char tmp[STR_LENGTH];
+    sprintf(tmp, "%s.web", fileName);
+    startCapture(tmp, cset);
+
+    Web_analyze(fileName);
+
+}
+
+void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels) {
+    printf("He is filling his fountain pen again...\n");
+
+    char tmp[STR_LENGTH];
+    sprintf(tmp, "data/%s.besttrigger", fileName);
+    std::vector<peak> peaks = peak_load(tmp);
+
+
+
+
+    for (int volt = 1500; volt < 1900; volt += 50) {
+
+        for (int i = 0; i < cset.Nchan; i++) {
+
+
+            // find pmt position in peaks file from pmt id
+            int j = NOT_FOUND_INT;
+            for (int k = 0; k < peaks.size(); k++) {
+                if (peaks[k].PMTid == CHtoPMT(i, &cset)) {
+                    j = k;
+                }
+            }
+
+            myPMTs[i].volt = volt;
+            cset.voltage[i] = volt;
+            cset.thresh[i] = peaks[j].thresh * volt / peaks[j].voltage;
+            printf("Soglia a %f\n", cset.thresh[i]);
+        }
+
+
+        initHV(myPMTs, myChannels);
+
+        sprintf(tmp, "%s_%d.cal", fileName, (int) cset.voltage[0]);
+        // printf("%s_%d.cal", fileName, (int) cset.voltage[0]);
+
+        char temp2[STR_LENGTH];
+        sprintf(temp2, "%s.root", tmp);
+        std::vector<std::string> myrottenfish = list_files("data/", temp2, "");
+        if (myrottenfish.size() == 0) {
+            startCapture(tmp, cset);
+        } else {
+            printf("You already acquired %s.\n", tmp);
+        }
+    }
+
+
+    Calibra_analyze(fileName);
+
+}
+
+
+
+
+
+//Si abilita con 
+//  su 
+//  setenforce 0
+// da terminale, poi si può acquisire dal sito http://lxsfera.roma1.infn.it
+
+void Web_analyze(char* capturename) {
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+    // Rimuove i file vecchi eventualmente presenti
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".RAW.root");
+    removeFileList(myrottenfish);
+
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histoweb.root");
+    removeFileList(myrottenhist);
+
+
+
+    // Cerca tutti i file appartenenti alla presa dati indicata
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myfiles = list_files("data/", capturename, ".web.root");
+
+    // Crea istogramma carica
+    for (int i = 0; i < myfiles.size(); i++) {
+        sprintf(capturename_, "data/%s", myfiles[i].c_str());
+        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        ChargeHist(capturename_, ".histoweb");
+    }
+
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histoweb.root");
+
+    for (int i = 0; i < myHistfiles.size(); i++) {
+
+        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
+        TFile *sorgente_file = TFile::Open(temp1);
+
+        mySetting st;
+        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+        mySetting_get(tset1, &st);
+
+        for (int j = 0; j < st.Nchan; j++) {
+            int PMTid = CHtoPMT(j, &st);
+            int voltage = st.voltage[j];
+            sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
+            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
+            Cs_getPeak(temp1, PMTid, temp2);
+        }
+
+
+    }
+    printf("Esecuzione terminata\n");
+}
+
+
+void Calibra_analyze(char* capturename) {
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+    // Rimuove i file vecchi eventualmente presenti
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".calfish");
+    removeFileList(myrottenfish);
+
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histcal.root");
+    removeFileList(myrottenhist);
+
+    std::vector<std::string> myrottencal = list_files("data/", capturename, ".bestcal");
+    removeFileList(myrottencal);
+
+    std::vector<std::string> myrottenia = list_files("data/", capturename, ".bestcal.ia");
+    removeFileList(myrottenia);
+
+
+
+    // Cerca tutti i file appartenenti alla presa dati indicata
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myfiles = list_files("data/", capturename, ".cal.root");
+
+    // Crea istogramma carica
+    for (int i = 0; i < myfiles.size(); i++) {
+        sprintf(capturename_, "data/%s", myfiles[i].c_str());
+        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        ChargeHist(capturename_, ".histcal");
+    }
+
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histcal.root");
+
+    char tempfpath[STR_LENGTH];
+    for (int i = 0; i < myHistfiles.size(); i++) {
+        sprintf(tempfpath, "data/%s", myHistfiles[i].c_str());
+        Cs_fitall(tempfpath);
+    }
+
+    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myFish = list_files("data/", capturename, ".calfish");
+
+    char tempf[STR_LENGTH];
+    char tempf2[STR_LENGTH];
+    for (int f = 0; f < myFish.size(); f++) {
+        sprintf(tempf, "data/%s", myFish[f].c_str());
+        sprintf(tempf2, "data/%s.bestcal", capturename);
+        volt_fit(tempf, tempf2, capturename);
+    }
+
+
+}
+
+
+
+void preCalibra_analyze(char* capturename) {
+
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+
+    // Rimuove i file vecchi eventualmente presenti
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".fish");
+    removeFileList(myrottenfish);
+
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histprec.root");
+    removeFileList(myrottenhist);
+
+    std::vector<std::string> myrottentrigger = list_files("data/", capturename, ".besttrigger");
+    removeFileList(myrottentrigger);
+
+    std::vector<std::string> myrottenia = list_files("data/", capturename, ".besttrigger.ia");
+    removeFileList(myrottenia);
+
+
+
+    // Cerca tutti i file appartenenti alla presa dati indicata
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myfiles = list_files("data/", capturename, ".th.root");
+
+    // Crea istogramma carica
+    for (int i = 0; i < myfiles.size(); i++) {
+        sprintf(capturename_, "data/%s", myfiles[i].c_str());
+        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        ChargeHist(capturename_, ".histprec");
+    }
+
+    // Fit con CsFit (CESIO) >> Mette i valori del picco in un file
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histprec.root");
+
+
+    for (int i = 0; i < myHistfiles.size(); i++) {
+        //riscrivere utilizzand Cs fit, senza dover riscrivere lo stesso codice
+        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
+        TFile *sorgente_file = TFile::Open(temp1);
+
+        mySetting st;
+        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+        mySetting_get(tset1, &st);
+
+        for (int j = 0; j < st.Nchan; j++) {
+            int PMTid = CHtoPMT(j, &st);
+            int voltage = st.voltage[j];
+            sprintf(temp2, "data/%s_%d_%d.fish", capturename, voltage, PMTid);
+            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
+            Cs_getPeak(temp1, PMTid, temp2);
+        }
+
+
+
+    }
+
+    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
+
+    char tempf[STR_LENGTH];
+    char tempf2[STR_LENGTH];
+    for (int f = 0; f < myFish.size(); f++) {
+        sprintf(tempf, "data/%s", myFish[f].c_str());
+        sprintf(tempf2, "data/%s.besttrigger", capturename);
+        bestresolution_find(tempf, tempf2);
+    }
+
+}
+
+/**
+ * [press a button an dream - don't even say a word]
+ * Analizza automaticamente una serie di dati relativa all'acquisizione con nome capturenae
+ * @param capturename
+ */
+
+
+void LolFit(char* capturename) {
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+
+    // Rimuove i file vecchi eventualmente presenti
+    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".calfish");
+    removeFileList(myrottenfish);
+
+    std::vector<std::string> myrottenhist = list_files("data/", capturename, "0hist.root");
+    removeFileList(myrottenhist);
+
+    std::vector<std::string> myrottencal = list_files("data/", capturename, ".bestcal");
+    removeFileList(myrottencal);
+
+
+    // Cerca tutti i file appartenenti alla presa dati indicata
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myfiles = list_files("data/", capturename, "0.root");
+
+    // Crea istogramma carica
+    for (int i = 0; i < myfiles.size(); i++) {
+        sprintf(capturename_, "data/%s", myfiles[i].c_str());
+        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        ChargeHist(capturename_, "0hist");
+    }
+
+
+    // sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myHistfiles = list_files("data/", capturename, "0hist.root");
+
+    for (int i = 0; i < myHistfiles.size(); i++) {
+
+        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
+        TFile *sorgente_file = TFile::Open(temp1);
+
+        mySetting st;
+        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+        mySetting_get(tset1, &st);
+
+        for (int j = 0; j < st.Nchan; j++) {
+            int PMTid = CHtoPMT(j, &st);
+            int voltage = st.voltage[j];
+            sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
+            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
+            Cs_getPeak(temp1, PMTid, temp2);
+        }
+        Cs_fitsumofchannels(temp1);
+
+    }
+
+
+    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
+    //  sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myFish = list_files("data/", capturename, ".calfish");
+
+    char tempf[STR_LENGTH];
+    char tempf2[STR_LENGTH];
+    for (int f = 0; f < myFish.size(); f++) {
+        sprintf(tempf, "data/%s", myFish[f].c_str());
+        sprintf(tempf2, "data/%s.bestcal", capturename);
+        volt_fit(tempf, tempf2, capturename);
+    }
+
+
+
+}
+
+
+
+void PMTRangeLT(char * capturename, int PMTid) {
+
+    char capturename_[STR_LENGTH];
+    char temp1[STR_LENGTH];
+    char temp2[STR_LENGTH];
+    char rottentemp[STR_LENGTH];
+
+
+    sprintf(capturename_, "%s_", capturename);
+    std::vector<std::string> myFish = list_files("data/", capturename, "fish");
+
+    //  gStyle->SetOptFit(1111);
+    sprintf(rottentemp, "data/%s_%d.root", capturename, PMTid);
+    TFile *FOut = new TFile(rottentemp, "UPDATE");
+    TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+
+    c41->SetLogy();
+
+
+    TGraph * confPlot = new TGraph();
+    TGraph * confPlotProblematic = new TGraph();
+
+    confPlot->GetYaxis()->SetRange(0, 200);
+    confPlotProblematic->GetYaxis()->SetRange(0, 200);
+
+    confPlotProblematic->SetMarkerColor(kRed);
+    confPlot->SetMarkerStyle(8);
+    confPlot->SetMarkerSize(1);
+    confPlotProblematic->SetMarkerSize(1);
+    confPlotProblematic->SetMarkerStyle(8);
+
+
+
+
+    for (int i = 0; i < myFish.size(); i++) {
+        sprintf(temp1, "data/%s", myFish[i].c_str());
+        std::vector<peak> peaks = peak_load(temp1);
+
+        for (int j = 0; j < peaks.size(); j++) {
+            if (PMTid == peaks[j].PMTid) {
+                TLatex * lbl = new TLatex(peaks[j].voltage + 0.2, -peaks[j].thresh + 0.2, Form("%1.5f", peaks[j].resolution));
+                lbl->SetTextSize(0.025);
+                lbl->SetTextFont(42);
+
+
+                if (peaks[j].anyproblems == 0) {
+                    confPlot->SetPoint((confPlot->GetN()), peaks[j].voltage, -peaks[j].thresh);
+
+                } else {
+                    confPlotProblematic->SetPoint((confPlotProblematic->GetN()), peaks[j].voltage, -peaks[j].thresh);
+                    lbl->SetTextColor(kRed);
+                }
+
+
+                confPlot->GetListOfFunctions()->Add(lbl);
+            }
+        }
+    }
+
+
+    confPlot->Draw("ap");
+    confPlotProblematic->Draw("psame");
+
+    confPlot->Write("lollo");
+    confPlotProblematic->Write("lollo");
+
+
+
+    sprintf(rottentemp, "Risoluzione - PMT %d", PMTid);
+    confPlot->SetTitle(rottentemp);
+    confPlot->GetXaxis()->SetTitle("Tensione (V)");
+    confPlot->GetYaxis()->SetTitle("Soglia Trigger (-mV)");
+
+    sprintf(rottentemp, "img/%s_%d.eps", capturename, PMTid);
+    c41->SaveAs(rottentemp);
+    c41->Write();
+    FOut->Close();
+
+
+}
 

@@ -17,13 +17,13 @@
 #include "WaveAnalysis.h"
 
 int GetMaximumBin(TH1D* hist, int from, int to);
+std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) ;
 int GetMinimumBin(TH1D* hist, int from, int to);
-void Cs_fit();
 struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMTid);
-void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
+void Cs_getPeak(const char* src_name, int PMTid, char* wheretosave);
 void PMTRangeLT(char * capturename, int PMTid);
-void Cs_FitTot(char*src_name);
-//void Cs_fit(char* src_name);
+void Cs_fitsumofchannels(const char*src_name);
+void Cs_fitall(const char* src_name);
 
 /**
  * Massimo boss
@@ -67,7 +67,6 @@ int GetMinimumBin(TH1D* hist, int from, int to) {
 /**
  * Massimi locali
  */
-
 std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
     std::vector<float> myMaxs;
     std::vector<int> myMaxsX;
@@ -185,368 +184,12 @@ std::vector<int> GetMaximumBins(TH1D* hist, int from, int to) {
 }
 
 
-//Si abilita con 
-//  su 
-//  setenforce 0
-// da terminale, poi si può acquisire dal sito http://lxsfera.roma1.infn.it
-
-void Web_analyze(char* capturename) {
-    char capturename_[STR_LENGTH];
-    char temp1[STR_LENGTH];
-    char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
-
-    // Rimuove i file vecchi eventualmente presenti
-    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".RAW.root");
-    removeFileList(myrottenfish);
-
-    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histoweb.root");
-    removeFileList(myrottenhist);
-
-
-
-    // Cerca tutti i file appartenenti alla presa dati indicata
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myfiles = list_files("data/", capturename, ".web.root");
-
-    // Crea istogramma carica
-    for (int i = 0; i < myfiles.size(); i++) {
-        sprintf(capturename_, "data/%s", myfiles[i].c_str());
-        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
-        ChargeHist(capturename_, ".histoweb");
-    }
-
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histoweb.root");
-
-    for (int i = 0; i < myHistfiles.size(); i++) {
-
-        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
-        TFile *sorgente_file = TFile::Open(temp1);
-
-        mySetting st;
-        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
-        mySetting_get(tset1, &st);
-
-        for (int j = 0; j < st.Nchan; j++) {
-            int PMTid = CHtoPMT(j, &st);
-            int voltage = st.voltage[j];
-            sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
-            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
-            Cs_getPeak(temp1, PMTid, temp2);
-        }
-
-
-    }
-    printf("Esecuzione terminata\n");
-}
-
-void Calibra_analyze(char* capturename) {
-    char capturename_[STR_LENGTH];
-    char temp1[STR_LENGTH];
-    char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
-
-    // Rimuove i file vecchi eventualmente presenti
-    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".calfish");
-    removeFileList(myrottenfish);
-
-    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histcal.root");
-    removeFileList(myrottenhist);
-
-    std::vector<std::string> myrottencal = list_files("data/", capturename, ".bestcal");
-    removeFileList(myrottencal);
-
-    std::vector<std::string> myrottenia = list_files("data/", capturename, ".bestcal.ia");
-    removeFileList(myrottenia);
-
-
-
-    // Cerca tutti i file appartenenti alla presa dati indicata
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myfiles = list_files("data/", capturename, ".cal.root");
-
-    // Crea istogramma carica
-    for (int i = 0; i < myfiles.size(); i++) {
-        sprintf(capturename_, "data/%s", myfiles[i].c_str());
-        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
-        ChargeHist(capturename_, ".histcal");
-    }
-
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histcal.root");
-
-    for (int i = 0; i < myHistfiles.size(); i++) {
-
-        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
-        TFile *sorgente_file = TFile::Open(temp1);
-
-        mySetting st;
-        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
-        mySetting_get(tset1, &st);
-
-        for (int j = 0; j < st.Nchan; j++) {
-            int PMTid = CHtoPMT(j, &st);
-            int voltage = st.voltage[j];
-            sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
-            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
-            Cs_getPeak(temp1, PMTid, temp2);
-        }
-
-
-    }
-
-    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myFish = list_files("data/", capturename, ".calfish");
-
-    char tempf[STR_LENGTH];
-    char tempf2[STR_LENGTH];
-    for (int f = 0; f < myFish.size(); f++) {
-        sprintf(tempf, "data/%s", myFish[f].c_str());
-        sprintf(tempf2, "data/%s.bestcal", capturename);
-        volt_fit(tempf, tempf2, capturename);
-    }
-
-
-}
-
-void preCalibra_analyze(char* capturename) {
-
-    char capturename_[STR_LENGTH];
-    char temp1[STR_LENGTH];
-    char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
-
-
-    // Rimuove i file vecchi eventualmente presenti
-    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".fish");
-    removeFileList(myrottenfish);
-
-    std::vector<std::string> myrottenhist = list_files("data/", capturename, ".histprec.root");
-    removeFileList(myrottenhist);
-
-    std::vector<std::string> myrottentrigger = list_files("data/", capturename, ".besttrigger");
-    removeFileList(myrottentrigger);
-
-    std::vector<std::string> myrottenia = list_files("data/", capturename, ".besttrigger.ia");
-    removeFileList(myrottenia);
-
-
-
-    // Cerca tutti i file appartenenti alla presa dati indicata
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myfiles = list_files("data/", capturename, ".th.root");
-
-    // Crea istogramma carica
-    for (int i = 0; i < myfiles.size(); i++) {
-        sprintf(capturename_, "data/%s", myfiles[i].c_str());
-        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
-        ChargeHist(capturename_, ".histprec");
-    }
-
-    // Fit con CsFit (CESIO) >> Mette i valori del picco in un file
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histprec.root");
-
-
-    for (int i = 0; i < myHistfiles.size(); i++) {
-
-        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
-        TFile *sorgente_file = TFile::Open(temp1);
-
-        mySetting st;
-        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
-        mySetting_get(tset1, &st);
-
-        for (int j = 0; j < st.Nchan; j++) {
-            int PMTid = CHtoPMT(j, &st);
-            int voltage = st.voltage[j];
-            sprintf(temp2, "data/%s_%d_%d.fish", capturename, voltage, PMTid);
-            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
-            Cs_getPeak(temp1, PMTid, temp2);
-        }
-
-
-
-    }
-
-    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
-
-    char tempf[STR_LENGTH];
-    char tempf2[STR_LENGTH];
-    for (int f = 0; f < myFish.size(); f++) {
-        sprintf(tempf, "data/%s", myFish[f].c_str());
-        sprintf(tempf2, "data/%s.besttrigger", capturename);
-        bestresolution_find(tempf, tempf2);
-    }
-
-}
-
-/**
- * [press a button an dream - don't even say a word]
- * Analizza automaticamente una serie di dati relativa all'acquisizione con nome capturenae
- * @param capturename
- */
-void LolFit(char* capturename) {
-    char capturename_[STR_LENGTH];
-    char temp1[STR_LENGTH];
-    char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
-
-
-    // Rimuove i file vecchi eventualmente presenti
-    std::vector<std::string> myrottenfish = list_files("data/", capturename, ".calfish");
-    removeFileList(myrottenfish);
-
-    std::vector<std::string> myrottenhist = list_files("data/", capturename, "0hist.root");
-    removeFileList(myrottenhist);
-
-    std::vector<std::string> myrottencal = list_files("data/", capturename, ".bestcal");
-    removeFileList(myrottencal);
-
-
-    // Cerca tutti i file appartenenti alla presa dati indicata
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myfiles = list_files("data/", capturename, "0.root");
-
-    // Crea istogramma carica
-    for (int i = 0; i < myfiles.size(); i++) {
-        sprintf(capturename_, "data/%s", myfiles[i].c_str());
-        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
-        ChargeHist(capturename_, "0hist");
-    }
-
-
-    // sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myHistfiles = list_files("data/", capturename, "0hist.root");
-
-    for (int i = 0; i < myHistfiles.size(); i++) {
-
-        sprintf(temp1, "data/%s", myHistfiles[i].c_str());
-        TFile *sorgente_file = TFile::Open(temp1);
-
-        mySetting st;
-        TTree* tset1 = (TTree*) sorgente_file->Get("tset");
-        mySetting_get(tset1, &st);
-
-        for (int j = 0; j < st.Nchan; j++) {
-            int PMTid = CHtoPMT(j, &st);
-            int voltage = st.voltage[j];
-            sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
-            printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
-            Cs_getPeak(temp1, PMTid, temp2);
-        }
-        Cs_FitTot(temp1);
-
-    }
-
-
-    // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
-    //  sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myFish = list_files("data/", capturename, ".calfish");
-
-    char tempf[STR_LENGTH];
-    char tempf2[STR_LENGTH];
-    for (int f = 0; f < myFish.size(); f++) {
-        sprintf(tempf, "data/%s", myFish[f].c_str());
-        sprintf(tempf2, "data/%s.bestcal", capturename);
-        volt_fit(tempf, tempf2, capturename);
-    }
-
-
-
-}
-
-void PMTRangeLT(char * capturename, int PMTid) {
-
-    char capturename_[STR_LENGTH];
-    char temp1[STR_LENGTH];
-    char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
-
-
-    sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myFish = list_files("data/", capturename, "fish");
-
-    //  gStyle->SetOptFit(1111);
-    sprintf(rottentemp, "data/%s_%d.root", capturename, PMTid);
-    TFile *FOut = new TFile(rottentemp, "UPDATE");
-    TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
-
-    c41->SetLogy();
-
-
-    TGraph * confPlot = new TGraph();
-    TGraph * confPlotProblematic = new TGraph();
-
-    confPlot->GetYaxis()->SetRange(0, 200);
-    confPlotProblematic->GetYaxis()->SetRange(0, 200);
-
-    confPlotProblematic->SetMarkerColor(kRed);
-    confPlot->SetMarkerStyle(8);
-    confPlot->SetMarkerSize(1);
-    confPlotProblematic->SetMarkerSize(1);
-    confPlotProblematic->SetMarkerStyle(8);
-
-
-
-
-    for (int i = 0; i < myFish.size(); i++) {
-        sprintf(temp1, "data/%s", myFish[i].c_str());
-        std::vector<peak> peaks = peak_load(temp1);
-
-        for (int j = 0; j < peaks.size(); j++) {
-            if (PMTid == peaks[j].PMTid) {
-                TLatex * lbl = new TLatex(peaks[j].voltage + 0.2, -peaks[j].thresh + 0.2, Form("%1.5f", peaks[j].resolution));
-                lbl->SetTextSize(0.025);
-                lbl->SetTextFont(42);
-
-
-                if (peaks[j].anyproblems == 0) {
-                    confPlot->SetPoint((confPlot->GetN()), peaks[j].voltage, -peaks[j].thresh);
-
-                } else {
-                    confPlotProblematic->SetPoint((confPlotProblematic->GetN()), peaks[j].voltage, -peaks[j].thresh);
-                    lbl->SetTextColor(kRed);
-                }
-
-
-                confPlot->GetListOfFunctions()->Add(lbl);
-            }
-        }
-    }
-
-
-    confPlot->Draw("ap");
-    confPlotProblematic->Draw("psame");
-
-    confPlot->Write("lollo");
-    confPlotProblematic->Write("lollo");
-
-
-
-    sprintf(rottentemp, "Risoluzione - PMT %d", PMTid);
-    confPlot->SetTitle(rottentemp);
-    confPlot->GetXaxis()->SetTitle("Tensione (V)");
-    confPlot->GetYaxis()->SetTitle("Soglia Trigger (-mV)");
-
-    sprintf(rottentemp, "img/%s_%d.eps", capturename, PMTid);
-    c41->SaveAs(rottentemp);
-    c41->Write();
-    FOut->Close();
-
-
-}
-
 /**
  * Salva il picco trovato e la tensione di acquisizione, e i rispettivi errori, in una nuova riga del file specificato
  * @param nome file hist.root contenente l'istogramma
  * @param nome file in cui aggiungere la riga 
  */
-void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
+void Cs_getPeak(const char* src_name, int PMTid, char* wheretosave) {
     TFile *sorgente_file = TFile::Open(src_name);
     TCanvas *c41 = new TCanvas();
     peak mypeak;
@@ -595,7 +238,7 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
             h1->SetName(tfitnames[k]);
             h1->Write();
         } else {
-            printf("\nBOMB! Histofrish doesn't exist!!\n");
+            printf("\nBOMB! Histofrish doesn't exist!! gamma=%d\n", k);
         }
     }
 
@@ -608,7 +251,7 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
     delete c41;
 }
 
-void Cs_FitTot(char*src_name) {
+void Cs_fitsumofchannels(const char*src_name) {
     printf("Good People mi chiamano così!\n\n");
     TCanvas *c41 = new TCanvas();
     TFile *sorgente_file = TFile::Open(src_name);
@@ -638,74 +281,31 @@ void Cs_FitTot(char*src_name) {
     delete c41;
 }
 
-
-// non implementato
-void Cs_fit(const char* src_name) {
-
+void Cs_fitall(const char* src_name) {
+    char temp2[STR_LENGTH];
+    // printf("i am reading %s\n", acqnameFromPath(src_name).c_str());
     TFile *sorgente_file = TFile::Open(src_name);
-   // TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
-    Cs_fit();
-}
 
-void Cs_fit() {
-    TCanvas *c41 = new TCanvas();
-    TFile* sorgente_file = (TFile*) gROOT->GetListOfFiles()->First();
-
-    TIter next(sorgente_file->GetListOfKeys());
-    TKey *key;
-    TH1D *h1;
-
-    char tname[STR_LENGTH];
-    char tname2[STR_LENGTH];
-
-    char fileOUT[STR_LENGTH];
-    strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
-    TFile *FOut = new TFile(fileOUT, "UPDATE");
-
-    gStyle->SetOptFit(1111);
-    // gROOT->SetStyle("Plain");
-
-    int i = 0;
-    // esegue il fit per tutti gli istogrammi presenti nel file hPMT
-    while ((key = (TKey*) next())) {
-
-
-        TClass *cl = gROOT->GetClass(key->GetClassName());
-        if (cl -> InheritsFrom("TH1D")) {
-            h1 = (TH1D*) key->ReadObj();
-            std::string myname = h1->GetName();
-            std::string pmtname = myname.substr(myname.length() - 3);
-            int PMTid = atoi(pmtname.c_str());
-            sprintf(tname, "h%d", PMTid);
-            sprintf(tname2, "hc%d", PMTid);
-
-            if ((!myname.compare(tname))&&(!myname.compare(tname2))) {
-                //  TCanvas *c41 = new TCanvas();
-                printf("\n\n********************************\n");
-                printf("Fit per il PMT %d\n", PMTid);
-
-                sprintf(tname, "img/%s_%s.eps", filenameFromPath(sorgente_file->GetName()).c_str(), myname.c_str());
-                mySetting st;
-                TTree* tset1 = (TTree*) sorgente_file->Get("tset");
-                mySetting_get(tset1, &st);
-
-                Cs_fit(c41, h1, tname, &st, PMTid);
-                h1->SetName(myname.c_str());
-                h1->Write();
-            }
-        }
-
+    if (sorgente_file == nullptr) {
+        printf("BOMB! No file found!");
     }
 
+    mySetting st;
+    TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+    mySetting_get(tset1, &st);
 
-    sprintf(tname, "%s", sorgente_file->GetName());
-    Cs_FitTot(tname);
+    for (int j = 0; j < st.Nchan; j++) {
+        int PMTid = CHtoPMT(j, &st);
+        // printf("Mi aspetto LT%d, nchan = %d\n", PMTid, st.Nchan);
+        int voltage = st.voltage[j];
+        sprintf(temp2, "data/%s_%d.calfish", acqnameFromPath(src_name).c_str(), PMTid);
+        printf("\nFilename iniziale %s \n>> Salvato in %s\n", src_name, temp2);
+        Cs_getPeak(src_name, PMTid, temp2);
+    }
 
-    delete c41;
-    FOut->Close();
+    Cs_fitsumofchannels(src_name);
 
 }
-
 
 // PER FARE FIT SCALATO (CIOE IN KEV) BISOGNA PASSARGLI hc%d e non h%d e semplicamente riscalare di almeno 4 i bin
 

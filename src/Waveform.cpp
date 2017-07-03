@@ -19,9 +19,10 @@
 #include <stdio.h>
 
 int FittingStartBin(float threshold, TH1F * hist);
-void Waveform(int PMTid);
+//void Waveform(int PMTid);
 void MakeWaveform(const char* fileIN, int PMTid = -1);
 //void Waveform(std::string _fileIN);
+void WaveProfile(const char* src_name);
 void RawWave(const char * fileIN, const char *fileOUT, int PMTid);
 void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid);
 TH1F* plotWaveFromCharge(const char * fileIN, int PMTid, float charge);
@@ -41,11 +42,32 @@ int FittingStartBin(float threshold, TH1F * hist) {
     }
 }
 
-void Waveform(int PMTid) {
-    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
-    MakeWaveform(f->GetName(), PMTid);
+void WaveformAll(const char* src_name) {
+    char temp2[STR_LENGTH];
+    // printf("i am reading %s\n", acqnameFromPath(src_name).c_str());
+    TFile *sorgente_file = TFile::Open(src_name);
+
+    if (sorgente_file == nullptr) {
+        printf("BOMB! No file found!");
+    }
+
+    mySetting st;
+    TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+    mySetting_get(tset1, &st);
+
+    for (int j = 0; j < st.Nchan; j++) {
+        int PMTid = CHtoPMT(j, &st);
+        MakeWaveform(src_name, PMTid);
+    }
 
 }
+
+
+//void Waveform(int PMTid) {
+//    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+//    MakeWaveform(f->GetName(), PMTid);
+//
+//}
 
 //void Waveform(std::string _fileIN) {
 //    const char* fileIN = _fileIN.c_str();
@@ -64,6 +86,8 @@ void MakeWaveform(const char* fileIN, int PMTid) {
 
         // DrawWaveSplot(fileIN, histOUT, PMTid);
         //f = TFile::Open(histOUT);
+    } else {
+        printf("Gli istogrammi già esistono in %s\n", histOUT);
     }
 
     //    TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
@@ -93,11 +117,13 @@ void MakeWaveform(const char* fileIN, int PMTid) {
 
 }
 
-void WaveProfile() {
+void WaveProfile(const char* src_name) {
 
 
 
-    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+    //TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+    TFile *f = TFile::Open(src_name);
+
     char fileOUT[STR_LENGTH];
     strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
     TFile *FOut = new TFile(fileOUT, "UPDATE");
@@ -135,7 +161,7 @@ void WaveProfile() {
         WaveForm Wave;
 
         sprintf(tname, "wp%d", st.PmtID[i]);
-        TProfile2D * sprofh = new TProfile2D(tname, "Profile della waveform", N_SAMPLES/5, 0, N_SAMPLES, 200 + 1, 0, 200);
+        TProfile2D * sprofh = new TProfile2D(tname, "Profile della waveform", N_SAMPLES / 5, 0, N_SAMPLES, 200 + 1, 0, 200);
         // sprofh->SetBinEntries(200,1);
         int totEventiQ[100] = {0};
 
@@ -190,14 +216,6 @@ void WaveProfile() {
         //        }
 
 
-        //        TH1D* aaa = sprofh->ProjectionX("px", 0.1, 0.2);
-        //        aaa->SetLineColor(3);
-        //        aaa->Draw(    );
-        //        
-        //                TH1D* aaaa = sprofh->ProjectionX("px", 0, 0.1);
-        //        aaaa->SetLineColor(4);
-        //        aaaa->Draw( "same"   );
-
         int col = 1;
         //Qual è l'intervallo che ci interessa???
         for (int ii = 10; ii < 40; ii += 5) {
@@ -218,14 +236,13 @@ void WaveProfile() {
         //        aa->Draw( "same"     );
 
 
-
         //sprofh->Draw("surf3"  );
 
         c41->Write();
         char tname22 [STR_LENGTH];
         std::string myname = filenameFromPath((f->GetName()));
-        
-        sprintf(tname22, "img/%s_wp%d.eps", myname.c_str(),st.PmtID[i]);
+
+        sprintf(tname22, "img/%s_wp%d.eps", myname.c_str(), st.PmtID[i]);
 
         printf("nome: %s\n\n", tname22);
         c41->SaveAs(tname22);
@@ -236,103 +253,6 @@ void WaveProfile() {
     // FOut->Close();
     // delete c41;
 }
-
-
-//void WaveProfile() {
-//    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
-//    char fileOUT[STR_LENGTH];
-//    std::strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
-//    TFile *FOut = new TFile(fileOUT, "UPDATE");
-//    int i, j;
-//
-//    TH1F *histo_ch1;
-//    TTree* tset = (TTree*) f->Get("tset");
-//    char tname [STR_LENGTH];
-//    struct mySetting st;
-//    mySetting_get(tset, &st);
-//    mySetting_print(&st);
-//    TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
-//    int CH;
-//
-//    for (i = 0; i < st.Nchan; i++) {
-//        CH = i;
-//
-//
-//        TTree* t1 = (TTree*) f->Get("t1");
-//        TTree* tset = (TTree*) f->Get("tset");
-//
-//        int jentry;
-//        struct myEvent temp;
-//        int nentries = t1->GetEntries();
-//
-//        t1->SetBranchAddress("trigCH", &temp.trigCH);
-//        t1->SetBranchAddress("wave_array", temp.wave_array);
-//        t1->SetBranchAddress("time_array", temp.time_array);
-//
-//        float Integral, BaseIntegral, Max;
-//        WaveForm Wave;
-//
-//        sprintf(tname, "wp%d", st.PmtID[i]);
-//        TH2D * sprofh = new TH2D(tname, "Profile della waveform", N_SAMPLES + 1, 0, N_SAMPLES, 20, 0, 300);
-//
-//        int totEventiQ[100] = {0};
-//
-//
-//        //Ciclo sugli eventi
-//        for (jentry = 0; jentry < nentries; jentry++) {
-//            t1->GetEntry(jentry);
-//
-//            Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
-//            Integral = Wave.Integral();
-//            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
-//            Integral -= BaseIntegral;
-//
-//            for (j = 0; j < N_SAMPLES; j++) {
-//                int cQ = (int) (Integral / sprofh->GetYaxis()->GetBinWidth((j)));
-//
-//                if (cQ < 0 || cQ > 99) {
-//                    //printf("\n\n%f\t%d\n\n\n",Integral,cQ);
-//                    cQ = 99;
-//                }
-//                float oldBinContent = sprofh->GetBinContent(j, cQ);
-//                sprofh->SetBinContent(j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
-//
-//                //printf("\n%d\t%d\t%f\n\n", j, cQ, oldBinContent + (-temp.wave_array[CH][j] / Integral));
-//                totEventiQ[cQ]++;
-//
-//            }
-//
-//
-//
-//            printf("%d/%d ", jentry, nentries);
-//            printStatus((float) jentry / (float) nentries);
-//
-//        }
-//
-//
-//        int jj = sprofh->GetNbinsY();
-//        float z;
-//        for (j = 0; j < jj; j++) {
-//            for (int k = 0; k < N_SAMPLES; k++) {
-//                if (totEventiQ[j] != 0) {
-//                    z = sprofh->GetBinContent(k, j) / (float) totEventiQ[j];
-//                    sprofh->SetBinContent(k, j, z);
-//
-//                }
-//            }
-//
-//        }
-//
-//
-//        sprofh->Draw("surf3");
-//        c41->Write();
-//        sprintf(tname, "img/%s_wp%d.eps", filenameFromPath(f->GetName()).c_str(), st.PmtID[i]);
-//        c41->SaveAs(tname);
-//    }
-//
-//    // FOut->Close();
-//    // delete c41;
-//}
 
 void plotWaveStepCharge() {
     TFile *f = (TFile*) gROOT->GetListOfFiles()->First();

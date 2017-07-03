@@ -208,12 +208,6 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
     //  delete c40;
 }
 
-void ChargeHist() {
-    TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
-    MakeChargeHist(f->GetName());
-
-}
-
 void ChargeHist(std::string _fileIN, std::string fileext2 = "hist") {
     const char* fileIN = _fileIN.c_str();
     MakeChargeHist(fileIN, fileext2);
