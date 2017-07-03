@@ -69,6 +69,8 @@
 #include <string>
 #include <sstream>
 
+#include <ncurses.h>
+
 
 //#include "Waveform.cpp"
 
@@ -456,7 +458,7 @@ void mySetting_histoprint(mySetting *st, int PMTid) {
         label2->SetTextSize(0.03);
         label2->DrawText(0.01, 0.0, temp);
     } else {
-        sprintf(temp, "Fit complessivo - data acquired on %s ", st->date);
+        sprintf(temp, "Grafico di tutti i canali - data acquired on %s ", st->date);
         TText *label1 = new TText();
         label1->SetNDC();
         label1->SetTextSize(0.03);
@@ -611,7 +613,7 @@ void removeFileList(std::vector<std::string> rottenf) {
 std::vector<int> PMTList(char * filename) {
     std::vector<int> myPMTlist;
     char temp1[STR_LENGTH];
-    std::vector<std::string> myFish = list_files("data/", filename, ".fish");
+    std::vector<std::string> myFish = list_files("data/", filename, "fish");
     for (int i = 0; i < myFish.size(); i++) {
         sprintf(temp1, "data/%s", myFish[i].c_str());
         std::vector<peak> peaks = peak_load(temp1);
@@ -619,6 +621,7 @@ std::vector<int> PMTList(char * filename) {
         for (int j = 0; j < peaks.size(); j++) {
             if (PMTisThere(peaks[j].PMTid, myPMTlist) == 0) {
                 myPMTlist.push_back(peaks[j].PMTid);
+                printf("new pmt %d\n",peaks[j].PMTid);
             }
         }
     }

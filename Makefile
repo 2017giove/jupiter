@@ -100,7 +100,7 @@ drs_jupiter: $(OBJECTS) DRS.o averager.o drs_jupiter.o
 	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o drs_jupiter.o -o drs_jupiter $(LIBS) `root-config --libs` $(WXLIBS)
 
 drs_expert: $(OBJECTS) HVPowerSupply.o DRS.o averager.o drs_expert.o HVPowerSupply.o
-	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o HVPowerSupply.o drs_expert.o -o drs_expert $(LIBS) $(CLIBS)  `root-config --libs` $(WXLIBS)
+	$(CXX) $(CFLAGS) `root-config --cflags` $(OBJECTS) DRS.o averager.o HVPowerSupply.o drs_expert.o -o drs_expert $(LIBS) $(CLIBS)  `root-config --libs` -lncurses $(WXLIBS)
 
 drs_exam_multi: $(OBJECTS) DRS.o averager.o drs_exam_multi.o
 	$(CXX) $(CFLAGS) $(OBJECTS) DRS.o averager.o drs_exam_multi.o -o drs_exam_multi $(LIBS) $(WXLIBS)

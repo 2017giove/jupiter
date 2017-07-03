@@ -62,6 +62,7 @@
         <in>drs_exam_multi.cpp</in>
         <in>drs_expert.cpp</in>
         <in>drs_jupiter.cpp</in>
+        <in>drs_menu.cpp</in>
         <in>drs_sub.cpp</in>
         <in>drscl.cpp</in>
         <in>drsosc.xpm</in>

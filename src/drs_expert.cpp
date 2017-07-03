@@ -29,7 +29,7 @@
 #include <windows.h>
 
 #elif defined(OS_LINUX)
- 
+
 #define O_BINARY 0
 
 #include <unistd.h>
@@ -66,7 +66,7 @@
 #include "volt_fit.cpp"
 #include "ChargeHist.cpp"
 #include "Cs_fit.cpp"
-
+#include "drs_menu.cpp"
 
 #include "defines.h"
 
@@ -87,73 +87,133 @@ void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs
 
 int main(int argc, char* argv[]) {
 
-    TApplication theApp("App", &argc, argv);
+    int targc = 0;
+    char* targv[50];
+    TApplication theApp("App", &targc, targv);
 
     vector<std::string> myArgs;
     std::string tempstring;
     for (int j; j < argc; j++) {
-
         tempstring = argv[j];
+        printf("%d %s \n", j, tempstring.c_str());
         myArgs.push_back(tempstring);
     }
 
-    if (argc < 2) {
-        printf("Sintax: ./drs_expert filename deltaT SETTINGSFILE.jpt\n");
-        return -1;
+    // MENU PRINCIPALE (senza argomenti)
+    if (argc == 1) {
+       // mainmenu();
+        return 0;
     }
 
-    mySetting cset;
 
-    char *fileName = argv[1];
+    // ANALISI FILE DI DATI SINGOLO GIA SCELTO
+    if (argc == 2) {
+        std::string argext = myArgs[1].substr(myArgs[1].length() - 4);
+
+        if (!strcmp(argext.c_str(), "root")) {
+           // filemenu(myArgs[1].c_str());
+        }
+        return 0;
+    }
+
+    char *acqName = argv[2];
     char tmp[STR_LENGTH];
 
-
-    std::string filen = fileName;
+    std::string filen = acqName;
     if (endsWith(filen, ".jpt")) {
         printf("%s\nAre you confusing filename with configuration file??", ERROR_CRUCIAL);
         return -1;
     }
 
-    char* settingsFilename = argv[3];
 
-    std::vector<myPMTconfig> myPMTs = PMT_ReadConfig(settingsFilename, &cset.triggerSetting, &cset.delayns);
-    std::vector<myHVchannel> myChannels = HV_ReadConfig("channelsHV.cfg");
+    //COMANDI PER ANALISI DATI
+    if (strcmp(myArgs[1].c_str(), "analyze_precalib") == 0) {
 
-    int maxchan = myPMTs.size();
+        preCalibra_analyze(acqName);
+        return 0;
 
-    allocateSetting(&cset, maxchan);
+    } else if (strcmp(myArgs[1].c_str(), "analyze_calib") == 0) {
 
+        Calibra_analyze(acqName);
+        return 0;
 
+    } else if (strcmp(myArgs[1].c_str(), "analyze_web") == 0) {
 
-    cset.Nchan = myPMTs.size();
-    cset.deltaT = atoi(argv[2]);
+        Web_analyze(acqName);
+        return 0;
 
-    printf("Canali da acquisire\n");
+    } else if (strcmp(myArgs[1].c_str(), "LolFit") == 0) {
 
-    for (int i = 0; i < maxchan; i++) {
-        cset.voltage[i] = myPMTs[i].volt;
-        cset.thresh[i] = -myPMTs[i].thresh; //attenzione al segno -
-        cset.PmtID[i] = myPMTs[i].id;
-
-        printf("%d\n", cset.PmtID[i]);
-    }
-
-    time_t Current_Time;
-    time(&Current_Time);
-    sprintf(cset.date, "%s", asctime(localtime(&Current_Time)));
-    //cout << cset.date << endl;
+        LolFit(acqName);
+        return 0;
 
 
-    for (int k = 0; k < myArgs.size(); k++) {
-        if (strcmp(myArgs[k].c_str(), "precalib") == 0) {
+    } else if (strcmp(myArgs[1].c_str(), "voltfit") == 0) {
+
+        // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
+        char tempf[STR_LENGTH];
+        char tempf2[STR_LENGTH];
+
+        sprintf(tempf, "data/%s", myArgs[3].c_str());
+        sprintf(tempf2, "data/%s.bestcal", myArgs[3].c_str());
+        volt_fit(tempf, tempf2, acqName);
+
+        return 0;
+
+    } else if (strcmp(myArgs[1].c_str(), "PMTRangeLT") == 0) {
+
+        std::vector<int> mylst = PMTList(acqName);
+        for (int k = 0; k < mylst.size(); k++) {
+            PMTRangeLT(acqName, mylst[k]);
+        }
+        getchar();
+        return 0;
+
+
+
+    } else {
+
+        //COMANDI PER ACQUISIZIONE DATI: inizializza?
+        mySetting cset;
+
+        //./drs_expert acquire ananas 100 testACQ.jpt
+        char* settingsFilename = argv[4];
+
+        std::vector<myPMTconfig> myPMTs = PMT_ReadConfig(settingsFilename, &cset.triggerSetting, &cset.delayns);
+        std::vector<myHVchannel> myChannels = HV_ReadConfig("channelsHV.cfg");
+
+        int maxchan = myPMTs.size();
+
+        allocateSetting(&cset, maxchan);
+
+        cset.Nchan = myPMTs.size();
+        cset.deltaT = atoi(argv[3]);
+
+        printf("Canali da acquisire\n");
+
+        for (int i = 0; i < maxchan; i++) {
+            cset.voltage[i] = myPMTs[i].volt;
+            cset.thresh[i] = -myPMTs[i].thresh; //attenzione al segno -
+            cset.PmtID[i] = myPMTs[i].id;
+
+            printf("%d\n", cset.PmtID[i]);
+        }
+
+        time_t Current_Time;
+        time(&Current_Time);
+        sprintf(cset.date, "%s", asctime(localtime(&Current_Time)));
+
+        
+        
+        
+        // OPZIONI ACQUISIZIONI MULTIPLE O SINGOLE
+        if (strcmp(myArgs[1].c_str(), "precalib") == 0) {
             initHV(myPMTs, myChannels);
-            preCalibra(fileName, cset);
+            preCalibra(acqName, cset);
             return 0;
 
-        } else if (strcmp(myArgs[k].c_str(), "calib") == 0) {
-
-            // initHV(myPMTs, myChannels);
-            Calibra(fileName, cset, myPMTs, myChannels);
+        } else if (strcmp(myArgs[1].c_str(), "calib") == 0) {
+            Calibra(acqName, cset, myPMTs, myChannels);
             return 0;
 
             //            char tempc[STR_LENGTH];
@@ -168,71 +228,34 @@ int main(int argc, char* argv[]) {
             //                cset.thresh[realCH] = cset.voltage[realCH] / voltage[i] * tresh[i];
             //            }
 
-
-
-        } else if (strcmp(myArgs[k].c_str(), "analyze_precalib") == 0) {
-
-            preCalibra_analyze(fileName);
+        } else if (strcmp(myArgs[1].c_str(), "web") == 0) {
+            WebParanoid(acqName, cset, myPMTs, myChannels);
             return 0;
 
-        } else if (strcmp(myArgs[k].c_str(), "analyze_calib") == 0) {
-
-            Calibra_analyze(fileName);
-            return 0;
-
-        } else if (strcmp(myArgs[k].c_str(), "analyze_web") == 0) {
-
-            Web_analyze(fileName);
-            return 0;
-
-        } else if (strcmp(myArgs[k].c_str(), "LolFit") == 0) {
-
-            LolFit(fileName);
-            return 0;
-
-        } else if (strcmp(myArgs[k].c_str(), "web") == 0) {
-
-            WebParanoid(fileName, cset, myPMTs, myChannels);
-            return 0;
-
-        } else if (strcmp(myArgs[k].c_str(), "voltfit") == 0) {
-
-
-            // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
-
-            char tempf[STR_LENGTH];
-            char tempf2[STR_LENGTH];
-
-            sprintf(tempf, "data/%s", myArgs[k + 1].c_str());
-            sprintf(tempf2, "data/%s.bestcal", myArgs[k + 1].c_str());
-            volt_fit(tempf, tempf2, fileName);
-
-            return 0;
-
-        } else if (strcmp(myArgs[k].c_str(), "PMTRangeLT") == 0) {
-            std::vector<int> mylst = PMTList(fileName);
-            for (int k = 0; k < mylst.size(); k++) {
-                PMTRangeLT(fileName, mylst[k]);
-
-            }
-
-            getchar();
-
-            return 0;
-
-
-        } else {
-
+        } else if (strcmp(myArgs[1].c_str(), "acq") == 0) {
+            mySetting_print(&cset);
+            initHV(myPMTs, myChannels);
+            startCapture(acqName, cset);
         }
+
+
+        //    mySetting_print(&cset);
+        //    initHV(myPMTs, myChannels);
+        //    startCapture(acqName, cset);
+
+
+
+        return 0;
+
+
+
+
     }
 
-    mySetting_print(&cset);
-    initHV(myPMTs, myChannels);
-    startCapture(fileName, cset);
 
 
 
-    return 0;
+
 
     //    if (argc < 8) {
     //        cout << argv[0] << ": Usage" << endl;
@@ -397,8 +420,6 @@ void preCalibra(char* fileName, mySetting cset) {
     preCalibra_analyze(fileName);
 
 }
-
-
 
 void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels) {
     mySetting_print(&cset);

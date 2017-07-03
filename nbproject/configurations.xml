@@ -29,6 +29,7 @@
         <in>drs_exam_multi.cpp</in>
         <in>drs_expert.cpp</in>
         <in>drs_jupiter.cpp</in>
+        <in>drs_menu.cpp</in>
         <in>drs_sub.cpp</in>
         <in>drscl.cpp</in>
         <in>main.cpp</in>
@@ -421,6 +422,8 @@
             <pElem>.</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="src/drs_menu.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="src/drs_sub.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="2">

@@ -158,6 +158,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         h1->Write();
         sprintf(tname, "img/%s_charge%d.eps", filenameFromPath(fileIN).c_str(), cPMT);
         h1->Draw("");
+            mySetting_histoprint(&st, cPMT);
         c40->SaveAs(tname);
 
         if (amIcalibratedFish && (calibIndex != NOT_FOUND_INT)) {
@@ -167,6 +168,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
             h2->Write();
             sprintf(tname, "img/%s_charge_calib%d.eps", filenameFromPath(fileIN).c_str(), cPMT);
             h2->Draw("");
+                mySetting_histoprint(&st, cPMT);
             c40->SaveAs(tname);
 
         }
@@ -191,6 +193,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         htot->Write();
         sprintf(tname, "img/%s_charge_calibTOT.eps", filenameFromPath(fileIN).c_str());
         htot->Draw("");
+          mySetting_histoprint(&st, 0);
         c40->SaveAs(tname);
 
     }

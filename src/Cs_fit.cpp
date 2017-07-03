@@ -22,7 +22,7 @@ void Cs_fit();
 struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMTid);
 void Cs_getPeak(char* src_name, int PMTid, char* wheretosave);
 void PMTRangeLT(char * capturename, int PMTid);
-void Cs_getPeakTot(char*src_name);
+void Cs_FitTot(char*src_name);
 //void Cs_fit(char* src_name);
 
 /**
@@ -386,7 +386,7 @@ void preCalibra_analyze(char* capturename) {
 }
 
 /**
- * [press a button an dream - don't say a word]
+ * [press a button an dream - don't even say a word]
  * Analizza automaticamente una serie di dati relativa all'acquisizione con nome capturenae
  * @param capturename
  */
@@ -439,7 +439,7 @@ void LolFit(char* capturename) {
             printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
         }
-        Cs_getPeakTot(temp1);
+        Cs_FitTot(temp1);
 
     }
 
@@ -469,7 +469,7 @@ void PMTRangeLT(char * capturename, int PMTid) {
 
 
     sprintf(capturename_, "%s_", capturename);
-    std::vector<std::string> myFish = list_files("data/", capturename, ".fish");
+    std::vector<std::string> myFish = list_files("data/", capturename, "fish");
 
     //  gStyle->SetOptFit(1111);
     sprintf(rottentemp, "data/%s_%d.root", capturename, PMTid);
@@ -541,36 +541,6 @@ void PMTRangeLT(char * capturename, int PMTid) {
 
 }
 
-void Cs_getPeakTot(char*src_name) {
-    printf("Good People mi chiamano così!\n\n");
-    TCanvas *c41 = new TCanvas();
-    TFile *sorgente_file = TFile::Open(src_name);
-    peak mypeak;
-    mySetting st;
-    TTree* tset1 = (TTree*) sorgente_file->Get("tset");
-    mySetting_get(tset1, &st);
-
-
-    char fileOUT[STR_LENGTH];
-    strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
-    TFile *FOut = new TFile(fileOUT, "UPDATE");
-
-    char tname[STR_LENGTH];
-    sprintf(tname, "hctot");
-    TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
-
-    if (h1 != nullptr) {
-        sprintf(tname, "img/%s_tot_csfit.eps", filenameFromPath(src_name).c_str());
-        printf("Salva in %s\n", tname);
-        mypeak = Cs_fit(c41, h1, tname, &st, 0);
-        h1->Write();
-    } else {
-        printf("\nBOMB! Big Histofrish doesn't exist!!\n");
-    }
-
-    delete c41;
-}
-
 /**
  * Salva il picco trovato e la tensione di acquisizione, e i rispettivi errori, in una nuova riga del file specificato
  * @param nome file hist.root contenente l'istogramma
@@ -621,25 +591,61 @@ void Cs_getPeak(char* src_name, int PMTid, char* wheretosave) {
             mypeak.resolution = mypeak.sigma / mypeak.peakpos; //già calcolato nel fit non serve farlo di nuovo
             mypeak.IA = mypeak.resolution / TMath::Sqrt(mypeak.peakvalue * mypeak.sigma);
 
-            peak_save(wheretosave, &mypeak);
+            if (k == 0) peak_save(wheretosave, &mypeak);
             h1->SetName(tfitnames[k]);
             h1->Write();
         } else {
             printf("\nBOMB! Histofrish doesn't exist!!\n");
         }
     }
+
+    TTree* newtree = tset1->CloneTree(0);
+    newtree->Fill();
+    newtree->Write("", TObject::kOverwrite);
+    FOut->Close();
+
+
+    delete c41;
+}
+
+void Cs_FitTot(char*src_name) {
+    printf("Good People mi chiamano così!\n\n");
+    TCanvas *c41 = new TCanvas();
+    TFile *sorgente_file = TFile::Open(src_name);
+    peak mypeak;
+    mySetting st;
+    TTree* tset1 = (TTree*) sorgente_file->Get("tset");
+    mySetting_get(tset1, &st);
+
+
+    char fileOUT[STR_LENGTH];
+    strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
+    TFile *FOut = new TFile(fileOUT, "UPDATE");
+
+    char tname[STR_LENGTH];
+    sprintf(tname, "hctot");
+    TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
+
+    if (h1 != nullptr) {
+        sprintf(tname, "img/%s_tot_csfit.eps", filenameFromPath(src_name).c_str());
+        printf("Salva in %s\n", tname);
+        mypeak = Cs_fit(c41, h1, tname, &st, 0);
+        h1->Write();
+    } else {
+        printf("\nBOMB! Big Histofrish doesn't exist!!\n");
+    }
+
     delete c41;
 }
 
 
-
 // non implementato
-//void Cs_fit(char* src_name) {
-//
-//    TFile *sorgente_file = TFile::Open(src_name);
-//    TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
-//    Cs_fit(h1);
-//}
+void Cs_fit(const char* src_name) {
+
+    TFile *sorgente_file = TFile::Open(src_name);
+   // TH1D *h1 = (TH1D*) sorgente_file->Get("h1");
+    Cs_fit();
+}
 
 void Cs_fit() {
     TCanvas *c41 = new TCanvas();
@@ -650,6 +656,7 @@ void Cs_fit() {
     TH1D *h1;
 
     char tname[STR_LENGTH];
+    char tname2[STR_LENGTH];
 
     char fileOUT[STR_LENGTH];
     strcpy(fileOUT, appendToRootFilename(sorgente_file->GetName(), "csfit").c_str());
@@ -670,27 +677,32 @@ void Cs_fit() {
             std::string pmtname = myname.substr(myname.length() - 3);
             int PMTid = atoi(pmtname.c_str());
             sprintf(tname, "h%d", PMTid);
-            if (!myname.compare(tname)) {
+            sprintf(tname2, "hc%d", PMTid);
+
+            if ((!myname.compare(tname))&&(!myname.compare(tname2))) {
                 //  TCanvas *c41 = new TCanvas();
                 printf("\n\n********************************\n");
                 printf("Fit per il PMT %d\n", PMTid);
 
-                sprintf(tname, "img/%s_csfit%d.eps", filenameFromPath(sorgente_file->GetName()).c_str(), PMTid);
+                sprintf(tname, "img/%s_%s.eps", filenameFromPath(sorgente_file->GetName()).c_str(), myname.c_str());
                 mySetting st;
                 TTree* tset1 = (TTree*) sorgente_file->Get("tset");
                 mySetting_get(tset1, &st);
-                //  mySetting_print(&st);
-
 
                 Cs_fit(c41, h1, tname, &st, PMTid);
+                h1->SetName(myname.c_str());
                 h1->Write();
             }
         }
 
     }
 
+
+    sprintf(tname, "%s", sorgente_file->GetName());
+    Cs_FitTot(tname);
+
     delete c41;
-    // FOut->Close();
+    FOut->Close();
 
 }
 
@@ -709,7 +721,7 @@ struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, 
 
 
     c40->SetFillColor(0);
-    //  h1->Rebin(4);
+
     if (PMTid != 0) {
         if (st->voltage[PMTtoCH(PMTid, st)] >= 1650) {
             h1->Rebin(4);
@@ -719,15 +731,31 @@ struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, 
     struct peak mypeak;
     mypeak.anyproblems = 0;
 
-    int nBins = h1->GetSize() - 2;
-    float step = (float) h1->GetXaxis()->GetBinWidth(0); //invece di usare QMAX/nBins conviene usare GetBinWidth
-    printf("step %f\n\n", step);
+    int nBins;
+    float step; //invece di usare QMAX/nBins conviene usare GetBinWidth
+    //printf("step %f\n\n", step);
     //int maxBin = GetMaximumBin(h1, 5. / step, nBins);
-    std::vector<int> mymaxsbins = GetMaximumBins(h1, 0.5 / step, nBins);
+    std::vector<int> mymaxsbins;
 
-    if (mymaxsbins[0] == -1) {
-        mypeak.anyproblems = NOT_FOUND_MAX;
-        printf("WARNING: I did not find any max!");
+    for (int sniper = 0; sniper < 10; sniper++) {
+
+
+        nBins = h1->GetSize() - 2;
+        step = (float) h1->GetXaxis()->GetBinWidth(0);
+        mymaxsbins = GetMaximumBins(h1, 0.5 / step, nBins);
+
+        if (mymaxsbins[0] == -1) {
+            mypeak.anyproblems = NOT_FOUND_MAX;
+            printf("WARNING: I did not find any max!");
+        } else {
+            if (h1->GetBinContent(mymaxsbins.back()) < h1->GetEntries() / 200) {
+                printf("Sto scalando l'istograma...\n");
+                h1->Rebin();
+            } else {
+                sniper = 10;
+            }
+        }
+
     }
 
     int maxBin = mymaxsbins.back();
@@ -848,7 +876,7 @@ struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, 
     fsrc->SetParameter(12, 0.95);
     //fsrc->FixParameter(12, 1);
 
-    h1->Fit("fsrc", "Lv", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
+    h1->Fit("fsrc", "L", "", startfitpoint, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
     h1->Draw();
 
     /*****************************************************/
@@ -969,9 +997,9 @@ struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, 
     mypeak.nSGN = fitmax ->Integral(mypeak.peakpos - mypeak.sigma, mypeak.peakpos + mypeak.sigma);
     mypeak.nBG = nTOT - mypeak.nSGN;
 
-    mypeak.resolution =  mypeak.sigma / mypeak.peakpos;
+    mypeak.resolution = mypeak.sigma / mypeak.peakpos;
 
-    printf("RISOLUZIONE = %f\n",  mypeak.resolution);
+    printf("RISOLUZIONE = %f\n", mypeak.resolution);
 
 
     float comptonAMP = fsrc->GetParameter("FDCAmp");
@@ -980,7 +1008,7 @@ struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, 
         mypeak.anyproblems = NOT_COMPTON;
     }
 
-    if ( mypeak.resolution < 0.01) {
+    if (mypeak.resolution < 0.01) {
         mypeak.anyproblems = NOT_CREDIBLE;
         printf("Questo pesce va rigettato in acqua. E' un granchio.\n");
     }
@@ -990,7 +1018,7 @@ struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, 
         printf("Questo pesce è una burla. Non ci sto credendo che hai pescato un elefante. Questo essere va rigettato in acqua. E' un granchio?\n");
     }
 
-    if (h1->GetEntries() < 1000) {
+    if (h1->GetEntries() < 2000) {
         mypeak.anyproblems = NOT_GOODFISHERMAN;
         printf("Questo pescatore non è stato esperto ed è tornato a mani vuote: solo %d pesciolini.\n", (int) h1->GetEntries());
     }
@@ -1005,15 +1033,15 @@ struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, 
 
 
     mySetting_histoprint(st, PMTid);
-        char temp[STR_LENGTH];
-        sprintf(temp, "Risoluzione %f ", mypeak.resolution);
-        TText *label1 = new TText();
-        label1->SetNDC();
-        label1->SetTextSize(0.03);
-        label1->DrawText(0.5, 0.00, temp);
+    char temp[STR_LENGTH];
+    sprintf(temp, "Risoluzione %f ", mypeak.resolution);
+    TText *label1 = new TText();
+    label1->SetNDC();
+    label1->SetTextSize(0.03);
+    label1->DrawText(0.5, 0.00, temp);
 
 
-        
+
     TPaveStats* ps = (TPaveStats *) h1->GetListOfFunctions()->FindObject("stats");
     if (ps != nullptr) {
 
