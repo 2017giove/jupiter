@@ -11,7 +11,7 @@
 
 #define J_MENU
 
-#include "defines.h""
+#include "defines.h"
 #include <ncurses.h>
 #include <vector>
 #include <string>
@@ -163,11 +163,11 @@ void filemenu(const char*filename) {
     }
 
     char item[50];
-    char temp[STR_LENGTH];
-    int keypressed, choice = 0, width = 7;
+    //    char temp[STR_LENGTH];
+    int keypressed, choice = 0; // width = 7;
     int row, col;
     getmaxyx(stdscr, row, col);
-    WINDOW * mainw = initscr(); // initialize Ncurses
+    initscr(); // initialize Ncurses
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_CYAN);
     init_pair(2, COLOR_BLUE, COLOR_CYAN);
@@ -245,25 +245,19 @@ void filemenu(const char*filename) {
         if (choice == MENU_INFORMATION) {
             menu_printsettings(&st);
         } else if (choice == MENU_CHARGEHIST) {
-            int k = 2;
             waddstr(infow, "Integra il segnale acquisito e crea l'istogramma della carica\n");
 
         } else if (choice == MENU_CHARGEHISTRAW) {
-            int k = 2;
             waddstr(infow, "Integra il segnale acquisito e crea l'istogramma della carica\n");
             waddstr(infow, "Cancella l'eventuale istogramma precedentemente creato\n");
         } else if (choice == MENU_CSFIT) {
 
-            int k = 2;
             waddstr(infow, "Fit dei dati con curva prevista per il Cesio\n");
         } else if (choice == MENU_WAVEFORM) {
-            int k = 2;
             waddstr(infow, "Crea l'istogramma di ogni forma d'onda acquisita\n");
         } else if (choice == MENU_WAVEPROFILE) {
-            int k = 2;
             waddstr(infow, "Analisi delle forme d'onda al variare della carica totale portata");
         } else if (choice == MENU_TIMEDELAY) {
-            int k = 2;
             waddstr(infow, "Parto dal 7 all'11 luglio");
         }
 
@@ -284,7 +278,7 @@ void filemenu(const char*filename) {
 
 
     if (choice == MENU_INFORMATION) {
-        TBrowser * rch = new TBrowser();
+        new TBrowser();
         gSystem->ProcessEvents();
         int targc = 0;
         char* targv[50];
@@ -333,13 +327,13 @@ void menu_printtextimage(textimage img) {
 textimage menu_getimage() {
     static char *lines[] = {
         "  .-''`````````''-.	 ",
-        " /'-.___________.-'\	 ",
+        " /'-.___________.-'\\	 ",
         ";                   ;	 ",
         "|    __.......__    |   ",
         "|.-'`      ~    `'-.|	",
         "|::-.___~______~.-'`|	 ",
         ";:::::.             ;	 ",
-        " \::::.            /	 ",
+        " \\::::.            /	 ",
         "  ':::::.        .'	",
         "    `-:::::.._.-'		 ",
         "         | |			 ",

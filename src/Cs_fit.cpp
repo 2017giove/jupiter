@@ -31,7 +31,7 @@ void Cs_fitall(const char* src_name);
 int GetMaximumBin(TH1D* hist, int from, int to) {
     int i;
     int max = 0;
-    int imax;
+    int imax=-1;
     int currentmax;
     for (i = from; i < to; i++) {
         currentmax = hist->GetBinContent(i);
@@ -48,7 +48,7 @@ int GetMaximumBin(TH1D* hist, int from, int to) {
 int GetMinimumBin(TH1D* hist, int from, int to) {
     int i;
     int min = RAND_MAX;
-    int imin;
+    int imin=-1;
     int currentmin;
     //  printf("\n\nfrom %d\t to%d\n", from, to);
     for (i = from; i < to; i++) {

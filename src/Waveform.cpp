@@ -33,13 +33,14 @@ int FittingStartBin(float threshold, TH1F * hist) {
         for (i = 0; i < hist->GetSize(); i++) {
             if (hist->GetBinContent(i) < threshold) return i - 1;
         }
-        return 0;
+      
     } else if (threshold >= 0) {
         for (i = 0; i < hist->GetSize(); i++) {
             if (hist->GetBinContent(i) > threshold) return i - 1;
         }
-        return 0;
+       
     }
+    return 0;
 }
 
 void WaveformAll(const char* src_name) {
@@ -474,7 +475,10 @@ void timeDelay(const char * fileIN) {
     TTree* tset = (TTree*) f->Get("tset");
 
     std::string _extension = EXT_ROOT;
-    std::string fileOUTnameIMG = fileIN; // filenameFromPath(fileIN);
+    std::string fileOUTnameIMG = fileIN; //
+    std::string fnfp = filenameFromPath(fileIN);
+    printf("fnfp = %s\n",fnfp.c_str());
+    
     fileOUTnameIMG.replace(fileOUTnameIMG.find(_extension), _extension.length(), "wavepulse.eps");
     char imgOUT[STR_LENGTH];
     sprintf(imgOUT, "%s", fileOUTnameIMG.c_str());
@@ -498,19 +502,19 @@ void timeDelay(const char * fileIN) {
 
     TH1F *histo_pos = new TH1F("histo_pos", "Smearing", 1000, -100, 100);
 
-    TH1F *showHist;
-    TF1 *showFit;
+//    TH1F *showHist;
+   // TF1 *showFit;
 
-    char tname [STR_LENGTH];
-    char fileRAWname[STR_LENGTH];
-    char histOUT[STR_LENGTH];
+//    char tname [STR_LENGTH];
+//    char fileRAWname[STR_LENGTH];
+ //   char histOUT[STR_LENGTH];
 
     //  TFile *FOut = new TFile(fileOUT, "RECREATE");
 
     int nentries = t1->GetEntries();
     float minimo = -1;
     WaveForm Wave; //definizione di WaveForm in WaveAnalysis.h
-    float Integral, BaseIntegral, Max;
+    float  BaseIntegral, Max; //Integral,
 
     int nAnanas = 0;
     int nBananas = 0;
@@ -561,15 +565,13 @@ void timeDelay(const char * fileIN) {
                 //                histo_c->Draw("same");
                 //                c->Write();
                 //            }
-
-
+ 
                 TH1F * temp = (TH1F*) histo_c->Clone("GrongoHist");
                 temp ->Rebin(16);
                 for (int k = 0; k < 64; k++) {
                     temp->SetBinContent(k, temp->GetBinContent(k) / 16);
+                    printf("%f\n",temp->GetBinContent(k)  );
                 }
-
-
 
 
                 temp->Fit(fitfunct, "NQ", "same", FittingStartBin(st.thresh[CH], histo_c), N_SAMPLES);
@@ -639,7 +641,7 @@ void timeDelay(const char * fileIN) {
 
 
                 //
-                printf("%i=d\ttemppos=%f\tpos=%f\tmin=%f\n", jentry, tempPos, pos[CH], minimo);
+                printf("i=%d\ttemppos=%f\tpos=%f\tmin=%f\n", jentry, tempPos, pos[CH], minimo);
 
 
 
@@ -696,8 +698,8 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
     t1->SetBranchAddress("trigCH", &ev.trigCH);
     t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
-    TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
-    TCanvas *c2 = new TCanvas("cB", PLOTS_TITLE, 640, 480);
+   // TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
+   // TCanvas *c2 = new TCanvas("cB", PLOTS_TITLE, 640, 480);
 
 
     TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", N_SAMPLES, 0, N_SAMPLES);

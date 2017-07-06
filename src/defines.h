@@ -305,12 +305,12 @@ std::string acqnameFromPath(const char*filename) {
     std::string _final = filename;
     std::string _extension = EXT_ROOT;
     _final = _final.substr(_final.find_last_of("/") + 1);
-    
+
     int last_ = _final.find_first_of("_");
-    printf("First index %d\nString is %s\n",last_, _final.c_str());
-    if (last_ >0) {
+    printf("First index %d\nString is %s\n", last_, _final.c_str());
+    if (last_ > 0) {
         _final = _final.substr(0, last_);
-    }else{
+    } else {
         _final = _final.replace(_final.find(_extension), _extension.length(), "");
     }
     return _final;
@@ -351,20 +351,20 @@ int get_minimum_pos(float* test, int start, int end) {
 
 }
 
-
 int triggerbin(float threshold, float* test) {
     int i;
     if (threshold < 0) {
         for (i = 100; i < N_SAMPLES; i++) {
             if (test[i] < threshold) return i - 1;
         }
-        return 0;
+
     } else if (threshold >= 0) {
         for (i = 100; i < N_SAMPLES; i++) {
             if (test[i] > threshold) return i - 1;
         }
-        return 0;
+
     }
+    return 0;
 }
 
 float BoundIntegral(float* test, int min, int max) {
@@ -456,8 +456,6 @@ void mySetting_print(mySetting *st) {
 
 }
 
-
-
 void mySetting_histoprint(mySetting *st, int PMTid) {
     char temp[STR_LENGTH];
 
@@ -493,7 +491,7 @@ void mySetting_histoprint(mySetting *st, int PMTid) {
 
 void mySetting_get(TTree* tset1, mySetting* st) {
 
-    char branchDef[STR_LENGTH];
+    //    char branchDef[STR_LENGTH];
 
     tset1->SetBranchAddress("Nchan", &st->Nchan);
     tset1->SetBranchAddress("deltaT", &st->deltaT);
@@ -513,7 +511,7 @@ void mySetting_get(TTree* tset1, mySetting* st) {
 }
 
 int PMTtoCH(int PMT, mySetting* st) {
-    int CH;
+    //    int CH;
     int i;
     for (i = 0; i < st->Nchan; i++) {
         if (st->PmtID[i] == PMT) return i;
@@ -609,7 +607,7 @@ std::vector<myHVchannel> HV_ReadConfig(char* filename) {
 
 myHVchannel HV_findChannel(char* name, std::vector<myHVchannel> myChannels) {
 
-    for (int i = 0; i < myChannels.size(); i++) {
+    for ( unsigned int i = 0; i < myChannels.size(); i++) {
         if (strcmp(name, myChannels[i].name) == 0) {
             return myChannels[i];
         }
@@ -633,11 +631,11 @@ std::vector<int> PMTList(char * filename) {
     std::vector<int> myPMTlist;
     char temp1[STR_LENGTH];
     std::vector<std::string> myFish = list_files("data/", filename, "fish");
-    for (int i = 0; i < myFish.size(); i++) {
+    for (unsigned int i = 0; i < myFish.size(); i++) {
         sprintf(temp1, "data/%s", myFish[i].c_str());
         std::vector<peak> peaks = peak_load(temp1);
 
-        for (int j = 0; j < peaks.size(); j++) {
+        for (unsigned int j = 0; j < peaks.size(); j++) {
             if (PMTisThere(peaks[j].PMTid, myPMTlist) == 0) {
                 myPMTlist.push_back(peaks[j].PMTid);
                 printf("new pmt %d\n", peaks[j].PMTid);
@@ -735,9 +733,9 @@ int PMTidToCalibIndex(int PMTid, std::vector<myPMTcalib> calibs) {
 
 bool isthisfilepublic(const char *fname) {
     FILE *file;
-    if (file = fopen(fname, "r")) {
+    file = fopen(fname, "r");
+    if (file != NULL) {
         fclose(file);
-
         return 1;
     }
 

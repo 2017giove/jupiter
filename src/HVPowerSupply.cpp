@@ -74,7 +74,7 @@ int HVPowerSupply::setBias(short slot, unsigned short len, unsigned short *chann
 int HVPowerSupply::getBias(short slot, unsigned short len, unsigned short *channel, float *value){
 	short slt=slot;
 	if ( CAENHV_GetChParam(this->handle,slt,"VMon",len,channel,value) )	{
-		std::cerr << "\e[0;31mERROR:\e[0m " << GetError() << std::endl;
+		//std::cerr << "\e[0;31mERROR:\e[0m " << GetError() << std::endl;
 		return 1;
 	}
 	return 0;
@@ -93,7 +93,7 @@ int HVPowerSupply::setCurrent(short slot, unsigned short len, unsigned short *ch
 int HVPowerSupply::getCurrent(short slot, unsigned short len, unsigned short *channel, float *value){
 	short slt=slot;
 	if ( CAENHV_GetChParam(this->handle,slt,"IMon",len,channel,value) )	{
-		std::cerr << "\e[0;31mERROR:\e[0m " << GetError() << std::endl;
+		//std::cerr << "\e[0;31mERROR:\e[0m " << GetError() << std::endl;
 		return 1;
 	}
 	return 0;

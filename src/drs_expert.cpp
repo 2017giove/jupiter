@@ -86,8 +86,8 @@ void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels
 void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
 void WebParanoid(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
 void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels);
-void Web_analyze(char* capturename) ;
-void Calibra_analyze(char* capturename) ;
+void Web_analyze(char* capturename);
+void Calibra_analyze(char* capturename);
 void preCalibra_analyze(char* capturename);
 void LolFit(char* capturename);
 void PMTRangeLT(char * capturename, int PMTid);
@@ -100,9 +100,9 @@ int main(int argc, char* argv[]) {
 
     vector<std::string> myArgs;
     std::string tempstring;
-    for (int j; j < argc; j++) {
+    for (int j=0; j < argc; j++) {
         tempstring = argv[j];
-      //  printf("%d %s \n", j, tempstring.c_str());
+        //  printf("%d %s \n", j, tempstring.c_str());
         myArgs.push_back(tempstring);
     }
 
@@ -118,13 +118,13 @@ int main(int argc, char* argv[]) {
         std::string argext = myArgs[1].substr(myArgs[1].length() - 4);
 
         if (!strcmp(argext.c_str(), "root")) {
-           filemenu(myArgs[1].c_str());
+            filemenu(myArgs[1].c_str());
         }
         return 0;
     }
 
     char *acqName = argv[2];
-    char tmp[STR_LENGTH];
+//    char tmp[STR_LENGTH];
 
     std::string filen = acqName;
     if (endsWith(filen, ".jpt")) {
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
- 
+
     //COMANDI PER ANALISI DATI
     if (strcmp(myArgs[1].c_str(), "analyze_precalib") == 0) {
 
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
     } else if (strcmp(myArgs[1].c_str(), "PMTRangeLT") == 0) {
 
         std::vector<int> mylst = PMTList(acqName);
-        for (int k = 0; k < mylst.size(); k++) {
+        for (unsigned int k = 0; k < mylst.size(); k++) {
             PMTRangeLT(acqName, mylst[k]);
         }
         getchar();
@@ -210,9 +210,9 @@ int main(int argc, char* argv[]) {
         time(&Current_Time);
         sprintf(cset.date, "%s", asctime(localtime(&Current_Time)));
 
-        
-        
-        
+
+
+
         // OPZIONI ACQUISIZIONI MULTIPLE O SINGOLE
         if (strcmp(myArgs[1].c_str(), "precalib") == 0) {
             initHV(myPMTs, myChannels);
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
         } else if (strcmp(myArgs[1].c_str(), "acq") == 0) {
             mySetting_print(&cset);
             initHV(myPMTs, myChannels);
-            startCapture(acqName, cset);
+             startCapture(acqName, cset);
         }
 
 
@@ -258,10 +258,11 @@ int main(int argc, char* argv[]) {
 }
 
 void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels) {
+    printf("Loading High Voltage...\n");
     HVPowerSupply *dev = new HVPowerSupply((char *) "192.168.1.2", SY2527, (char *) "admin", (char *) "admin");
 
     bool power = false;
-    bool verbose = true;
+//    bool verbose = true;
 
     unsigned slot = 0;
     unsigned short channel = 0;
@@ -275,6 +276,8 @@ void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels
 
     int maxchan = myPMTs.size();
     myHVchannel temp;
+
+
 
     for (int i = 0; i < maxchan; i++) {
 
@@ -295,8 +298,34 @@ void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels
 
     }
 
+    initscr();
+    start_color();
+    init_pair(4, COLOR_BLACK, COLOR_WHITE);
+    attron(COLOR_PAIR(4));
+    bkgd(COLOR_PAIR(4));
+
+    move(1, 1);
+    printw("\tPREPARING THE SNIPER\n");
+
+    move(6, 1);
+    menu_printtextimage(menu_getimage());
+
+    refresh();
+
     int isready = 0;
+    int stupid = 1;
     do {
+        move(2, 1);
+
+        printw("Loading HIGH VOLTAGE");
+        for (int k = 0; k < 20; k++) {
+            if (k < stupid)printw(".");
+            else printw(" ");
+            stupid++;
+            if (stupid == 20) stupid = 1;
+        }
+        printw("\n");
+
         isready = 1;
         for (int i = 0; i < maxchan; i++) {
             temp = HV_findChannel(myPMTs[i].chname, myChannels);
@@ -305,21 +334,26 @@ void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels
 
             dev->getBias(slot, 1, &channel, &bias);
             dev->getCurrent(slot, 1, &channel, &current);
-            printf("CH %d, Voltage: %2.2f [V], Current: %1.2f [uA] ", i, bias, current);
+            printw("CH %d, Voltage: %2.2f [V], Current: %1.2f [uA] ", i, bias, current);
 
             if (fabs(bias - myPMTs[i].volt) > ramp_up) {
                 isready = 0;
             } else {
-                printf(" >> Ready to spike ");
+                printw(" >> Ready to spike ");
             }
 
-            printf("\n");
+            printw("\n");
         }
 
-        printf("\n");
-
+        printw("\n");
+        move(10, 1);
+        refresh();
     } while (isready == 0);
+
+    endwin();
     printf("Ready to land in the spacetime continuum.\n");
+
+
     delete dev;
 }
 
@@ -416,15 +450,15 @@ void startCapture(char* fileName, mySetting cset) {
      * è memorizzata nella struttura myevent
      */
 
-    TBranch * b_eventId = tree->Branch("eventID", &ev.eventID, "eventID/I");
+//    TBranch * b_eventId = tree->Branch("eventID", &ev.eventID, "eventID/I");
 
 
 
     sprintf(branchDef, "time_array[%d][1024]/F", WANDANA_MAX);
-    TBranch * b_time_array = tree->Branch("time_array", &ev.time_array[0][0], branchDef);
+//    TBranch * b_time_array = tree->Branch("time_array", &ev.time_array[0][0], branchDef);
 
     sprintf(branchDef, "wave_array[%d][1024]/F", WANDANA_MAX);
-    TBranch * b_wave_array = tree->Branch("wave_array", &ev.wave_array[0][0], branchDef);
+//    TBranch * b_wave_array = tree->Branch("wave_array", &ev.wave_array[0][0], branchDef);
 
 
     /*  Inizializzazione scheda*/
@@ -549,7 +583,7 @@ void startCapture(char* fileName, mySetting cset) {
         tree->Fill();
 
         /* print some progress indication */
-        printf("%d ev - %d sec rem.", totevents, cset.deltaT - (time(0) - t0));
+        printf("%d ev - %d sec rem.", totevents, (int) (cset.deltaT - (time(0) - t0)));
         //printf("\n%d %d %f\n",cset.deltaT, (time(0)-t0),(float)((time(0) - t0) / (float)cset.deltaT));
         printStatus((float) ((time(0) - t0) / (float) cset.deltaT));
 
@@ -632,12 +666,9 @@ float getTriggerSource(myEvent *ev, mySetting *st) {
 // ****************************************************************
 // EXPERT's SQUARE
 
-
-
-
 void preCalibra(char* fileName, mySetting cset) {
     printf("He is washing his fountain pen...\n");
-    int thresh;
+//    int thresh;
     char tmp[STR_LENGTH];
     float frac[MAXCH];
 
@@ -714,7 +745,7 @@ void Calibra(char* fileName, mySetting cset, std::vector<myPMTconfig> myPMTs, st
 
             // find pmt position in peaks file from pmt id
             int j = NOT_FOUND_INT;
-            for (int k = 0; k < peaks.size(); k++) {
+            for (unsigned int k = 0; k < peaks.size(); k++) {
                 if (peaks[k].PMTid == CHtoPMT(i, &cset)) {
                     j = k;
                 }
@@ -760,7 +791,7 @@ void Web_analyze(char* capturename) {
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
     char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
+//    char rottentemp[STR_LENGTH];
 
     // Rimuove i file vecchi eventualmente presenti
     std::vector<std::string> myrottenfish = list_files("data/", capturename, ".RAW.root");
@@ -776,16 +807,16 @@ void Web_analyze(char* capturename) {
     std::vector<std::string> myfiles = list_files("data/", capturename, ".web.root");
 
     // Crea istogramma carica
-    for (int i = 0; i < myfiles.size(); i++) {
+    for (unsigned int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
-        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+//        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
         ChargeHist(capturename_, ".histoweb");
     }
 
     sprintf(capturename_, "%s_", capturename);
     std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histoweb.root");
 
-    for (int i = 0; i < myHistfiles.size(); i++) {
+    for (unsigned int i = 0; i < myHistfiles.size(); i++) {
 
         sprintf(temp1, "data/%s", myHistfiles[i].c_str());
         TFile *sorgente_file = TFile::Open(temp1);
@@ -796,7 +827,7 @@ void Web_analyze(char* capturename) {
 
         for (int j = 0; j < st.Nchan; j++) {
             int PMTid = CHtoPMT(j, &st);
-            int voltage = st.voltage[j];
+//            int voltage = st.voltage[j];
             sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
             printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
@@ -807,12 +838,11 @@ void Web_analyze(char* capturename) {
     printf("Esecuzione terminata\n");
 }
 
-
 void Calibra_analyze(char* capturename) {
     char capturename_[STR_LENGTH];
-    char temp1[STR_LENGTH];
-    char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
+//    char temp1[STR_LENGTH];
+//    char temp2[STR_LENGTH];
+//    char rottentemp[STR_LENGTH];
 
     // Rimuove i file vecchi eventualmente presenti
     std::vector<std::string> myrottenfish = list_files("data/", capturename, ".calfish");
@@ -834,9 +864,9 @@ void Calibra_analyze(char* capturename) {
     std::vector<std::string> myfiles = list_files("data/", capturename, ".cal.root");
 
     // Crea istogramma carica
-    for (int i = 0; i < myfiles.size(); i++) {
+    for (unsigned int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
-        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+//        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
         ChargeHist(capturename_, ".histcal");
     }
 
@@ -844,7 +874,7 @@ void Calibra_analyze(char* capturename) {
     std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histcal.root");
 
     char tempfpath[STR_LENGTH];
-    for (int i = 0; i < myHistfiles.size(); i++) {
+    for (unsigned int i = 0; i < myHistfiles.size(); i++) {
         sprintf(tempfpath, "data/%s", myHistfiles[i].c_str());
         Cs_fitall(tempfpath);
     }
@@ -855,7 +885,7 @@ void Calibra_analyze(char* capturename) {
 
     char tempf[STR_LENGTH];
     char tempf2[STR_LENGTH];
-    for (int f = 0; f < myFish.size(); f++) {
+    for (unsigned int f = 0; f < myFish.size(); f++) {
         sprintf(tempf, "data/%s", myFish[f].c_str());
         sprintf(tempf2, "data/%s.bestcal", capturename);
         volt_fit(tempf, tempf2, capturename);
@@ -864,14 +894,12 @@ void Calibra_analyze(char* capturename) {
 
 }
 
-
-
 void preCalibra_analyze(char* capturename) {
 
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
     char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
+//    char rottentemp[STR_LENGTH];
 
 
     // Rimuove i file vecchi eventualmente presenti
@@ -894,9 +922,9 @@ void preCalibra_analyze(char* capturename) {
     std::vector<std::string> myfiles = list_files("data/", capturename, ".th.root");
 
     // Crea istogramma carica
-    for (int i = 0; i < myfiles.size(); i++) {
+    for (unsigned int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
-        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+//        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
         ChargeHist(capturename_, ".histprec");
     }
 
@@ -905,7 +933,7 @@ void preCalibra_analyze(char* capturename) {
     std::vector<std::string> myHistfiles = list_files("data/", capturename, ".histprec.root");
 
 
-    for (int i = 0; i < myHistfiles.size(); i++) {
+    for (unsigned int i = 0; i < myHistfiles.size(); i++) {
         //riscrivere utilizzand Cs fit, senza dover riscrivere lo stesso codice
         sprintf(temp1, "data/%s", myHistfiles[i].c_str());
         TFile *sorgente_file = TFile::Open(temp1);
@@ -932,7 +960,7 @@ void preCalibra_analyze(char* capturename) {
 
     char tempf[STR_LENGTH];
     char tempf2[STR_LENGTH];
-    for (int f = 0; f < myFish.size(); f++) {
+    for (unsigned int f = 0; f < myFish.size(); f++) {
         sprintf(tempf, "data/%s", myFish[f].c_str());
         sprintf(tempf2, "data/%s.besttrigger", capturename);
         bestresolution_find(tempf, tempf2);
@@ -951,7 +979,7 @@ void LolFit(char* capturename) {
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
     char temp2[STR_LENGTH];
-    char rottentemp[STR_LENGTH];
+//    char rottentemp[STR_LENGTH];
 
 
     // Rimuove i file vecchi eventualmente presenti
@@ -970,9 +998,9 @@ void LolFit(char* capturename) {
     std::vector<std::string> myfiles = list_files("data/", capturename, "0.root");
 
     // Crea istogramma carica
-    for (int i = 0; i < myfiles.size(); i++) {
+    for (unsigned int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
-        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        //printf("\n\n%d\t%d\t%s\n", i, (int)myfiles.size(), myfiles[i].c_str());
         ChargeHist(capturename_, "0hist");
     }
 
@@ -980,7 +1008,7 @@ void LolFit(char* capturename) {
     // sprintf(capturename_, "%s_", capturename);
     std::vector<std::string> myHistfiles = list_files("data/", capturename, "0hist.root");
 
-    for (int i = 0; i < myHistfiles.size(); i++) {
+    for (unsigned int i = 0; i < myHistfiles.size(); i++) {
 
         sprintf(temp1, "data/%s", myHistfiles[i].c_str());
         TFile *sorgente_file = TFile::Open(temp1);
@@ -991,7 +1019,7 @@ void LolFit(char* capturename) {
 
         for (int j = 0; j < st.Nchan; j++) {
             int PMTid = CHtoPMT(j, &st);
-            int voltage = st.voltage[j];
+//            int voltage = st.voltage[j];
             sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
             printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
@@ -1007,7 +1035,7 @@ void LolFit(char* capturename) {
 
     char tempf[STR_LENGTH];
     char tempf2[STR_LENGTH];
-    for (int f = 0; f < myFish.size(); f++) {
+    for (unsigned int f = 0; f < myFish.size(); f++) {
         sprintf(tempf, "data/%s", myFish[f].c_str());
         sprintf(tempf2, "data/%s.bestcal", capturename);
         volt_fit(tempf, tempf2, capturename);
@@ -1017,13 +1045,11 @@ void LolFit(char* capturename) {
 
 }
 
-
-
 void PMTRangeLT(char * capturename, int PMTid) {
 
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
-    char temp2[STR_LENGTH];
+//    char temp2[STR_LENGTH];
     char rottentemp[STR_LENGTH];
 
 
@@ -1053,11 +1079,11 @@ void PMTRangeLT(char * capturename, int PMTid) {
 
 
 
-    for (int i = 0; i < myFish.size(); i++) {
+    for (unsigned int i = 0; i < myFish.size(); i++) {
         sprintf(temp1, "data/%s", myFish[i].c_str());
         std::vector<peak> peaks = peak_load(temp1);
 
-        for (int j = 0; j < peaks.size(); j++) {
+        for (unsigned int j = 0; j < peaks.size(); j++) {
             if (PMTid == peaks[j].PMTid) {
                 TLatex * lbl = new TLatex(peaks[j].voltage + 0.2, -peaks[j].thresh + 0.2, Form("%1.5f", peaks[j].resolution));
                 lbl->SetTextSize(0.025);
