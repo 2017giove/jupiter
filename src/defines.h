@@ -351,7 +351,8 @@ int get_minimum_pos(float* test, int start, int end) {
 
 }
 
-int triggerbin(int threshold, float* test) {
+
+int triggerbin(float threshold, float* test) {
     int i;
     if (threshold < 0) {
         for (i = 100; i < N_SAMPLES; i++) {

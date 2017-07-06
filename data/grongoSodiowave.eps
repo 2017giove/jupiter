@@ -1,0 +1,26 @@
+{
+//========= Macro generated from object: histo_pos/Smearing
+//========= by ROOT version5.34/28
+   
+   TH1F *histo_pos = new TH1F("histo_pos","Smearing",200,-100,100);
+   histo_pos->SetBinContent(101,1719);
+   histo_pos->SetEntries(1719);
+
+   Int_t ci;      // for color index setting
+   TColor *color; // for color definition with alpha
+   ci = TColor::GetColor("#000099");
+   histo_pos->SetLineColor(ci);
+   histo_pos->GetXaxis()->SetLabelFont(42);
+   histo_pos->GetXaxis()->SetLabelSize(0.035);
+   histo_pos->GetXaxis()->SetTitleSize(0.035);
+   histo_pos->GetXaxis()->SetTitleFont(42);
+   histo_pos->GetYaxis()->SetLabelFont(42);
+   histo_pos->GetYaxis()->SetLabelSize(0.035);
+   histo_pos->GetYaxis()->SetTitleSize(0.035);
+   histo_pos->GetYaxis()->SetTitleFont(42);
+   histo_pos->GetZaxis()->SetLabelFont(42);
+   histo_pos->GetZaxis()->SetLabelSize(0.035);
+   histo_pos->GetZaxis()->SetTitleSize(0.035);
+   histo_pos->GetZaxis()->SetTitleFont(42);
+   histo_pos->Draw("");
+}

@@ -3,9 +3,9 @@
 # There was a competition...
 #
 #PMT VOLTAGE THRESHOLD CHANNELNAME 
-505 1700    60  r06
+505 1700    40  r06
 313 1700    60  r29
-209 1700    60	r26
-601 1750    62  r33
+#209 1700    60	r26
+#601 1750    62  r33
 triggersource 768
 delay 1250

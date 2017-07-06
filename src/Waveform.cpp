@@ -466,6 +466,212 @@ void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid) {
 
 }
 
+void timeDelay(const char * fileIN) {
+
+    TFile* f = TFile::Open(fileIN);
+
+    TTree* t1 = (TTree*) f->Get("t1");
+    TTree* tset = (TTree*) f->Get("tset");
+
+    std::string _extension = EXT_ROOT;
+    std::string fileOUTnameIMG = fileIN; // filenameFromPath(fileIN);
+    fileOUTnameIMG.replace(fileOUTnameIMG.find(_extension), _extension.length(), "wavepulse.eps");
+    char imgOUT[STR_LENGTH];
+    sprintf(imgOUT, "%s", fileOUTnameIMG.c_str());
+
+
+    struct mySetting st;
+    mySetting_get(tset, &st);
+
+    char histOUT2[STR_LENGTH];
+    strcpy(histOUT2, appendToRootFilename(fileIN, "wave").c_str());
+    TFile *fOUT = new TFile(histOUT2, "RECREATE");
+
+    struct myEvent ev;
+    // allocateEvent(&ev,st.Nchan );
+    t1->SetBranchAddress("trigCH", &ev.trigCH);
+    t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
+
+
+
+    TH1F *histo_c = new TH1F("histo_ch1", "Forma del segnale", N_SAMPLES, 0, N_SAMPLES - 1);
+
+    TH1F *histo_pos = new TH1F("histo_pos", "Smearing", 1000, -100, 100);
+
+    TH1F *showHist;
+    TF1 *showFit;
+
+    char tname [STR_LENGTH];
+    char fileRAWname[STR_LENGTH];
+    char histOUT[STR_LENGTH];
+
+    //  TFile *FOut = new TFile(fileOUT, "RECREATE");
+
+    int nentries = t1->GetEntries();
+    float minimo = -1;
+    WaveForm Wave; //definizione di WaveForm in WaveAnalysis.h
+    float Integral, BaseIntegral, Max;
+
+    int nAnanas = 0;
+    int nBananas = 0;
+    int nCananas = 0;
+
+    TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
+    gStyle->SetOptFit(1111);
+
+    bool isPineApple = 0;
+
+    for (int jentry = 0; jentry < nentries; jentry++) {
+        isPineApple = 0;
+
+        float pos[2] = {0, 0};
+        //printf("Chambanas\n");
+        for (int CH = 0; CH < st.Nchan; CH++) {
+
+            t1->GetEntry(jentry);
+            TF1 *fitfunct = new TF1("f1", "[0]*([4]*TMath::Exp(-[1]*(x-[3])) - (1-[4])*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
+
+            fitfunct->SetParameter(0, 1620);
+            fitfunct->FixParameter(1, 0.00867);
+            fitfunct->FixParameter(2, 0.0992);
+            fitfunct->SetParameter(3, 220);
+            fitfunct->SetParameter(4, 0.5);
+            fitfunct->SetParameter(5, 220);
+            fitfunct->SetParLimits(4, 0, 1);
+            fitfunct->SetParLimits(2, 0, RAND_MAX);
+            fitfunct->SetParLimits(1, 0, RAND_MAX);
+
+            for (int k = 0; k < 1024; k++) {
+                histo_c->SetBinContent(k, ev.wave_array[CH][k]);
+            }
+
+            Wave.FillVec(N_SAMPLES, ev.time_array[CH], ev.wave_array[CH], -1);
+            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
+
+            int trigpos = triggerbin(st.thresh[CH], ev.wave_array[CH]);
+
+            if (!isaspike(ev.wave_array[CH], trigpos, BaseIntegral)) {
+
+
+                //            histo_c->SetLineColor(CH + 2);
+                //            if (CH == 0) {
+                //                histo_c->Draw("");
+                //               // c->Write();
+                //            } else {
+                //                histo_c->Draw("same");
+                //                c->Write();
+                //            }
+
+
+                TH1F * temp = (TH1F*) histo_c->Clone("GrongoHist");
+                temp ->Rebin(16);
+                for (int k = 0; k < 64; k++) {
+                    temp->SetBinContent(k, temp->GetBinContent(k) / 16);
+                }
+
+
+
+
+                temp->Fit(fitfunct, "NQ", "same", FittingStartBin(st.thresh[CH], histo_c), N_SAMPLES);
+                temp->SetLineColor(CH + 2);
+
+
+
+                if (CH == 0) {
+                    temp->Draw("");
+                } else {
+                    temp->Draw("same");
+                }
+
+
+                //
+                //            //   fitfunct->Draw("same");
+                //
+                TF1 *G1 = new TF1("G1", "[0]*([4]*TMath::Exp(-[1]*(x-[3])) - (1-[4])*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
+
+                G1->FixParameter(0, fitfunct->GetParameter(0));
+                G1->FixParameter(1, fitfunct->GetParameter(1));
+                G1->FixParameter(2, fitfunct->GetParameter(2));
+                G1->FixParameter(3, fitfunct->GetParameter(3));
+                G1->FixParameter(4, fitfunct->GetParameter(4));
+                G1->FixParameter(5, fitfunct->GetParameter(5));
+                G1->SetLineColor(CH + 2);
+                G1->SetLineStyle(2);
+                G1->Draw("same");
+
+
+
+
+                //
+                //
+                //            //            if (jentry % 500 == 0) {
+                //            //                showHist = (TH1F*) histo_ch1->Clone("GrongoWave");
+                //            //                showFit = (TF1*) fitfunct->Clone("GrongoCurve");
+                //            //                printf("Pesco un granchio...\n");
+                //            //                showHist->GetXaxis()->SetTitle("tempo (samples)");
+                //            //                showHist->GetYaxis()->SetTitle("Segnale (mV)");
+                //            //
+                //            //                //showFit->DrawF1(0, N_SAMPLES, "pl same");
+                //            //                // showHist->(0, -800, N_SAMPLES, 50);
+                //            //                //showFit->SetRange(0, -800, N_SAMPLES, 50);
+                //            //
+                //            //                showHist->Draw();
+                //            //                showFit->Draw("same");
+                //            //                c->Write();
+                //            //            }
+
+                minimo = fitfunct->GetMinimum(0, N_SAMPLES);
+
+                if (minimo<-500 || minimo > 0) {
+                    isPineApple = 1;
+                    nBananas++;
+
+                }
+
+                float tempPos = FittingStartBin(minimo * 2. / 3., temp);
+
+                pos[CH] = FittingStartBin(minimo * 2. / 3., histo_c);
+
+                //
+                TLine *line = new TLine(pos[CH], -1000, pos[CH], 0);
+                line->SetLineColor(CH + 2);
+                line->Draw("same");
+
+
+                //
+                printf("%i=d\ttemppos=%f\tpos=%f\tmin=%f\n", jentry, tempPos, pos[CH], minimo);
+
+
+
+                //   delete temp;
+            } else {
+                CH = 241;
+                isPineApple = 1;
+                nAnanas++;
+            }
+        }
+
+        if (!isPineApple) {
+            histo_pos->Fill(pos[1] - pos[0]);
+            printf("Smear= %f\n", pos[1] - pos[0]);
+
+            if (pos[1] - pos[0]<-38 / 2 * 2 || pos[1] - pos[0] > 38 / 2 * 2) {
+                nCananas++;
+                c->Write();
+            }
+            // printf("%d/%d\t", jentry, nentries);
+            printStatus((float(jentry) / (float) nentries));
+        }
+    }
+
+    histo_pos->Draw();
+    histo_pos->Write();
+    //  histo_pos->SaveAs(imgOUT);
+
+    printf("\nLollo ha avuto %d erezioni spiked e %d fellatio saturated. Would like a little more, say %d.\n", nAnanas, nBananas, nCananas);
+    fOUT->Close();
+}
+
 void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
 
     char tname[STR_LENGTH];
@@ -530,20 +736,26 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
         // se vuoi velocizzare parti da start=(N_SAMPLES - (int) (delay * RATE))
         temp->Fit(fitfunct, "Q", "", FittingStartBin(st.thresh[CH], histo_ch1), N_SAMPLES);
 
-        if (jentry % 500 == 0) {
-            showHist = (TH1F*) histo_ch1->Clone("GrongoWave");
-            showFit = (TF1*) fitfunct->Clone("GrongoCurve");
-            printf("Pesco un granchio...\n");
-            showHist->GetXaxis()->SetTitle("tempo (samples)");
-            showHist->GetYaxis()->SetTitle("Segnale (mV)");
+        //        if (jentry % 500 == 0) {
+        showHist = (TH1F*) histo_ch1->Clone("GrongoWave");
+        showFit = (TF1*) fitfunct->Clone("GrongoCurve");
+        // printf("Pesco un granchio...\n");
+        showHist->GetXaxis()->SetTitle("tempo (samples)");
+        showHist->GetYaxis()->SetTitle("Segnale (mV)");
+        //
+        //showFit->DrawF1(0, N_SAMPLES, "pl same");
+        //            // showHist->(0, -800, N_SAMPLES, 50);
+        //showFit->SetRange(0, -800, N_SAMPLES, 50);
+        //  
+        sprintf(tname, "w%d", jentry);
+        showHist->SetName(tname);
+        showHist->Draw();
+        showFit->Draw("same");
+        //        }
+        showHist->Write();
 
-            //showFit->DrawF1(0, N_SAMPLES, "pl same");
-            // showHist->(0, -800, N_SAMPLES, 50);
-            //showFit->SetRange(0, -800, N_SAMPLES, 50);
 
-            showHist->Draw();
-            showFit->Draw("same");
-        }
+
 
         minimo = -fitfunct->GetMinimum(0, N_SAMPLES);
         histo_max->Fill(minimo, 1);

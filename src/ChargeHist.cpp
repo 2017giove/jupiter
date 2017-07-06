@@ -51,6 +51,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
     char fileRAWname[STR_LENGTH];
     char histOUT[STR_LENGTH];
 
+
     strcpy(fileRAWname, appendToRootFilename(fileIN, "RAW").c_str());
     strcpy(histOUT, appendToRootFilename(fileIN, fileext.c_str()).c_str());
 
@@ -97,23 +98,23 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
     //Codice per istogramma in kev
     bool amIcalibratedFish = isthisfilepublic(CALIB_FILE);
     std::vector<myPMTcalib> calibs;
-   if (amIcalibratedFish) {
+    if (amIcalibratedFish) {
         calibs = calib_load(CALIB_FILE);
     }
     sprintf(tname, "hctot");
     TH1D *htot = new TH1D(tname, "Istogramma energia tot", NBIN / 4, QMIN, 3 * CAESIUM_PEAK);
- 
+
 
     for (CH = 0; CH < st.Nchan; CH++) {
         cPMT = CHtoPMT(CH, &st);
-        int calibIndex=-1; 
+        int calibIndex = -1;
         double scalingAnanas = -1;
 
-        if(amIcalibratedFish){
+        if (amIcalibratedFish) {
             calibIndex = PMTidToCalibIndex(cPMT, calibs);
-            scalingAnanas  = CAESIUM_PEAK / TMath::Exp(calibs[calibIndex].A * st.voltage[CH] + calibs[calibIndex].B);
+            scalingAnanas = CAESIUM_PEAK / TMath::Exp(calibs[calibIndex].A * st.voltage[CH] + calibs[calibIndex].B);
         }
-        
+
         sprintf(tname, "t%d", cPMT);
         t1 = (TTree*) f->Get(tname);
         sprintf(tname, "tbase%d", cPMT);
@@ -158,7 +159,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         h1->Write();
         sprintf(tname, "img/%s_charge%d.eps", filenameFromPath(fileIN).c_str(), cPMT);
         h1->Draw("");
-            mySetting_histoprint(&st, cPMT);
+        mySetting_histoprint(&st, cPMT);
         c40->SaveAs(tname);
 
         if (amIcalibratedFish && (calibIndex != NOT_FOUND_INT)) {
@@ -168,7 +169,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
             h2->Write();
             sprintf(tname, "img/%s_charge_calib%d.eps", filenameFromPath(fileIN).c_str(), cPMT);
             h2->Draw("");
-                mySetting_histoprint(&st, cPMT);
+            mySetting_histoprint(&st, cPMT);
             c40->SaveAs(tname);
 
         }
@@ -193,7 +194,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         htot->Write();
         sprintf(tname, "img/%s_charge_calibTOT.eps", filenameFromPath(fileIN).c_str());
         htot->Draw("");
-          mySetting_histoprint(&st, 0);
+        mySetting_histoprint(&st, 0);
         c40->SaveAs(tname);
 
     }
@@ -265,19 +266,13 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
         //(printf("\n%d\n\n", temp.trigCH);
-        if (temp.trigCH == CH) {
-
+        if (temp.trigCH == CH || st.triggerSetting == 768) {
             Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
             BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
 
             int trigpos = triggerbin(st.thresh[CH], temp.wave_array[CH]);
 
-
-
             if (isaspike(temp.wave_array[CH], trigpos, BaseIntegral) == 0) {
-
-
-
 
                 Integral = Wave.Integral();
                 Integral -= BaseIntegral;

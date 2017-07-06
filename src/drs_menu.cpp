@@ -130,7 +130,7 @@ void filemenu(const char*filename) {
     int MENU_CSFIT = -1;
     int MENU_WAVEFORM = -1;
     int MENU_WAVEPROFILE = -1;
-
+    int MENU_TIMEDELAY = -1;
     int n = 0;
     std::vector<std::string> myEntries;
 
@@ -152,6 +152,9 @@ void filemenu(const char*filename) {
 
         myEntries.push_back("WaveProfile");
         MENU_WAVEPROFILE = n++;
+
+        myEntries.push_back("TimeDelay");
+        MENU_TIMEDELAY = n++;
     }
 
     if (printHistoAnalysis) {
@@ -259,6 +262,9 @@ void filemenu(const char*filename) {
         } else if (choice == MENU_WAVEPROFILE) {
             int k = 2;
             waddstr(infow, "Analisi delle forme d'onda al variare della carica totale portata");
+        } else if (choice == MENU_TIMEDELAY) {
+            int k = 2;
+            waddstr(infow, "Parto dal 7 all'11 luglio");
         }
 
 
@@ -301,6 +307,8 @@ void filemenu(const char*filename) {
         WaveformAll(filename);
     } else if (choice == MENU_WAVEPROFILE) {
         WaveProfile(filename);
+    } else if (choice == MENU_TIMEDELAY) {
+        timeDelay(filename);
     }
 
 
