@@ -33,12 +33,12 @@ int FittingStartBin(float threshold, TH1F * hist) {
         for (i = 0; i < hist->GetSize(); i++) {
             if (hist->GetBinContent(i) < threshold) return i - 1;
         }
-      
+
     } else if (threshold >= 0) {
         for (i = 0; i < hist->GetSize(); i++) {
             if (hist->GetBinContent(i) > threshold) return i - 1;
         }
-       
+
     }
     return 0;
 }
@@ -218,7 +218,13 @@ void WaveProfile(const char* src_name) {
 
 
         int col = 1;
+        
+        
+        sprofh->Write();
+        
         //Qual è l'intervallo che ci interessa???
+        
+        
         for (int ii = 10; ii < 40; ii += 5) {
             sprintf(tname, "x%d", ii);
             TProfile *a = sprofh->ProfileX(tname, ii, ii + 5);
@@ -477,8 +483,8 @@ void timeDelay(const char * fileIN) {
     std::string _extension = EXT_ROOT;
     std::string fileOUTnameIMG = fileIN; //
     std::string fnfp = filenameFromPath(fileIN);
-    printf("fnfp = %s\n",fnfp.c_str());
-    
+    printf("fnfp = %s\n", fnfp.c_str());
+
     fileOUTnameIMG.replace(fileOUTnameIMG.find(_extension), _extension.length(), "wavepulse.eps");
     char imgOUT[STR_LENGTH];
     sprintf(imgOUT, "%s", fileOUTnameIMG.c_str());
@@ -496,25 +502,24 @@ void timeDelay(const char * fileIN) {
     t1->SetBranchAddress("trigCH", &ev.trigCH);
     t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
-
-
     TH1F *histo_c = new TH1F("histo_ch1", "Forma del segnale", N_SAMPLES, 0, N_SAMPLES - 1);
 
     TH1F *histo_pos = new TH1F("histo_pos", "Smearing", 1000, -100, 100);
 
-//    TH1F *showHist;
-   // TF1 *showFit;
+    //    TH1F *showHist;
+    // TF1 *showFit;
 
-//    char tname [STR_LENGTH];
-//    char fileRAWname[STR_LENGTH];
- //   char histOUT[STR_LENGTH];
+    //    char tname [STR_LENGTH];
+    //    char fileRAWname[STR_LENGTH];
+    //   char histOUT[STR_LENGTH];
 
     //  TFile *FOut = new TFile(fileOUT, "RECREATE");
 
     int nentries = t1->GetEntries();
+
     float minimo = -1;
     WaveForm Wave; //definizione di WaveForm in WaveAnalysis.h
-    float  BaseIntegral, Max; //Integral,
+    float BaseIntegral, Max; //Integral,
 
     int nAnanas = 0;
     int nBananas = 0;
@@ -533,18 +538,33 @@ void timeDelay(const char * fileIN) {
         for (int CH = 0; CH < st.Nchan; CH++) {
 
             t1->GetEntry(jentry);
-            TF1 *fitfunct = new TF1("f1", "[0]*([4]*TMath::Exp(-[1]*(x-[3])) - (1-[4])*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
+            //  TF1 *fitfunct = new TF1("f1", "[0]*([3]*TMath::Exp(-[1]*x) - (1-[3])*TMath::Exp(-[2]*x))", 0, N_SAMPLES);
+
+            /*   TF1 *fitfunct = new TF1("f1", "[0]*((1-[1]/([1]+[2]*TMath::Exp(([1]-[2])*[3])))*TMath::Exp(-[1]*x) - ([1]/([1]+[2]*TMath::Exp(([1]-[2])*[3])))*TMath::Exp(-[2]*x))", 0, N_SAMPLES);
+
+               fitfunct->SetParLimits(0, 0, 10000);
+               fitfunct->SetParLimits(1, 0, 5);
+               fitfunct->SetParLimits(2, 0, 5);
+
+               fitfunct->SetParLimits(3, 0, 1000);
+
+               fitfunct->SetParameter(0, 200); //1620
+               fitfunct->SetParameter(1, 0.00867); //era un fix
+               fitfunct->SetParameter(2, 0.0992);
+
+               fitfunct->SetParameter(3, 250);
+             */
+
+            TF1 *fitfunct = new TF1("f1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
 
             fitfunct->SetParameter(0, 1620);
             fitfunct->FixParameter(1, 0.00867);
             fitfunct->FixParameter(2, 0.0992);
             fitfunct->SetParameter(3, 220);
-            fitfunct->SetParameter(4, 0.5);
+            fitfunct->SetParameter(4, 1620);
             fitfunct->SetParameter(5, 220);
-            fitfunct->SetParLimits(4, 0, 1);
-            fitfunct->SetParLimits(2, 0, RAND_MAX);
-            fitfunct->SetParLimits(1, 0, RAND_MAX);
 
+            
             for (int k = 0; k < 1024; k++) {
                 histo_c->SetBinContent(k, ev.wave_array[CH][k]);
             }
@@ -565,14 +585,14 @@ void timeDelay(const char * fileIN) {
                 //                histo_c->Draw("same");
                 //                c->Write();
                 //            }
- 
+
                 TH1F * temp = (TH1F*) histo_c->Clone("GrongoHist");
                 temp ->Rebin(16);
                 for (int k = 0; k < 64; k++) {
                     temp->SetBinContent(k, temp->GetBinContent(k) / 16);
-                    printf("%f\n",temp->GetBinContent(k)  );
+                    //  printf("%f\n",temp->GetBinContent(k)  );
                 }
-
+                //  printf("integ =%f\n", BaseIntegral);
 
                 temp->Fit(fitfunct, "NQ", "same", FittingStartBin(st.thresh[CH], histo_c), N_SAMPLES);
                 temp->SetLineColor(CH + 2);
@@ -589,7 +609,16 @@ void timeDelay(const char * fileIN) {
                 //
                 //            //   fitfunct->Draw("same");
                 //
-                TF1 *G1 = new TF1("G1", "[0]*([4]*TMath::Exp(-[1]*(x-[3])) - (1-[4])*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
+                /*       TF1 *G1 = new TF1("G1", "[0]*((1-[1]/([1]+[2]*TMath::Exp(([1]-[2])*[3])))*TMath::Exp(-[1]*x) - ([1]/([1]+[2]*TMath::Exp(([1]-[2])*[3])))*TMath::Exp(-[2]*x))", 0, N_SAMPLES);
+
+                       G1->FixParameter(0, fitfunct->GetParameter(0));
+                       G1->FixParameter(1, fitfunct->GetParameter(1));
+                       G1->FixParameter(2, fitfunct->GetParameter(2));
+                       G1->FixParameter(3, fitfunct->GetParameter(3));
+                 */
+
+
+                TF1 *G1 = new TF1("G1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
 
                 G1->FixParameter(0, fitfunct->GetParameter(0));
                 G1->FixParameter(1, fitfunct->GetParameter(1));
@@ -597,6 +626,8 @@ void timeDelay(const char * fileIN) {
                 G1->FixParameter(3, fitfunct->GetParameter(3));
                 G1->FixParameter(4, fitfunct->GetParameter(4));
                 G1->FixParameter(5, fitfunct->GetParameter(5));
+
+
                 G1->SetLineColor(CH + 2);
                 G1->SetLineStyle(2);
                 G1->Draw("same");
@@ -656,10 +687,10 @@ void timeDelay(const char * fileIN) {
         if (!isPineApple) {
             histo_pos->Fill(pos[1] - pos[0]);
             printf("Smear= %f\n", pos[1] - pos[0]);
-
+            c->Write();
             if (pos[1] - pos[0]<-38 / 2 * 2 || pos[1] - pos[0] > 38 / 2 * 2) {
                 nCananas++;
-                c->Write();
+
             }
             // printf("%d/%d\t", jentry, nentries);
             printStatus((float(jentry) / (float) nentries));
@@ -698,8 +729,8 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
     t1->SetBranchAddress("trigCH", &ev.trigCH);
     t1->SetBranchAddress("wave_array", &ev.wave_array[0][0]);
 
-   // TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
-   // TCanvas *c2 = new TCanvas("cB", PLOTS_TITLE, 640, 480);
+    // TCanvas *c = new TCanvas("cA", PLOTS_TITLE, 640, 480);
+    // TCanvas *c2 = new TCanvas("cB", PLOTS_TITLE, 640, 480);
 
 
     TH1F *histo_ch1 = new TH1F("histo_ch1", "Forma del segnale", N_SAMPLES, 0, N_SAMPLES);

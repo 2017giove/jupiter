@@ -120,7 +120,7 @@ drs_sub.o: src/drs_sub.cpp include/mxml.h include/DRS.h
 drs_jupiter.o: src/drs_jupiter.cpp include/mxml.h include/DRS.h 
 	$(CXX) $(CFLAGS) `root-config --cflags` -c $<
 
-drs_expert.o: src/drs_expert.cpp src/Waveform.cpp src/ChargeHist.cpp src/Cs_fit.cpp src/drs_menu.cpp src/volt_fit.cpp include/mxml.h include/DRS.h src/HVPowerSupply.cpp  include/HVPowerSupply.h   
+drs_expert.o: src/drs_expert.cpp src/Waveform.cpp src/defines.h src/ChargeHist.cpp src/Cs_fit.cpp src/drs_menu.cpp src/volt_fit.cpp include/mxml.h include/DRS.h src/HVPowerSupply.cpp  include/HVPowerSupply.h   
 	$(CXX) $(CFLAGS)  `root-config --cflags` -c $<
 
 drs_exam_multi.o: src/drs_exam_multi.cpp include/mxml.h include/DRS.h

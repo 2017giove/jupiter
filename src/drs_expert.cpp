@@ -455,10 +455,10 @@ void startCapture(char* fileName, mySetting cset) {
 
 
     sprintf(branchDef, "time_array[%d][1024]/F", WANDANA_MAX);
-//    TBranch * b_time_array = tree->Branch("time_array", &ev.time_array[0][0], branchDef);
+    TBranch * b_time_array = tree->Branch("time_array", &ev.time_array[0][0], branchDef);
 
     sprintf(branchDef, "wave_array[%d][1024]/F", WANDANA_MAX);
-//    TBranch * b_wave_array = tree->Branch("wave_array", &ev.wave_array[0][0], branchDef);
+    TBranch * b_wave_array = tree->Branch("wave_array", &ev.wave_array[0][0], branchDef);
 
 
     /*  Inizializzazione scheda*/
