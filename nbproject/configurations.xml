@@ -24,7 +24,9 @@
         <in>Timer.cpp</in>
         <in>TriggerDialog.cpp</in>
         <in>Waveform.cpp</in>
+        <in>ananas.cpp</in>
         <in>averager.cpp</in>
+        <in>bananas.cpp</in>
         <in>drs_exam.cpp</in>
         <in>drs_exam_multi.cpp</in>
         <in>drs_expert.cpp</in>
@@ -358,6 +360,8 @@
           </preprocessorList>
         </ccTool>
       </item>
+      <item path="src/ananas.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/averager.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="3">
           <incDir>
@@ -366,6 +370,8 @@
             <pElem>.</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="src/bananas.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/drs_exam.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="1">

@@ -28,7 +28,7 @@ textimage menu_getimage();
 void menu_printtextimage(textimage img);
 
 void mainmenu() {
-
+   // ananas();
     initscr(); /* Start curses mode 		  */
     start_color(); /* Start color mode */
     init_pair(1, COLOR_WHITE, COLOR_BLUE); /* Imposta un tema possibile */

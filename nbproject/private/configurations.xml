@@ -57,7 +57,9 @@
         <in>TriggerDialog.cpp</in>
         <in>WaveAnalysis.h</in>
         <in>Waveform.cpp</in>
+        <in>ananas.cpp</in>
         <in>averager.cpp</in>
+        <in>bananas.cpp</in>
         <in>defines.h</in>
         <in>down.xpm</in>
         <in>drs_exam.cpp</in>
