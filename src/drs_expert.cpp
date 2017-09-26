@@ -515,7 +515,8 @@ void startCapture(char* fileName, mySetting cset) {
     b->SetIndividualTriggerLevel(2, cset.thresh[1] / 1000.);
     b->SetIndividualTriggerLevel(3, cset.thresh[2] / 1000.);
     b->SetIndividualTriggerLevel(4, cset.thresh[3] / 1000.);
-
+   
+    
     /*setta la sorgente del trigger in codice binario
      es: CH1=1 CH2=2 CH3=4, CH1_OR_CH2 = 3*/
     /*

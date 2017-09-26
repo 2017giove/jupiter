@@ -83,7 +83,6 @@
         <in>volt_fit.cpp</in>
       </df>
       <in>file_plot.cpp</in>
-      <in>refillDRS.c</in>
     </df>
     <itemPath>channelsHV.cfg</itemPath>
     <itemPath>src/testACQ.jpt</itemPath>

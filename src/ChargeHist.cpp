@@ -266,7 +266,7 @@ void RawIntegral(const char * fileIN, const char *fileOUT, int CH) {
     for (i = 0; i < Nentries; i++) {
         t1->GetEntry(i);
         //(printf("\n%d\n\n", temp.trigCH);
-        if (temp.trigCH == CH || st.triggerSetting == 768) {
+        if (temp.trigCH == CH || st.triggerSetting == 768 ,3840) {
             Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
             BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
 

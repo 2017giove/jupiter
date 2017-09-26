@@ -360,7 +360,7 @@
           </preprocessorList>
         </ccTool>
       </item>
-      <item path="src/ananas.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/ananas.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="src/averager.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="3">
@@ -371,7 +371,7 @@
           </incDir>
         </ccTool>
       </item>
-      <item path="src/bananas.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/bananas.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="src/drs_exam.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="1">

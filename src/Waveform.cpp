@@ -530,7 +530,7 @@ void timeDelay(const char * fileIN) {
 
     bool isPineApple = 0;
 
-    for (int jentry = 0; jentry < nentries; jentry++) {
+    for (int jentry = 0; jentry < nentries; jentry += 10) {
         isPineApple = 0;
 
         float pos[2] = {0, 0};
@@ -588,8 +588,8 @@ void timeDelay(const char * fileIN) {
 
                 TH1F * temp = (TH1F*) histo_c->Clone("GrongoHist");
                 temp ->Rebin(16);
-                for (int k = 0; k < 64; k++) {
-                    temp->SetBinContent(k, temp->GetBinContent(k) / 16);
+                for (int k = 0; k < 1024./16.; k++) {
+                    temp->SetBinContent(k, temp->GetBinContent(k)/16.);
                     //  printf("%f\n",temp->GetBinContent(k)  );
                 }
                 //  printf("integ =%f\n", BaseIntegral);
@@ -661,10 +661,23 @@ void timeDelay(const char * fileIN) {
 
                 }
 
-                float tempPos = FittingStartBin(minimo * 2. / 3., temp);
+                float tempPos = FittingStartBin(minimo, temp);
 
-                pos[CH] = FittingStartBin(minimo * 2. / 3., histo_c);
+                pos[CH] = fitfunct->GetMinimumX(0, N_SAMPLES);//FittingStartBin(minimo * 2. / 3., histo_c);
 
+                /*double dope[6];
+                
+                dope[0] = fitfunct->GetParameter(0);
+                dope[1] = fitfunct->GetParameter(1);
+                dope[2] = fitfunct->GetParameter(2);
+                dope[3] = fitfunct->GetParameter(3);
+                dope[4] = fitfunct->GetParameter(4);
+                dope[5] = fitfunct->GetParameter(5);
+                
+                pos[CH] = (dope[2]*dope[5]-dope[1]*dope[3] + log(dope[2]*dope[4]/dope[0]/dope[1]))/(dope[2]-dope[1]);
+                
+                */
+                 
                 //
                 TLine *line = new TLine(pos[CH], -1000, pos[CH], 0);
                 line->SetLineColor(CH + 2);
