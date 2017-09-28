@@ -4,7 +4,9 @@
     <df root="." name="0">
       <df name="src">
         <in>AboutDialog.cpp</in>
+        <in>Ba_fit.cpp</in>
         <in>ChargeHist.cpp</in>
+        <in>Co_fit.cpp</in>
         <in>ConfigDialog.cpp</in>
         <in>Cs_fit.cpp</in>
         <in>DOFrame.cpp</in>
@@ -108,6 +110,8 @@
           </incDir>
         </ccTool>
       </item>
+      <item path="src/Ba_fit.cpp" ex="false" tool="1" flavor2="4">
+      </item>
       <item path="src/ChargeHist.cpp" ex="false" tool="1" flavor2="11">
         <ccTool flags="4">
           <incDir>
@@ -123,6 +127,8 @@
             <Elem>USE_DRS_MUTEX</Elem>
           </preprocessorList>
         </ccTool>
+      </item>
+      <item path="src/Co_fit.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="src/ConfigDialog.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="3">

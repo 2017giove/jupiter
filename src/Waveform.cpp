@@ -225,11 +225,14 @@ void WaveProfile(const char* src_name) {
         //Qual è l'intervallo che ci interessa???
         
         
-        for (int ii = 10; ii < 40; ii += 5) {
+        for (int ii = 10; ii < 210; ii += 25) {
             sprintf(tname, "x%d", ii);
             TProfile *a = sprofh->ProfileX(tname, ii, ii + 5);
             //a->SetLineColor(ii + 1);
             // a->SetLineWidth(7);
+            a->GetXaxis()->SetTitle("tempo (samples)");
+        a->GetYaxis()->SetTitle("carica normalizzata");
+            
             a->SetMarkerStyle(8);
             a->SetMarkerSize(0.4);
             a->SetMarkerColor(col++);

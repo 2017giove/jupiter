@@ -112,6 +112,12 @@
 #define RATE 0.7 //da cambiare se si usa un rate di acquisizione diverso
 
 #define ENERGY_CESIO 663.
+#define ENERGY_COBALTO 1333.
+#define ENERGY_COBASSO 1173.
+#define ENERGY_BARIO_MAX 325. // posizione picchi mediata
+#define ENERGY_BARIO_MID 285.
+#define ENERGY_BARIO_MIN 160.
+
 #define MASS_ELECTRON 511.
 
 #define CAESIUM_PEAK 661.7 //kioV
@@ -448,9 +454,9 @@ void mySetting_print(mySetting *st) {
     int i;
     for (i = 0; i < st->Nchan; i++) {
         printf("*****\tCH #%d\t*****\n", i);
-        printf("PMT_ID\t=\t%d\n", st->PmtID[i]);
-        printf("Voltage(V)\t=\t%f\n", st->voltage[i]);
-        printf("Threshold(mV)\t=\t%f\n", st->thresh[i]);
+        printf("PMT_ID\t= %d\n", st->PmtID[i]);
+        printf("Voltage(V)\t=\t%4.0f\n", st->voltage[i]);
+        printf("Threshold(mV)\t=\t%2.0f\n", st->thresh[i]);
         printf("\n");
     }
 
@@ -607,7 +613,7 @@ std::vector<myHVchannel> HV_ReadConfig(char* filename) {
 
 myHVchannel HV_findChannel(char* name, std::vector<myHVchannel> myChannels) {
 
-    for ( unsigned int i = 0; i < myChannels.size(); i++) {
+    for (unsigned int i = 0; i < myChannels.size(); i++) {
         if (strcmp(name, myChannels[i].name) == 0) {
             return myChannels[i];
         }

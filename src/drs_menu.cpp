@@ -17,6 +17,7 @@
 #include <string>
 
 
+#include "bananas.cpp"
 #include <unistd.h>
 
 typedef struct ascimg {
@@ -26,9 +27,12 @@ typedef struct ascimg {
 
 textimage menu_getimage();
 void menu_printtextimage(textimage img);
+int scaleman();
 
 void mainmenu() {
-   // ananas();
+    // ananas();
+
+    // ananas();
     initscr(); /* Start curses mode 		  */
     start_color(); /* Start color mode */
     init_pair(1, COLOR_WHITE, COLOR_BLUE); /* Imposta un tema possibile */
@@ -41,7 +45,6 @@ void mainmenu() {
     init_pair(8, COLOR_BLACK, COLOR_YELLOW);
     attron(COLOR_PAIR(1));
     bkgd(COLOR_PAIR(1)); /*Imposta il colore di sfondo */
-
 
     printw("GOOD PEOPLE!\n");
     printw("What i would like to say is \n");
@@ -59,6 +62,9 @@ void mainmenu() {
         usleep(50000);
         refresh();
     }
+
+
+
     // menu_printtextimage(menu_getimage());
     refresh(); /* Print it on to the real screen */
     getch(); /* Wait for user input */
@@ -128,6 +134,8 @@ void filemenu(const char*filename) {
     int MENU_CHARGEHIST = -1;
     int MENU_CHARGEHISTRAW = -1;
     int MENU_CSFIT = -1;
+    int MENU_BAFIT = -1;
+    int MENU_COFIT = -1;
     int MENU_WAVEFORM = -1;
     int MENU_WAVEPROFILE = -1;
     int MENU_TIMEDELAY = -1;
@@ -160,6 +168,12 @@ void filemenu(const char*filename) {
     if (printHistoAnalysis) {
         myEntries.push_back("Cs_fit");
         MENU_CSFIT = n++;
+
+        myEntries.push_back("Ba_fit");
+        MENU_BAFIT = n++;
+
+        myEntries.push_back("Co_fit");
+        MENU_COFIT = n++;
     }
 
     char item[50];
@@ -253,6 +267,10 @@ void filemenu(const char*filename) {
         } else if (choice == MENU_CSFIT) {
 
             waddstr(infow, "Fit dei dati con curva prevista per il Cesio\n");
+        } else if (choice == MENU_BAFIT) {
+            waddstr(infow, "Fit dei dati con curva prevista per il Bario\n");
+        } else if (choice == MENU_COFIT) {
+            waddstr(infow, "Fit dei dati con curva prevista per il Cobalto. Attenzione allo smearing\n");
         } else if (choice == MENU_WAVEFORM) {
             waddstr(infow, "Crea l'istogramma di ogni forma d'onda acquisita\n");
         } else if (choice == MENU_WAVEPROFILE) {
@@ -296,7 +314,10 @@ void filemenu(const char*filename) {
 
     } else if (choice == MENU_CSFIT) {
         Cs_fitall(filename);
-
+    } else if (choice == MENU_BAFIT) {
+        Ba_fitall(filename);
+    } else if (choice == MENU_COFIT) {
+        if (scaleman()) Co_fitall(filename);
     } else if (choice == MENU_WAVEFORM) {
         WaveformAll(filename);
     } else if (choice == MENU_WAVEPROFILE) {
@@ -351,5 +372,31 @@ textimage menu_getimage() {
     return (textimage){ lines, sizeof (lines) / sizeof (char*)};
 }
 
+int scaleman() {
+    FILE* file = fopen("/home/sfera/www/public/scalescore.txt", "r");
+    if (file == NULL) return 1;
+
+    int myscore;
+    fscanf(file, "%d", &myscore);
+    fclose(file);
+
+    if (myscore == -1) return 1;
+
+    int result = ananas(myscore);
+    file = fopen("/home/sfera/www/public/scalescore.txt", "w");
+    if (result == 0) {
+        fprintf(file, "%d", myscore + 1);
+    } else {
+        if (myscore > 0) {
+            fprintf(file, "%d", myscore - 1);
+        } else {
+            fprintf(file, "%d", 7);
+        }
+
+    }
+    fclose(file);
+    //   if (result == 0) mainmenu();
+    return result;
+}
 
 #endif

@@ -154,7 +154,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
         }
 
 
-        h1->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
+        h1->GetXaxis()->SetTitle("Ampiezza media evento (adc counts)");
         h1->GetYaxis()->SetTitle("# eventi");
         h1->Write();
         sprintf(tname, "img/%s_charge%d.eps", filenameFromPath(fileIN).c_str(), cPMT);
@@ -178,7 +178,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
 
         //sprintf(tname, "cbase%d", CH);
         //TCanvas *c42 = new TCanvas(tname, PLOTS_TITLE, 640, 480);
-        hbase->GetXaxis()->SetTitle("Qualcosa proporzionale alla carica");
+        hbase->GetXaxis()->SetTitle("Ampiezza media evento (adc counts)");
         hbase->GetYaxis()->SetTitle("# eventi");
         hbase->Write();
         sprintf(tname, "img/%s_base%d.eps", filenameFromPath(fileIN).c_str(), cPMT);

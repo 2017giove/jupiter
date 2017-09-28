@@ -66,6 +66,9 @@
 #include "volt_fit.cpp"
 #include "ChargeHist.cpp"
 #include "Cs_fit.cpp"
+#include "Ba_fit.cpp"
+#include "Co_fit.cpp" 
+
 #include "Waveform.cpp"
 #include "drs_menu.cpp"
 
@@ -91,7 +94,7 @@ void Calibra_analyze(char* capturename);
 void preCalibra_analyze(char* capturename);
 void LolFit(char* capturename);
 void PMTRangeLT(char * capturename, int PMTid);
-
+void finalizeCapture(char* fileName, mySetting cset) ;
 int main(int argc, char* argv[]) {
 
     int targc = 0;
@@ -100,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     vector<std::string> myArgs;
     std::string tempstring;
-    for (int j=0; j < argc; j++) {
+    for (int j = 0; j < argc; j++) {
         tempstring = argv[j];
         //  printf("%d %s \n", j, tempstring.c_str());
         myArgs.push_back(tempstring);
@@ -124,7 +127,7 @@ int main(int argc, char* argv[]) {
     }
 
     char *acqName = argv[2];
-//    char tmp[STR_LENGTH];
+    //    char tmp[STR_LENGTH];
 
     std::string filen = acqName;
     if (endsWith(filen, ".jpt")) {
@@ -143,6 +146,44 @@ int main(int argc, char* argv[]) {
 
         Calibra_analyze(acqName);
         return 0;
+
+    } else if (strcmp(myArgs[1].c_str(), "chargehist") == 0) {
+
+        ChargeHist(acqName);
+        return 0;
+
+    } else if (strcmp(myArgs[1].c_str(), "chargehist_force") == 0) {
+        char fileRAWname[STR_LENGTH];
+        sprintf(fileRAWname, "%sRAW.root", filenameFromPath(acqName).c_str());
+        std::vector<std::string> myrottenhist = list_files("data/", fileRAWname, "");
+        removeFileList(myrottenhist);
+        ChargeHist(acqName);
+
+        return 0;
+
+    } else if (strcmp(myArgs[1].c_str(), "cs_fit") == 0) {
+
+        Cs_fitall(acqName);
+        return 0;
+
+    } else if (strcmp(myArgs[1].c_str(), "wp") == 0) {
+
+        WaveProfile(acqName);
+        return 0;
+
+    } else if (strcmp(myArgs[1].c_str(), "wf") == 0) {
+
+        WaveformAll(acqName);
+        return 0;
+
+    } else if (strcmp(myArgs[1].c_str(), "tbrowse") == 0) {
+        TFile *sorgente_file = TFile::Open(acqName);
+        new TBrowser();
+        gSystem->ProcessEvents();
+        int targc = 0;
+        char* targv[50];
+        TApplication theApp("App", &targc, targv);
+        theApp.Run();
 
     } else if (strcmp(myArgs[1].c_str(), "analyze_web") == 0) {
 
@@ -242,7 +283,12 @@ int main(int argc, char* argv[]) {
         } else if (strcmp(myArgs[1].c_str(), "acq") == 0) {
             mySetting_print(&cset);
             initHV(myPMTs, myChannels);
-             startCapture(acqName, cset);
+            startCapture(acqName, cset);
+
+        } else if (strcmp(myArgs[1].c_str(), "acq_recover") == 0) {
+            mySetting_print(&cset);
+            finalizeCapture(acqName, cset);
+
         }
 
 
@@ -262,7 +308,7 @@ void initHV(std::vector<myPMTconfig> myPMTs, std::vector<myHVchannel> myChannels
     HVPowerSupply *dev = new HVPowerSupply((char *) "192.168.1.2", SY2527, (char *) "admin", (char *) "admin");
 
     bool power = false;
-//    bool verbose = true;
+    //    bool verbose = true;
 
     unsigned slot = 0;
     unsigned short channel = 0;
@@ -450,7 +496,7 @@ void startCapture(char* fileName, mySetting cset) {
      * è memorizzata nella struttura myevent
      */
 
-//    TBranch * b_eventId = tree->Branch("eventID", &ev.eventID, "eventID/I");
+    //    TBranch * b_eventId = tree->Branch("eventID", &ev.eventID, "eventID/I");
 
 
 
@@ -515,8 +561,8 @@ void startCapture(char* fileName, mySetting cset) {
     b->SetIndividualTriggerLevel(2, cset.thresh[1] / 1000.);
     b->SetIndividualTriggerLevel(3, cset.thresh[2] / 1000.);
     b->SetIndividualTriggerLevel(4, cset.thresh[3] / 1000.);
-   
-    
+
+
     /*setta la sorgente del trigger in codice binario
      es: CH1=1 CH2=2 CH3=4, CH1_OR_CH2 = 3*/
     /*
@@ -617,6 +663,55 @@ void startCapture(char* fileName, mySetting cset) {
     delete drs;
 }
 
+/**
+ * Use this function to recover an unluckily crashed acquisition
+ * @param fileName
+ * @param cset
+ */
+void finalizeCapture(char* fileName, mySetting cset) {
+    TFile * f1;
+    Int_t comp = 4;
+
+    char rootFileName[130];
+    sprintf(rootFileName, "data/%s.root", fileName);
+    f1 = (TFile*) new TFile(rootFileName, "UPDATE");
+    f1->SetCompressionLevel(comp);
+
+    myEvent ev;
+    allocateEvent(&ev, cset.Nchan);
+    int i;
+
+    TTree * tree;
+    tree = (TTree*) new TTree("t1", "title");
+
+    tree->SetBranchAddress("trigCH", &ev.trigCH);
+    tree->SetBranchAddress("wave_array", ev.wave_array);
+    tree->SetBranchAddress("time_array", ev.time_array);
+
+
+    // is trig?
+    TBranch * b_trigId = tree -> Branch("trigCH", &ev.trigCH, "trigCH/I");
+    for (i = 0; i < tree->GetEntries(); i++) {
+        tree->GetEntry(i);
+        ev.trigCH = getTriggerSource(&ev, &cset);
+        // printf("%d\n\n", ev.trigCH);
+        b_trigId->Fill();
+    }
+
+    tree->Write();
+    f1->Write();
+  f1->Close();
+
+    new TBrowser();
+    gSystem->ProcessEvents();
+    int targc = 0;
+    char* targv[50];
+    TApplication theApp("App", &targc, targv);
+    theApp.Run();
+
+  
+
+}
 
 //da velocizzare utilizzado la funzioen GetMaximum al posto di fare tutti questi loop;
 //            printf("Lollo voleva dire min %f\n", min_element(ev.wave_array[ch], ev.wave_array[ch] + 1024));
@@ -669,7 +764,7 @@ float getTriggerSource(myEvent *ev, mySetting *st) {
 
 void preCalibra(char* fileName, mySetting cset) {
     printf("He is washing his fountain pen...\n");
-//    int thresh;
+    //    int thresh;
     char tmp[STR_LENGTH];
     float frac[MAXCH];
 
@@ -792,7 +887,7 @@ void Web_analyze(char* capturename) {
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
     char temp2[STR_LENGTH];
-//    char rottentemp[STR_LENGTH];
+    //    char rottentemp[STR_LENGTH];
 
     // Rimuove i file vecchi eventualmente presenti
     std::vector<std::string> myrottenfish = list_files("data/", capturename, ".RAW.root");
@@ -810,7 +905,7 @@ void Web_analyze(char* capturename) {
     // Crea istogramma carica
     for (unsigned int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
-//        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        //        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
         ChargeHist(capturename_, ".histoweb");
     }
 
@@ -828,7 +923,7 @@ void Web_analyze(char* capturename) {
 
         for (int j = 0; j < st.Nchan; j++) {
             int PMTid = CHtoPMT(j, &st);
-//            int voltage = st.voltage[j];
+            //            int voltage = st.voltage[j];
             sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
             printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
@@ -841,9 +936,9 @@ void Web_analyze(char* capturename) {
 
 void Calibra_analyze(char* capturename) {
     char capturename_[STR_LENGTH];
-//    char temp1[STR_LENGTH];
-//    char temp2[STR_LENGTH];
-//    char rottentemp[STR_LENGTH];
+    //    char temp1[STR_LENGTH];
+    //    char temp2[STR_LENGTH];
+    //    char rottentemp[STR_LENGTH];
 
     // Rimuove i file vecchi eventualmente presenti
     std::vector<std::string> myrottenfish = list_files("data/", capturename, ".calfish");
@@ -867,7 +962,7 @@ void Calibra_analyze(char* capturename) {
     // Crea istogramma carica
     for (unsigned int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
-//        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        //        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
         ChargeHist(capturename_, ".histcal");
     }
 
@@ -900,7 +995,7 @@ void preCalibra_analyze(char* capturename) {
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
     char temp2[STR_LENGTH];
-//    char rottentemp[STR_LENGTH];
+    //    char rottentemp[STR_LENGTH];
 
 
     // Rimuove i file vecchi eventualmente presenti
@@ -925,7 +1020,7 @@ void preCalibra_analyze(char* capturename) {
     // Crea istogramma carica
     for (unsigned int i = 0; i < myfiles.size(); i++) {
         sprintf(capturename_, "data/%s", myfiles[i].c_str());
-//        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
+        //        printf("\n\n%d\t%d\t%s\n", i, myfiles.size(), myfiles[i].c_str());
         ChargeHist(capturename_, ".histprec");
     }
 
@@ -980,7 +1075,7 @@ void LolFit(char* capturename) {
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
     char temp2[STR_LENGTH];
-//    char rottentemp[STR_LENGTH];
+    //    char rottentemp[STR_LENGTH];
 
 
     // Rimuove i file vecchi eventualmente presenti
@@ -1020,7 +1115,7 @@ void LolFit(char* capturename) {
 
         for (int j = 0; j < st.Nchan; j++) {
             int PMTid = CHtoPMT(j, &st);
-//            int voltage = st.voltage[j];
+            //            int voltage = st.voltage[j];
             sprintf(temp2, "data/%s_%d.calfish", capturename, PMTid);
             printf("\nFilename iniziale %s \n>> Salvato in %s\n", temp1, temp2);
             Cs_getPeak(temp1, PMTid, temp2);
@@ -1050,7 +1145,7 @@ void PMTRangeLT(char * capturename, int PMTid) {
 
     char capturename_[STR_LENGTH];
     char temp1[STR_LENGTH];
-//    char temp2[STR_LENGTH];
+    //    char temp2[STR_LENGTH];
     char rottentemp[STR_LENGTH];
 
 
