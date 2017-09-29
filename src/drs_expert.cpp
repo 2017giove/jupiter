@@ -67,6 +67,7 @@
 #include "ChargeHist.cpp"
 #include "Cs_fit.cpp"
 #include "Ba_fit.cpp"
+#include "Na_fit.cpp"
 #include "Co_fit.cpp" 
 
 #include "Waveform.cpp"
@@ -94,7 +95,8 @@ void Calibra_analyze(char* capturename);
 void preCalibra_analyze(char* capturename);
 void LolFit(char* capturename);
 void PMTRangeLT(char * capturename, int PMTid);
-void finalizeCapture(char* fileName, mySetting cset) ;
+void finalizeCapture(char* fileName, mySetting cset);
+
 int main(int argc, char* argv[]) {
 
     int targc = 0;
@@ -205,6 +207,18 @@ int main(int argc, char* argv[]) {
         sprintf(tempf, "data/%s", myArgs[3].c_str());
         sprintf(tempf2, "data/%s.bestcal", myArgs[3].c_str());
         volt_fit(tempf, tempf2, acqName);
+
+        return 0;
+
+        
+        //studio linearità in energia
+    } else if (strcmp(myArgs[1].c_str(), "lavaninaval") == 0) {
+
+        // Sceglie il valore migliore del trigger per ogni PMT; ipotesi di linearità
+        char tempf[STR_LENGTH];
+
+     
+        dollar_fit(acqName);
 
         return 0;
 
@@ -700,7 +714,7 @@ void finalizeCapture(char* fileName, mySetting cset) {
 
     tree->Write();
     f1->Write();
-  f1->Close();
+    f1->Close();
 
     new TBrowser();
     gSystem->ProcessEvents();
@@ -709,7 +723,7 @@ void finalizeCapture(char* fileName, mySetting cset) {
     TApplication theApp("App", &targc, targv);
     theApp.Run();
 
-  
+
 
 }
 

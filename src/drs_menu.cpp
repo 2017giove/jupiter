@@ -135,6 +135,7 @@ void filemenu(const char*filename) {
     int MENU_CHARGEHISTRAW = -1;
     int MENU_CSFIT = -1;
     int MENU_BAFIT = -1;
+    int MENU_NAFIT = -1;
     int MENU_COFIT = -1;
     int MENU_WAVEFORM = -1;
     int MENU_WAVEPROFILE = -1;
@@ -171,6 +172,9 @@ void filemenu(const char*filename) {
 
         myEntries.push_back("Ba_fit");
         MENU_BAFIT = n++;
+
+        myEntries.push_back("Na_fit");
+        MENU_NAFIT = n++;
 
         myEntries.push_back("Co_fit");
         MENU_COFIT = n++;
@@ -269,6 +273,8 @@ void filemenu(const char*filename) {
             waddstr(infow, "Fit dei dati con curva prevista per il Cesio\n");
         } else if (choice == MENU_BAFIT) {
             waddstr(infow, "Fit dei dati con curva prevista per il Bario\n");
+        } else if (choice == MENU_NAFIT) {
+            waddstr(infow, "Fit dei dati con curva prevista per il Sodio\n");
         } else if (choice == MENU_COFIT) {
             waddstr(infow, "Fit dei dati con curva prevista per il Cobalto. Attenzione allo smearing\n");
         } else if (choice == MENU_WAVEFORM) {
@@ -296,12 +302,14 @@ void filemenu(const char*filename) {
 
 
     if (choice == MENU_INFORMATION) {
-        new TBrowser();
-        gSystem->ProcessEvents();
-        int targc = 0;
-        char* targv[50];
-        TApplication theApp("App", &targc, targv);
-        if (scaleman()) theApp.Run();
+        if (scaleman()) {
+            new TBrowser();
+            gSystem->ProcessEvents();
+            int targc = 0;
+            char* targv[50];
+            TApplication theApp("App", &targc, targv);
+            theApp.Run();
+        }
     } else if (choice == MENU_CHARGEHIST) {
         if (scaleman()) ChargeHist(filename);
 
@@ -317,6 +325,8 @@ void filemenu(const char*filename) {
         if (scaleman()) Cs_fitall(filename);
     } else if (choice == MENU_BAFIT) {
         if (scaleman()) Ba_fitall(filename);
+    } else if (choice == MENU_NAFIT) {
+        if (scaleman()) Na_fitall(filename);
     } else if (choice == MENU_COFIT) {
         if (scaleman()) Co_fitall(filename);
     } else if (choice == MENU_WAVEFORM) {

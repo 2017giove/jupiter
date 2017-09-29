@@ -19,6 +19,7 @@
         <in>InfoDialog.cpp</in>
         <in>MeasureDialog.cpp</in>
         <in>Measurement.cpp</in>
+        <in>Na_fit.cpp</in>
         <in>Osci.cpp</in>
         <in>PowerExpert.cpp</in>
         <in>SerialClass.cpp</in>
@@ -282,6 +283,8 @@
             <pElem>.</pElem>
           </incDir>
         </ccTool>
+      </item>
+      <item path="src/Na_fit.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Osci.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="2">

@@ -51,6 +51,7 @@
         <in>InfoDialog.cpp</in>
         <in>MeasureDialog.cpp</in>
         <in>Measurement.cpp</in>
+        <in>Na_fit.cpp</in>
         <in>Osci.cpp</in>
         <in>PowerExpert.cpp</in>
         <in>SerialClass.cpp</in>

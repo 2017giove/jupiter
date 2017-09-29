@@ -117,7 +117,8 @@
 #define ENERGY_BARIO_MAX 325. // posizione picchi mediata
 #define ENERGY_BARIO_MID 285.
 #define ENERGY_BARIO_MIN 160.
-
+#define ENERGY_SODIO_MAX 1275.
+#define ENERGY_SODIO_MIN 511.
 #define MASS_ELECTRON 511.
 
 #define CAESIUM_PEAK 661.7 //kioV

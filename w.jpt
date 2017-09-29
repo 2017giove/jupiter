@@ -1,0 +1,10 @@
+#JupiTer experiment Data Capture Spiker
+# This is the file that handles your data acquisition
+# There was a competition...
+# 768
+#PMT VOLTAGE THRESHOLD CHANNELNAME 
+313 1700    40  r29
+triggersource 1
+delay 1250
+
+

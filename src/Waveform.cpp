@@ -533,7 +533,7 @@ void timeDelay(const char * fileIN) {
 
     bool isPineApple = 0;
 
-    for (int jentry = 0; jentry < nentries; jentry += 10) {
+    for (int jentry = 0; jentry < nentries; jentry += 20) {
         isPineApple = 0;
 
         float pos[2] = {0, 0};
@@ -590,9 +590,9 @@ void timeDelay(const char * fileIN) {
                 //            }
 
                 TH1F * temp = (TH1F*) histo_c->Clone("GrongoHist");
-                temp ->Rebin(16);
-                for (int k = 0; k < 1024./16.; k++) {
-                    temp->SetBinContent(k, temp->GetBinContent(k)/16.);
+                //temp ->Rebin(16);
+                for (int k = 0; k < 1024.; k++) {
+                    temp->SetBinContent(k, temp->GetBinContent(k));
                     //  printf("%f\n",temp->GetBinContent(k)  );
                 }
                 //  printf("integ =%f\n", BaseIntegral);
@@ -666,7 +666,8 @@ void timeDelay(const char * fileIN) {
 
                 float tempPos = FittingStartBin(minimo, temp);
 
-                pos[CH] = fitfunct->GetMinimumX(0, N_SAMPLES);//FittingStartBin(minimo * 2. / 3., histo_c);
+                //pos[CH] = fitfunct->GetMinimumX(0, N_SAMPLES);//
+                pos[CH] = FittingStartBin(minimo * 2. / 3., histo_c);
 
                 /*double dope[6];
                 

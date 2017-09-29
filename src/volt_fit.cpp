@@ -17,6 +17,96 @@
 void bestresolution_find(char * peaksfile, char* wheretosave);
 
 /**
+ * This function tests the linearity in energy
+ * @param linearfile
+ */
+void dollar_fit(char* linearfile) {
+    char temp[STR_LENGTH ];
+
+    std::vector<float> TPeakpos;
+    std::vector<float> TPeakposErr;
+    std::vector<float> TEnergy;
+
+
+    std::ifstream myfile1;
+    std::string myline;
+    printf("Energy file read: %s\n", linearfile);
+    myfile1.open(linearfile);
+
+
+
+    int i = 0;
+    std::vector<peak> peaks;
+
+    while (std::getline(myfile1, myline)) {
+        peak temp;
+        std::istringstream strm(myline);
+        if (strm >> temp.peakpos >> temp.sigma >> temp.peakpos_err) {
+            std::cout << i << " " << temp.peakpos << " " << temp.sigma << " " << temp.peakpos_err << std::endl;
+            i++;
+            peaks.push_back(temp);
+        } else {
+            printf("(riga ignorata)\n");
+        }
+    }
+
+    for (i = 0; i < peaks.size(); i++) {
+
+        TPeakpos.push_back(peaks[i].peakpos);
+        TPeakposErr.push_back(peaks[i].peakpos_err);
+        TEnergy.push_back(peaks[i].sigma);
+
+
+
+    }
+
+    int PMTid = 505;
+
+    sprintf(temp, "linear_%d", PMTid);
+    TCanvas *c40 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
+    c40->SetFillColor(10);
+    //  c40->SetGrid();
+    gStyle->SetOptFit(1111);
+
+    TGraphErrors* mygraph1 = new TGraphErrors(TPeakpos.size(), &(TEnergy[0]), &(TPeakpos[0]), 0, &(TPeakposErr[0]));
+    sprintf(temp, "linear_%d", PMTid);
+
+    mygraph1->SetName(temp);
+    //    TGraphErrors* mygraph1 = new TGraphErrors(i, voltage, peakpos, err_voltage, err_peakpos);
+    mygraph1->SetTitle("Studio linearita' in energia");
+    mygraph1->GetXaxis()->SetTitle("Energia (keV)");
+    mygraph1->GetYaxis()->SetTitle("Posizione picco (adc Counts)");
+
+    mygraph1->SetMarkerColor(4);
+    //mygraph1->SetMarkerStyle(20);
+    mygraph1->SetMarkerSize(4);
+    mygraph1->Draw("APE");
+
+        TPaveStats* ps = (TPaveStats *) mygraph1->GetListOfFunctions()->FindObject("stats");
+    if (ps != nullptr) {
+
+        ps->SetX1NDC(0.05);
+        ps->SetX2NDC(0.25);
+        ps->SetY1NDC(0.70);
+        ps->SetY2NDC(0.90);
+    }
+    
+
+    TF1* fit_function = new TF1("retta", "[0]*x+[1]", 0, 1500);
+
+    mygraph1->Fit(fit_function, "M");
+    fit_function->SetLineColor(2);
+    fit_function->SetLineWidth(1);
+    fit_function->Draw("Same");
+    gROOT->SetStyle("Plain");
+    gStyle->SetOptFit(1111);
+    c40->Write();
+    sprintf(temp, "img/%s_lineardollar_%d.eps", "animal", PMTid);
+    c40->SaveAs(temp);
+
+}
+
+/**
  * Esegue il fit lineare di un file nel formato
  * TENSIONE     POSIZIONE_PICCO     SIGMA     VALORE_PICCO    INTEGRALE_FONDO    INTEGRALE_SEGNALE
  * Le righe non contenenti valori in questo formato vengono ignorate
@@ -59,8 +149,8 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
             TPeakpos.push_back(peaks[i].peakpos);
             TPeakposErr.push_back(peaks[i].peakpos_err);
             TResolution.push_back(peaks[i].resolution);
-            TResolutionErr.push_back(peaks[i].resolution*TMath::Sqrt(((peaks[i].sigma_err)/peaks[i].sigma)*((peaks[i].sigma_err)/peaks[i].sigma) + (peaks[i].sigma/peaks[i].peakpos)*(peaks[i].sigma/peaks[i].peakpos) ));
-         //   TResolutionErr.push_back(peaks[i].resolution*TMath::Sqrt(((peaks[i].sigma_err)/peaks[i].sigma)*((peaks[i].sigma_err)/peaks[i].sigma) + (peaks[i].peakpos_err/peaks[i].peakpos)*(peaks[i].peakpos_err/peaks[i].peakpos) ));
+            TResolutionErr.push_back(peaks[i].resolution * TMath::Sqrt(((peaks[i].sigma_err) / peaks[i].sigma)*((peaks[i].sigma_err) / peaks[i].sigma) + (peaks[i].sigma / peaks[i].peakpos)*(peaks[i].sigma / peaks[i].peakpos)));
+            //   TResolutionErr.push_back(peaks[i].resolution*TMath::Sqrt(((peaks[i].sigma_err)/peaks[i].sigma)*((peaks[i].sigma_err)/peaks[i].sigma) + (peaks[i].peakpos_err/peaks[i].peakpos)*(peaks[i].peakpos_err/peaks[i].peakpos) ));
         }
 
 
@@ -124,7 +214,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
 
     sprintf(temp, "resol%s_%d", acqname, peaks[0].PMTid);
     TCanvas *c402 = new TCanvas(temp, PLOTS_TITLE, 640, 480);
-    TGraphErrors* mygraph3 = new TGraphErrors(TVoltage.size(), &(TVoltage[0]), &(TResolution[0]), 0,&(TResolutionErr[0]));
+    TGraphErrors* mygraph3 = new TGraphErrors(TVoltage.size(), &(TVoltage[0]), &(TResolution[0]), 0, &(TResolutionErr[0]));
 
     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E #sqrt{N}}");
     mygraph3->SetTitle("Calibrazione - Risoluzione #frac{#sigma}{E}");
