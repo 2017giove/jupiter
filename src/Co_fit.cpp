@@ -253,21 +253,21 @@ peak Co_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
 
-    fsrc->SetParLimits(4, Ymax * 0.7, Ymax * 1.5); //OK! Valore numerici scelti con cura non cambiare
-    fsrc->SetParLimits(5, Xmax *0.8, Xmax * 1.5);
-    fsrc->SetParLimits(6, sigma * 0.1, sigma * 1);
+    fsrc->SetParLimits(4, Ymax * 0.7, Ymax * 2); //OK! Valore numerici scelti con cura non cambiare
+    fsrc->SetParLimits(5, Xmax *0.9, Xmax * 1.5);
+    fsrc->SetParLimits(6, sigma * 0.1, sigma * 2);
 
-    fsrc->SetParLimits(7, Ymax / 10, Ymax *0.5);
-    fsrc->SetParLimits(8, FDCompton * 0.90, FDCompton * 1.10);
+    fsrc->SetParLimits(7, Ymax / 10, Ymax);
+    fsrc->SetParLimits(8, FDCompton * 0.80, FDCompton * 1.20);
     fsrc->SetParLimits(9, 0.05, 10);
 
-    fsrc->SetParLimits(10, Ymax/ 2.8, 6 * Ymax);
-    fsrc->SetParLimits(11, FDCompton2 * 0.90, FDCompton2 * 1.10);
-    fsrc->SetParLimits(12, 1, 10);
+    fsrc->SetParLimits(10, Ymax/ 3,  Ymax);
+    fsrc->SetParLimits(11, FDCompton2 * 0.80, FDCompton2 * 1.20);
+    fsrc->SetParLimits(12, 0.7, 10);
 
-    fsrc->SetParLimits(13, Ymax * 0.8, Ymax * 1.2); //OK!
-    fsrc->SetParLimits(14, Xmax , Xmax * 1.5);
-    fsrc->SetParLimits(15, sigma * 0.1, sigma * 1);
+    fsrc->SetParLimits(13, Ymax * 0.7, Ymax * 2); //OK!
+    fsrc->SetParLimits(14, Xmax*0.9 , Xmax * 1.1);
+    fsrc->SetParLimits(15, sigma * 0.1, sigma * 2);
 
 
     fsrc->SetParameter(0, Ymax);

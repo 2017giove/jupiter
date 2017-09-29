@@ -55,21 +55,15 @@
         <in>PowerExpert.cpp</in>
         <in>SerialClass.cpp</in>
         <in>ThermoParanoid.cpp</in>
-        <in>Timer.cpp</in>
         <in>TriggerDialog.cpp</in>
         <in>WaveAnalysis.h</in>
         <in>Waveform.cpp</in>
-        <in>ananas.cpp</in>
         <in>averager.cpp</in>
         <in>bananas.cpp</in>
         <in>defines.h</in>
         <in>down.xpm</in>
-        <in>drs_exam.cpp</in>
-        <in>drs_exam_multi.cpp</in>
         <in>drs_expert.cpp</in>
-        <in>drs_jupiter.cpp</in>
         <in>drs_menu.cpp</in>
-        <in>drs_sub.cpp</in>
         <in>drscl.cpp</in>
         <in>drsosc.xpm</in>
         <in>left.xpm</in>
@@ -84,7 +78,6 @@
         <in>up.xpm</in>
         <in>volt_fit.cpp</in>
       </df>
-      <in>file_plot.cpp</in>
     </df>
     <itemPath>channelsHV.cfg</itemPath>
     <itemPath>src/testACQ.jpt</itemPath>

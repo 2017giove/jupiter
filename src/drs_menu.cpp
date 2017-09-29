@@ -301,29 +301,30 @@ void filemenu(const char*filename) {
         int targc = 0;
         char* targv[50];
         TApplication theApp("App", &targc, targv);
-        theApp.Run();
+        if (scaleman()) theApp.Run();
     } else if (choice == MENU_CHARGEHIST) {
-        ChargeHist(filename);
+        if (scaleman()) ChargeHist(filename);
 
     } else if (choice == MENU_CHARGEHISTRAW) {
-        char fileRAWname[STR_LENGTH];
-        sprintf(fileRAWname, "%sRAW.root", filenameFromPath(filename).c_str());
-        std::vector<std::string> myrottenhist = list_files("data/", fileRAWname, "");
-        removeFileList(myrottenhist);
-        ChargeHist(filename);
-
+        if (scaleman()) {
+            char fileRAWname[STR_LENGTH];
+            sprintf(fileRAWname, "%sRAW.root", filenameFromPath(filename).c_str());
+            std::vector<std::string> myrottenhist = list_files("data/", fileRAWname, "");
+            removeFileList(myrottenhist);
+            ChargeHist(filename);
+        }
     } else if (choice == MENU_CSFIT) {
-        Cs_fitall(filename);
+        if (scaleman()) Cs_fitall(filename);
     } else if (choice == MENU_BAFIT) {
-        Ba_fitall(filename);
+        if (scaleman()) Ba_fitall(filename);
     } else if (choice == MENU_COFIT) {
         if (scaleman()) Co_fitall(filename);
     } else if (choice == MENU_WAVEFORM) {
-        WaveformAll(filename);
+        if (scaleman()) WaveformAll(filename);
     } else if (choice == MENU_WAVEPROFILE) {
-        WaveProfile(filename);
+        if (scaleman()) WaveProfile(filename);
     } else if (choice == MENU_TIMEDELAY) {
-        timeDelay(filename);
+        if (scaleman()) timeDelay(filename);
     }
 
 
@@ -395,7 +396,7 @@ int scaleman() {
 
     }
     fclose(file);
-    //   if (result == 0) mainmenu();
+    if (result == 0) mainmenu();
     return result;
 }
 
