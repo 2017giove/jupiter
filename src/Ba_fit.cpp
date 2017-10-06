@@ -82,7 +82,7 @@ void Ba_getPeak(const char* src_name, int PMTid, char* wheretosave) {
         TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
         if (h1 != nullptr) {
-            sprintf(tname, "img/%s_%d_%s.eps", filenameFromPath(src_name).c_str(), PMTid, timgnames[k]);
+            sprintf(tname, "img/%s_%d_%s.png", filenameFromPath(src_name).c_str(), PMTid, timgnames[k]);
             printf("Salva in %s\n", tname);
 
             mypeak = Ba_fit(c41, h1, tname, &st, PMTid);
@@ -213,9 +213,9 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     // FIT 
-    h1->GetXaxis()->SetRange(Xmax * 0 / step, Xmax * 1.5 / step);
+    h1->GetXaxis()->SetRange(50/4,500/4);
 
-    TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/TMath::Exp((x-[8])*(x-[8])/(2*[9]*[9]))   +   [10]/TMath::Exp((x-[11])*(x-[11])/(2*[12]*[12]))     +[13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15]))  ", startfitpoint, Xmax * 2);
+    TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/TMath::Exp((x-[8])*(x-[8])/(2*[9]*[9]))   +   [10]/TMath::Exp((x-[11])*(x-[11])/(2*[12]*[12]))     +[13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15]))  ", 100, 500);
     //                   0        1           2       3           4           5       6       7       8               9
     fsrc->SetParNames("BGAmp", "BGratio", "tau_1", "tau_2", "GaussAmp", "Peak", "sigma", "GaussAmp2", "Peak2", "sigma2");
 
@@ -275,7 +275,7 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
     fsrc->SetParameter(5, Xmax);
     fsrc->SetParameter(6, sigma);
 
-    h1->Fit("fsrc", "L", "", 5, Xmax * 2); // prima la FDCompton * 2 / 3 //vL options
+    h1->Fit("fsrc", "L", "", 100, 500); // prima la FDCompton * 2 / 3 //vL options
     h1->Draw();
 
     /*****************************************************/
@@ -283,7 +283,7 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
     //grafici delle funzioni usate per il fit
 
     //Replot doppio exp
-    TF1 *BG = new TF1("doppioexp", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))  ", 0, 200);
+    TF1 *BG = new TF1("doppioexp", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))  ", 100, 500);
     BG->FixParameter(0, fsrc->GetParameter(0));
     BG->FixParameter(1, fsrc->GetParameter(1));
     BG->FixParameter(2, fsrc->GetParameter(2));
@@ -296,7 +296,7 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     //Replot Gauss (Photon Peak)
-    TF1 *G1 = new TF1("G1", " [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) ", 0, 50);
+    TF1 *G1 = new TF1("G1", " [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) ", 100, 500);
 
     G1->FixParameter(4, fsrc->GetParameter(4));
     G1->FixParameter(5, fsrc->GetParameter(5));
@@ -309,7 +309,7 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     //Replot Gauss (Photon Peak)
-    TF1 *G2 = new TF1("G2", " [7]/TMath::Exp((x-[8])*(x-[8])/(2*[9]*[9])) ", 0, 50);
+    TF1 *G2 = new TF1("G2", " [7]/TMath::Exp((x-[8])*(x-[8])/(2*[9]*[9])) ", 100, 500);
 
     G2->FixParameter(7, fsrc->GetParameter(7));
     G2->FixParameter(8, fsrc->GetParameter(8));
@@ -323,7 +323,7 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     //Replot Gauss (Photon Peak)
-    TF1 *G3 = new TF1("G3", " [10]/TMath::Exp((x-[11])*(x-[11])/(2*[12]*[12])) ", 0, 50);
+    TF1 *G3 = new TF1("G3", " [10]/TMath::Exp((x-[11])*(x-[11])/(2*[12]*[12])) ", 100, 500);
 
     G3->FixParameter(10, fsrc->GetParameter(10));
     G3->FixParameter(11, fsrc->GetParameter(11));
@@ -336,7 +336,7 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     //Replot Gauss (Photon Peak)
-    TF1 *G8 = new TF1("G8", " [13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15])) ", 0, 50);
+    TF1 *G8 = new TF1("G8", " [13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15])) ", 100, 500);
 
     G8->FixParameter(13, fsrc->GetParameter(13));
     G8->FixParameter(14, fsrc->GetParameter(14));
@@ -349,16 +349,16 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
 
-
+    h1->GetYaxis()->SetTitleOffset(1.4);
     h1->SetTitle("Spettro del Ba133");
     h1->SetName("Risultati del Fit");
-    h1->GetXaxis()->SetTitle("adc Counts");
+    h1->GetXaxis()->SetTitle("Energia (keV)");
     h1->GetYaxis()->SetTitle("Eventi");
     gPad->SetGrid();
 
 
     //Replot funzione con parametri trovata
-    TF1 *fitmax = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/TMath::Exp((x-[8])*(x-[8])/(2*[9]*[9]))   +   [10]/TMath::Exp((x-[11])*(x-[11])/(2*[12]*[12]))     +[13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15])) ", 10, 60);
+    TF1 *fitmax = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) + [7]/TMath::Exp((x-[8])*(x-[8])/(2*[9]*[9]))   +   [10]/TMath::Exp((x-[11])*(x-[11])/(2*[12]*[12]))     +[13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15])) ", 100, 500);
 
     fitmax->FixParameter(0, fsrc->GetParameter(0));
     fitmax->FixParameter(1, fsrc->GetParameter(1));
@@ -418,22 +418,22 @@ peak Ba_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     mySetting_histoprint(st, PMTid);
-    char temp[STR_LENGTH];
-    sprintf(temp, "Risoluzione %f ", mypeak.resolution);
-    TText *label1 = new TText();
-    label1->SetNDC();
-    label1->SetTextSize(0.03);
-    label1->DrawText(0.5, 0.00, temp);
+//    char temp[STR_LENGTH];
+//    sprintf(temp, "Risoluzione %f ", mypeak.resolution);
+//    TText *label1 = new TText();
+//    label1->SetNDC();
+//    label1->SetTextSize(0.03);
+//    label1->DrawText(0.5, 0.00, temp);
 
 
 
-    TPaveStats* ps = (TPaveStats *) h1->GetListOfFunctions()->FindObject("stats");
+   TPaveStats* ps = (TPaveStats *) h1->GetListOfFunctions()->FindObject("stats");
     if (ps != nullptr) {
 
-        ps->SetX1NDC(0.05);
-        ps->SetX2NDC(0.25);
-        ps->SetY1NDC(0.10);
-        ps->SetY2NDC(0.50);
+        ps->SetX1NDC(0.70);
+        ps->SetX2NDC(1);
+        ps->SetY1NDC(0.50);
+        ps->SetY2NDC(1);
     }
 
     c40->SaveAs(savepath.c_str());

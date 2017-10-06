@@ -507,7 +507,7 @@ void timeDelay(const char * fileIN) {
 
     TH1F *histo_c = new TH1F("histo_ch1", "Forma del segnale", N_SAMPLES, 0, N_SAMPLES - 1);
 
-    TH1F *histo_pos = new TH1F("histo_pos", "Smearing", 1000, -100, 100);
+    TH1F *histo_pos = new TH1F("histo_pos", "Risoluzione in tempo", 1000, -100, 100);
 
     //    TH1F *showHist;
     // TF1 *showFit;
@@ -538,7 +538,7 @@ void timeDelay(const char * fileIN) {
 
         float pos[2] = {0, 0};
         //printf("Chambanas\n");
-        for (int CH = 0; CH < st.Nchan; CH++) {
+        for (int CH = 0; (CH < st.Nchan) && (isPineApple == 0); CH++) {
 
             t1->GetEntry(jentry);
             //  TF1 *fitfunct = new TF1("f1", "[0]*([3]*TMath::Exp(-[1]*x) - (1-[3])*TMath::Exp(-[2]*x))", 0, N_SAMPLES);
@@ -590,7 +590,7 @@ void timeDelay(const char * fileIN) {
                 //            }
 
                 TH1F * temp = (TH1F*) histo_c->Clone("GrongoHist");
-                //temp ->Rebin(16);
+            //    temp ->Rebin(16);
                 for (int k = 0; k < 1024.; k++) {
                     temp->SetBinContent(k, temp->GetBinContent(k));
                     //  printf("%f\n",temp->GetBinContent(k)  );
@@ -598,15 +598,15 @@ void timeDelay(const char * fileIN) {
                 //  printf("integ =%f\n", BaseIntegral);
 
                 temp->Fit(fitfunct, "NQ", "same", FittingStartBin(st.thresh[CH], histo_c), N_SAMPLES);
-                temp->SetLineColor(CH + 2);
-
-
-
-                if (CH == 0) {
-                    temp->Draw("");
-                } else {
-                    temp->Draw("same");
-                }
+//                temp->SetLineColor(CH + 2);
+//
+//
+//
+//                if (CH == 0) {
+//                    temp->Draw("");
+//                } else {
+//                    temp->Draw("same");
+//                }
 
 
                 //
@@ -621,19 +621,19 @@ void timeDelay(const char * fileIN) {
                  */
 
 
-                TF1 *G1 = new TF1("G1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
-
-                G1->FixParameter(0, fitfunct->GetParameter(0));
-                G1->FixParameter(1, fitfunct->GetParameter(1));
-                G1->FixParameter(2, fitfunct->GetParameter(2));
-                G1->FixParameter(3, fitfunct->GetParameter(3));
-                G1->FixParameter(4, fitfunct->GetParameter(4));
-                G1->FixParameter(5, fitfunct->GetParameter(5));
-
-
-                G1->SetLineColor(CH + 2);
-                G1->SetLineStyle(2);
-                G1->Draw("same");
+//                TF1 *G1 = new TF1("G1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
+//
+//                G1->FixParameter(0, fitfunct->GetParameter(0));
+//                G1->FixParameter(1, fitfunct->GetParameter(1));
+//                G1->FixParameter(2, fitfunct->GetParameter(2));
+//                G1->FixParameter(3, fitfunct->GetParameter(3));
+//                G1->FixParameter(4, fitfunct->GetParameter(4));
+//                G1->FixParameter(5, fitfunct->GetParameter(5));
+//
+//
+//                G1->SetLineColor(CH + 2);
+//                G1->SetLineStyle(2);
+//                G1->Draw("same");
 
 
 
@@ -683,9 +683,9 @@ void timeDelay(const char * fileIN) {
                 */
                  
                 //
-                TLine *line = new TLine(pos[CH], -1000, pos[CH], 0);
-                line->SetLineColor(CH + 2);
-                line->Draw("same");
+//                TLine *line = new TLine(pos[CH], -1000, pos[CH], 0);
+//                line->SetLineColor(CH + 2);
+//                line->Draw("same");
 
 
                 //
@@ -704,8 +704,8 @@ void timeDelay(const char * fileIN) {
         if (!isPineApple) {
             histo_pos->Fill(pos[1] - pos[0]);
             printf("Smear= %f\n", pos[1] - pos[0]);
-            c->Write();
-            if (pos[1] - pos[0]<-38 / 2 * 2 || pos[1] - pos[0] > 38 / 2 * 2) {
+//            c->Write();
+            if (pos[1] - pos[0]<-38 || pos[1] - pos[0] > 38) {
                 nCananas++;
 
             }
@@ -714,9 +714,23 @@ void timeDelay(const char * fileIN) {
         }
     }
 
+    TPaveStats* ps = (TPaveStats *) histo_pos->GetListOfFunctions()->FindObject("stats");
+    if (ps != nullptr) {
+
+        ps->SetX1NDC(0.65);
+        ps->SetX2NDC(0.95);
+        ps->SetY1NDC(0.50);
+        ps->SetY2NDC(0.90);
+    }
+    
+    histo_pos->SetAxisRange(-25,25);
+    histo_pos->SetXTitle("Tempo (samples)");
+    histo_pos->SetYTitle("Eventi");
     histo_pos->Draw();
     histo_pos->Write();
     //  histo_pos->SaveAs(imgOUT);
+    
+    
 
     printf("\nLollo ha avuto %d erezioni spiked e %d fellatio saturated. Would like a little more, say %d.\n", nAnanas, nBananas, nCananas);
     fOUT->Close();

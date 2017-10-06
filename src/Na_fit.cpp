@@ -98,7 +98,7 @@ void Na_getPeak(const char* src_name, int PMTid, char* wheretosave) {
         TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
         if (h1 != nullptr) {
-            sprintf(tname, "img/%s_%d_%s.eps", filenameFromPath(src_name).c_str(), PMTid, timgnames[k]);
+            sprintf(tname, "img/%s_%d_%s.png", filenameFromPath(src_name).c_str(), PMTid, timgnames[k]);
             printf("Salva in %s\n", tname);
 
             mypeak = Na_fit(c41, h1, tname, &st, PMTid);
@@ -170,7 +170,7 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
    // int maxBin = mymaxsbins.back();
 
     //float Xmax = maxBin*step; //80
-    float Xmax = 40;
+    float Xmax = 1270;
     // printf("\nxmax=%f\n", Xmax);
 
     float Xwindow; // = 3.8; // larghezza su cui eseguire a occhio il fit gaussiano rispetto a xmax rilevato
@@ -181,7 +181,7 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
     Xwindow = Xmax / 5;
 
 //    float Ymax = h1->GetBinContent(maxBin);
-    float Ymax = Xmax;
+    float Ymax = 190;//Xmax;
 
     //gROOT->SetStyle("Plain");
     gStyle->SetOptFit(1111);
@@ -241,9 +241,9 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     // FIT 
-    h1->GetXaxis()->SetRange(Xmax * 0 / step, Xmax * 1.5 / step);
-
-    TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) +      [7]/(TMath::Exp((x-[8])*[9])+1)       + [10]/(TMath::Exp((x-[11])*[12])+1)    + [13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15]))", startfitpoint, 55);
+    h1->GetXaxis()->SetRange(0, 1600);
+    
+    TF1 *fsrc = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) +      [7]/(TMath::Exp((x-[8])*[9])+1)       + [10]/(TMath::Exp((x-[11])*[12])+1)    + [13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15]))", 150, 1600);
     //                   0        1           2       3           4           5       6       7       8               9
     //                   0        1           2       3           4           5       6       7       8               9
     fsrc->SetParNames("BGAmp", "BGratio", "tau_1", "tau_2", "GaussAmp", "Peak", "sigma", "FDCAmp", "FDCShift", "FDCBeta");
@@ -264,20 +264,20 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     fsrc->SetParLimits(4, Ymax * 0.8, Ymax * 1.2); //OK! Valore numerici scelti con cura non cambiare
-    fsrc->SetParLimits(5, 39.5, 40.5);
-    fsrc->SetParLimits(6, 0, 1.4);
+    fsrc->SetParLimits(5, 1100, 1300);
+    fsrc->SetParLimits(6, 20, 100);
 
     fsrc->SetParLimits(7, Ymax / 10, Ymax);
     fsrc->SetParLimits(8, FDCompton * 0.60, FDCompton * 1.20);
-    fsrc->SetParLimits(9, 0.05, 10);
+    fsrc->SetParLimits(9, 0.0005, 0.1);
 
     fsrc->SetParLimits(10, Ymax / 10, Ymax);
     fsrc->SetParLimits(11, FDCompton2 * 0.60, FDCompton2 * 1.20);
-    fsrc->SetParLimits(12, 0.07, 10);
+    fsrc->SetParLimits(12, 0.0007, 0.1);
 
     fsrc->SetParLimits(13, Ymax * 0.9, Ymax * 10); //OK!
     fsrc->SetParLimits(14, xmin * 0.9, xmin * 1.1);
-    fsrc->SetParLimits(15, 0,3 );
+    fsrc->SetParLimits(15, 20,100);
 
 
     fsrc->SetParameter(0, Ymax);
@@ -300,7 +300,8 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
     fsrc->SetParameter(5, xmin);
     fsrc->SetParameter(6, 1);
 
-    h1->Fit("fsrc", "L", "", startfitpoint, 55); // prima la FDCompton * 2 / 3 //vL options
+    h1->Fit("fsrc", "L", "", 150, 1600); // prima la FDCompton * 2 / 3 //vL options
+    h1->SetAxisRange(0, 1600);
     h1->Draw();
 
     /*****************************************************/
@@ -308,7 +309,7 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
     //grafici delle funzioni usate per il fit
 
     //Replot doppio exp
-    TF1 *BG = new TF1("doppioexp", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))", 0, 50);
+    TF1 *BG = new TF1("doppioexp", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))", 150, 1600);
     BG->FixParameter(0, fsrc->GetParameter(0));
     BG->FixParameter(1, fsrc->GetParameter(1));
     BG->FixParameter(2, fsrc->GetParameter(2));
@@ -321,7 +322,7 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     //Replot Gauss (Photon Peak)
-    TF1 *G1 = new TF1("G1", "[4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6]))", 0, 50);
+    TF1 *G1 = new TF1("G1", "[4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6]))", 150, 1600);
 
     G1->FixParameter(4, fsrc->GetParameter(4));
     G1->FixParameter(5, fsrc->GetParameter(5));
@@ -334,7 +335,7 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     //Replot Gauss (Photon Peak)
-    TF1 *G2 = new TF1("G2", "[7]/(TMath::Exp((x-[8])*[9])+1)", 0, 50);
+    TF1 *G2 = new TF1("G2", "[7]/(TMath::Exp((x-[8])*[9])+1)", 150, 1600);
 
     G2->FixParameter(7, fsrc->GetParameter(7));
     G2->FixParameter(8, fsrc->GetParameter(8));
@@ -348,7 +349,7 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     //Replot Gauss (Photon Peak)
-    TF1 *G3 = new TF1("G3", "[10]/(TMath::Exp((x-[11])*[12])+1)", 0, 50);
+    TF1 *G3 = new TF1("G3", "[10]/(TMath::Exp((x-[11])*[12])+1)", 150, 1600);
 
     G3->FixParameter(10, fsrc->GetParameter(10));
     G3->FixParameter(11, fsrc->GetParameter(11));
@@ -361,7 +362,7 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
     //Replot Gauss (Photon Peak)
-    TF1 *G8 = new TF1("G8", "[13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15]))", 0, 50);
+    TF1 *G8 = new TF1("G8", "[13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15]))", 150, 1600);
 
     G8->FixParameter(13, fsrc->GetParameter(13));
     G8->FixParameter(14, fsrc->GetParameter(14));
@@ -374,16 +375,16 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
 
 
 
-
-    h1->SetTitle("Spettro del Co60");
+    h1->GetYaxis()->SetTitleOffset(1.4);
+    h1->SetTitle("Spettro del Na22");
     h1->SetName("Risultati del Fit");
-    h1->GetXaxis()->SetTitle("adc Counts");
+    h1->GetXaxis()->SetTitle("Energia (keV)");
     h1->GetYaxis()->SetTitle("Eventi");
     gPad->SetGrid();
 
 
     //Replot funzione con parametri trovata
-    TF1 *fitmax = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) +      [7]/(TMath::Exp((x-[8])*[9])+1)       + [10]/(TMath::Exp((x-[11])*[12])+1)    + [13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15]))", startfitpoint, 55);
+    TF1 *fitmax = new TF1("fsrc", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))     + [4]/TMath::Exp((x-[5])*(x-[5])/(2*[6]*[6])) +      [7]/(TMath::Exp((x-[8])*[9])+1)       + [10]/(TMath::Exp((x-[11])*[12])+1)    + [13]/TMath::Exp((x-[14])*(x-[14])/(2*[15]*[15]))", 150, 1600);
 
     fitmax->FixParameter(0, fsrc->GetParameter(0));
     fitmax->FixParameter(1, fsrc->GetParameter(1));
@@ -439,26 +440,27 @@ peak Na_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, int PMT
         h1->SetFillColor(46);
 
     }
+    
     fitmax->Draw("same");
     c40->Draw();
 
 
     mySetting_histoprint(st, PMTid);
-    char temp[STR_LENGTH];
-    sprintf(temp, "Risoluzione %f ", mypeak.resolution);
-    TText *label1 = new TText();
-    label1->SetNDC();
-    label1->SetTextSize(0.03);
-    label1->DrawText(0.5, 0.00, temp);
+//    char temp[STR_LENGTH];
+//    sprintf(temp, "Risoluzione %f ", mypeak.resolution);
+//    TText *label1 = new TText();
+//    label1->SetNDC();
+//    label1->SetTextSize(0.03);
+//    label1->DrawText(0.5, 0.00, temp);
 
 
 
     TPaveStats* ps = (TPaveStats *) h1->GetListOfFunctions()->FindObject("stats");
     if (ps != nullptr) {
 
-        ps->SetX1NDC(0.65);
-        ps->SetX2NDC(0.95);
-        ps->SetY1NDC(0.50);
+        ps->SetX1NDC(0.60);
+        ps->SetX2NDC(0.90);
+        ps->SetY1NDC(0.40);
         ps->SetY2NDC(0.90);
     }
 

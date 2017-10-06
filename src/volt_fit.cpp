@@ -21,7 +21,20 @@ void bestresolution_find(char * peaksfile, char* wheretosave);
  * @param linearfile
  */
 void dollar_fit(char* linearfile) {
+    printf("Mi chiamo %s", linearfile);
+
+    std::string _final = linearfile;
+    std::string _extension = ".txt";
+    _final = _final.substr(_final.find_last_of("/") + 1);
+    _final = _final.replace(_final.find(_extension), _extension.length(), "");
+
+    std::string animal = _final;
+
     char temp[STR_LENGTH ];
+
+    sprintf(temp, "data/%s.root", animal.c_str());
+
+    TFile *FOut = new TFile(temp, "UPDATE");
 
     std::vector<float> TPeakpos;
     std::vector<float> TPeakposErr;
@@ -68,42 +81,60 @@ void dollar_fit(char* linearfile) {
     //  c40->SetGrid();
     gStyle->SetOptFit(1111);
 
-    TGraphErrors* mygraph1 = new TGraphErrors(TPeakpos.size(), &(TEnergy[0]), &(TPeakpos[0]), 0, &(TPeakposErr[0]));
+    //    TGraphErrors* mygraph1 = new TGraphErrors(TPeakpos.size(), &(TEnergy[0]), &(TPeakpos[0]), 0, &(TPeakposErr[0]));
+    TGraph* mygraph1 = new TGraph(TPeakpos.size(), &(TEnergy[0]), &(TPeakpos[0]));
     sprintf(temp, "linear_%d", PMTid);
 
     mygraph1->SetName(temp);
     //    TGraphErrors* mygraph1 = new TGraphErrors(i, voltage, peakpos, err_voltage, err_peakpos);
     mygraph1->SetTitle("Studio linearita' in energia");
-    mygraph1->GetXaxis()->SetTitle("Energia (keV)");
-    mygraph1->GetYaxis()->SetTitle("Posizione picco (adc Counts)");
-
-    mygraph1->SetMarkerColor(4);
-    //mygraph1->SetMarkerStyle(20);
-    mygraph1->SetMarkerSize(4);
-    mygraph1->Draw("APE");
-
-        TPaveStats* ps = (TPaveStats *) mygraph1->GetListOfFunctions()->FindObject("stats");
-    if (ps != nullptr) {
-
-        ps->SetX1NDC(0.05);
-        ps->SetX2NDC(0.25);
-        ps->SetY1NDC(0.70);
-        ps->SetY2NDC(0.90);
-    }
+    mygraph1->GetXaxis()->SetTitle("Energia attesa (keV)");
+    mygraph1->GetYaxis()->SetTitle("Energia misurata (keV)");
+    mygraph1->GetYaxis()->SetTitleOffset(1.4);
     
+    mygraph1->SetMarkerColor(4);
+    mygraph1->SetMarkerStyle(8);
+    mygraph1->SetMarkerSize(0.8);
+
 
     TF1* fit_function = new TF1("retta", "[0]*x+[1]", 0, 1500);
 
     mygraph1->Fit(fit_function, "M");
     fit_function->SetLineColor(2);
     fit_function->SetLineWidth(1);
+
+
+    mygraph1->Draw("AP");
     fit_function->Draw("Same");
+
+//    for (int ii = 0; ii < peaks.size(); ii++) {
+//        TLatex * lbl = new TLatex(peaks[ii].peakpos, peaks[ii].sigma, "DOLL");
+//        lbl->SetTextSize(0.040);
+//        lbl->SetTextFont(42);
+//        lbl->SetTextColor(kGreen);
+//        mygraph1->GetListOfFunctions()->Add(lbl);
+//    }
+
+
+
+
     gROOT->SetStyle("Plain");
     gStyle->SetOptFit(1111);
+    
+    TPaveStats* ps = (TPaveStats *) mygraph1->GetListOfFunctions()->FindObject("stats");
+    if (ps != nullptr) {
+
+        ps->SetX1NDC(0.70);
+        ps->SetX2NDC(0.90);
+        ps->SetY1NDC(0.10);
+        ps->SetY2NDC(0.30);
+    }
+    
     c40->Write();
-    sprintf(temp, "img/%s_lineardollar_%d.eps", "animal", PMTid);
+    sprintf(temp, "img/%s_lineardollar_%d.png", animal.c_str(), PMTid);
     c40->SaveAs(temp);
 
+    FOut->Close();
 }
 
 /**
@@ -145,7 +176,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
         } else {
             TVoltage.push_back(peaks[i].voltage);
             TPeakposLog.push_back(TMath::Log(peaks[i].peakpos));
-            TPeakposLogErr.push_back(peaks[i].resolution);
+            TPeakposLogErr.push_back(peaks[i].peakpos_err / peaks[i].peakpos);
             TPeakpos.push_back(peaks[i].peakpos);
             TPeakposErr.push_back(peaks[i].peakpos_err);
             TResolution.push_back(peaks[i].resolution);
@@ -162,31 +193,50 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     //  c40->SetGrid();
     gStyle->SetOptFit(1111);
 
-    TGraphErrors* mygraph1 = new TGraphErrors(TVoltage.size(), &(TVoltage[0]), &(TPeakposLog[0]), 0, &(TPeakposLogErr[0]));
+    TGraph* mygraph1 = new TGraph(TVoltage.size(), &(TVoltage[0]), &(TPeakposLog[0]));
 
     sprintf(temp, "linear_%d", peaks[0].PMTid);
     mygraph1->SetName(temp);
     //    TGraphErrors* mygraph1 = new TGraphErrors(i, voltage, peakpos, err_voltage, err_peakpos);
-    mygraph1->SetTitle("Calibrazione");
+    mygraph1->SetTitle("Retta di calibrazione");
     mygraph1->GetXaxis()->SetTitle("Tensione PMT [V]");
     mygraph1->GetYaxis()->SetTitle("Log(posizione picco[adc count]) ");
 
+
     mygraph1->SetMarkerColor(4);
-    //mygraph1->SetMarkerStyle(20);
-    mygraph1->SetMarkerSize(4);
-    mygraph1->Draw("APE");
+    mygraph1->SetMarkerStyle(20);
+    mygraph1->SetMarkerSize(0.7);
+  
+
+
+
+
 
 
     TF1* fit_function = new TF1("retta", "[0]*x+[1]", 1000, 2000);
-
-    mygraph1->Fit(fit_function, "M");
+    mygraph1->Draw("AP");  
     fit_function->SetLineColor(2);
     fit_function->SetLineWidth(1);
-    fit_function->Draw("Same");
-    gROOT->SetStyle("Plain");
+    mygraph1->Fit(fit_function, "M");
+
+   // fit_function->Draw("Same");
+ //   gROOT->SetStyle("Plain");
     gStyle->SetOptFit(1111);
     c40->Write();
-    sprintf(temp, "img/%s_linear_%d.eps", acqname, peaks[0].PMTid);
+
+    TPaveStats* ps = (TPaveStats *) mygraph1->GetListOfFunctions()->FindObject("stats");
+    if (ps != nullptr) {
+
+        ps->SetX1NDC(0.75);
+        ps->SetX2NDC(0.95);
+        ps->SetY1NDC(0.10);
+        ps->SetY2NDC(0.30);
+    }
+
+
+
+
+    sprintf(temp, "img/%s_linear_%d.png", acqname, peaks[0].PMTid);
     c40->SaveAs(temp);
 
     sprintf(temp, "expo_%d", peaks[0].PMTid);
@@ -237,6 +287,7 @@ void volt_fit(char * peaksfile, char* wheretosave, char* acqname) {
     std::ofstream savefile(temp, std::ios_base::app);
     savefile << peaks[0].PMTid << " " << fit_function->GetParameter(0) << " " << fit_function->GetParameter(1) << std::endl;
     FOut->Close();
+    c40->Close( );
 }
 
 /**

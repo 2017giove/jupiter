@@ -1171,15 +1171,14 @@ void PMTRangeLT(char * capturename, int PMTid) {
     TFile *FOut = new TFile(rottentemp, "UPDATE");
     TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
 
-    c41->SetLogy();
+
 
 
     TGraph * confPlot = new TGraph();
     TGraph * confPlotProblematic = new TGraph();
 
-    confPlot->GetYaxis()->SetRange(0, 200);
-    confPlotProblematic->GetYaxis()->SetRange(0, 200);
-
+  
+    
     confPlotProblematic->SetMarkerColor(kRed);
     confPlot->SetMarkerStyle(8);
     confPlot->SetMarkerSize(1);
@@ -1195,7 +1194,7 @@ void PMTRangeLT(char * capturename, int PMTid) {
 
         for (unsigned int j = 0; j < peaks.size(); j++) {
             if (PMTid == peaks[j].PMTid) {
-                TLatex * lbl = new TLatex(peaks[j].voltage + 0.2, -peaks[j].thresh + 0.2, Form("%1.5f", peaks[j].resolution));
+                TLatex * lbl = new TLatex(peaks[j].voltage + 0.2, -peaks[j].thresh + 0.2, Form("%1.5f", peaks[j].IA*100));
                 lbl->SetTextSize(0.025);
                 lbl->SetTextFont(42);
 
@@ -1214,7 +1213,17 @@ void PMTRangeLT(char * capturename, int PMTid) {
         }
     }
 
+  c41->SetLogy();
+      confPlot->GetYaxis()->SetRangeUser(0, 500);
+    confPlotProblematic->GetYaxis()->SetRangeUser(0, 500);
 
+    confPlot->SetMinimum(0);
+    confPlot->SetMaximum(500);
+    
+       confPlotProblematic->SetMinimum(0);
+    confPlotProblematic->SetMaximum(500);
+    
+       
     confPlot->Draw("ap");
     confPlotProblematic->Draw("psame");
 
@@ -1223,12 +1232,12 @@ void PMTRangeLT(char * capturename, int PMTid) {
 
 
 
-    sprintf(rottentemp, "Risoluzione - PMT %d", PMTid);
+    sprintf(rottentemp, "Ia - PMT %d", PMTid);
     confPlot->SetTitle(rottentemp);
     confPlot->GetXaxis()->SetTitle("Tensione (V)");
     confPlot->GetYaxis()->SetTitle("Soglia Trigger (-mV)");
 
-    sprintf(rottentemp, "img/%s_%d.eps", capturename, PMTid);
+    sprintf(rottentemp, "img/%s_%d_ia.png", capturename, PMTid);
     c41->SaveAs(rottentemp);
     c41->Write();
     FOut->Close();

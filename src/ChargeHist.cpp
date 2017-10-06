@@ -105,7 +105,9 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
     TH1D *htot = new TH1D(tname, "Istogramma energia tot", NBIN / 4, QMIN, 3 * CAESIUM_PEAK);
 
 
+
     for (CH = 0; CH < st.Nchan; CH++) {
+        
         cPMT = CHtoPMT(CH, &st);
         int calibIndex = -1;
         double scalingAnanas = -1;

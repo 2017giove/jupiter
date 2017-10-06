@@ -224,7 +224,7 @@ void Cs_getPeak(const char* src_name, int PMTid, char* wheretosave) {
         TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
         if (h1 != nullptr) {
-            sprintf(tname, "img/%s_%d_%s.eps", filenameFromPath(src_name).c_str(), PMTid, timgnames[k]);
+            sprintf(tname, "img/%s_%d_%s.png", filenameFromPath(src_name).c_str(), PMTid, timgnames[k]);
             printf("Salva in %s\n", tname);
 
             mypeak = Cs_fit(c41, h1, tname, &st, PMTid);
@@ -270,7 +270,7 @@ void Cs_fitsumofchannels(const char*src_name) {
     TH1D *h1 = (TH1D*) sorgente_file->Get(tname);
 
     if (h1 != nullptr) {
-        sprintf(tname, "img/%s_tot_csfit.eps", filenameFromPath(src_name).c_str());
+        sprintf(tname, "img/%s_tot_csfit.png", filenameFromPath(src_name).c_str());
         printf("Salva in %s\n", tname);
         mypeak = Cs_fit(c41, h1, tname, &st, 0);
         h1->Write();
@@ -301,8 +301,8 @@ void Cs_fitall(const char* src_name) {
         sprintf(temp2, "data/%s_%d.calfish", acqnameFromPath(src_name).c_str(), PMTid);
         printf("\nFilename iniziale %s \n>> Salvato in %s\n", src_name, temp2);
         Cs_getPeak(src_name, PMTid, temp2);
-    }
-
+    }    
+        
     Cs_fitsumofchannels(src_name);
 
 }
@@ -502,7 +502,7 @@ struct peak Cs_fit(TCanvas* c40, TH1D* h1, std::string savepath, mySetting* st, 
 
 
     //Replot doppio exp
-    TF1 *BG = new TF1("doppioexp", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))  ", 0, 200);
+    TF1 *BG = new TF1("doppioexp", "[0]*([1]*TMath::Exp((-x/[2]))+  (1-[1])*TMath::Exp((-x/[3])))  ", Xmax * 0.3, Xmax * 1.6);
     BG->FixParameter(0, fsrc->GetParameter(0));
     BG->FixParameter(1, fsrc->GetParameter(1));
     BG->FixParameter(2, fsrc->GetParameter(2));

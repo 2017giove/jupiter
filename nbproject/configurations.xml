@@ -284,7 +284,7 @@
           </incDir>
         </ccTool>
       </item>
-      <item path="src/Na_fit.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/Na_fit.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="src/Osci.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="2">

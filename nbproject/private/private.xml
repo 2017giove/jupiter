@@ -13,13 +13,11 @@
             <file>file:/home/sfera/Desktop/jupiter/src/Waveform.cpp</file>
             <file>file:/home/sfera/Desktop/jupiter/src/ChargeHist.cpp</file>
             <file>file:/home/sfera/Desktop/jupiter/src/Co_fit.cpp</file>
-            <file>file:/home/sfera/Desktop/jupiter/src/volt_fit.cpp</file>
+            <file>file:/home/sfera/Desktop/jupiter/src/Na_fit.cpp</file>
             <file>file:/home/sfera/Desktop/jupiter/src/defines.h</file>
-            <file>file:/home/sfera/Desktop/jupiter/src/drs_menu.cpp</file>
+            <file>file:/home/sfera/Desktop/jupiter/src/volt_fit.cpp</file>
             <file>file:/home/sfera/Desktop/jupiter/src/Cs_fit.cpp</file>
             <file>file:/home/sfera/Desktop/jupiter/src/Ba_fit.cpp</file>
-            <file>file:/home/sfera/Desktop/jupiter/Makefile</file>
-            <file>file:/home/sfera/Desktop/jupiter/src/drs_expert.cpp</file>
         </group>
     </open-files>
     <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">
