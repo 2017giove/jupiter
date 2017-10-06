@@ -139,7 +139,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
 
         //Istogramma calibrato
         sprintf(tname, "hc%d", cPMT);
-        TH1D *h2 = new TH1D(tname, "Istogramma energia 661", NBIN, QMIN, 3 * CAESIUM_PEAK);
+        TH1D *h2 = new TH1D(tname, "Spettro di raggi cosmici", NBIN, QMIN, 60 * CAESIUM_PEAK/1000);
 
 
         for (i = 0; i < Nentries; i++) {
@@ -147,7 +147,7 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
             h1->Fill(Integral);
 
             if (amIcalibratedFish && (calibIndex != NOT_FOUND_INT)) {
-                h2->Fill(Integral * scalingAnanas);
+                h2->Fill(Integral * scalingAnanas/1000);
                 htot->Fill(Integral * scalingAnanas);
             }
 
@@ -166,10 +166,10 @@ void MakeChargeHist(const char* fileIN, std::string fileext = "hist") {
 
         if (amIcalibratedFish && (calibIndex != NOT_FOUND_INT)) {
             h2->Rebin(4);
-            h2->GetXaxis()->SetTitle("keV");
-            h2->GetYaxis()->SetTitle("# eventi");
+            h2->GetXaxis()->SetTitle("Energia (MeV)");
+            h2->GetYaxis()->SetTitle("Eventi");
             h2->Write();
-            sprintf(tname, "img/%s_charge_calib%d.eps", filenameFromPath(fileIN).c_str(), cPMT);
+            sprintf(tname, "img/%s_charge_calib%d.png", filenameFromPath(fileIN).c_str(), cPMT);
             h2->Draw("");
             mySetting_histoprint(&st, cPMT);
             c40->SaveAs(tname);

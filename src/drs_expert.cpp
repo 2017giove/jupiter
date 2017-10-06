@@ -99,6 +99,9 @@ void finalizeCapture(char* fileName, mySetting cset);
 
 int main(int argc, char* argv[]) {
 
+    
+ //   WaveProfileCosmic("data/cesiotadpoleHH.root");
+    
     int targc = 0;
     char* targv[50];
     TApplication theApp("App", &targc, targv);

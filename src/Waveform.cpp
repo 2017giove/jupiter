@@ -26,6 +26,7 @@ void WaveProfile(const char* src_name);
 void RawWave(const char * fileIN, const char *fileOUT, int PMTid);
 void DrawWaveSplot(const char * fileIN, const char *fileOUT, int PMTid);
 TH1F* plotWaveFromCharge(const char * fileIN, int PMTid, float charge);
+void WaveProfileCosmic(const char* src_name);
 
 int FittingStartBin(float threshold, TH1F * hist) {
     int i;
@@ -218,21 +219,21 @@ void WaveProfile(const char* src_name) {
 
 
         int col = 1;
-        
-        
+
+
         sprofh->Write();
-        
+
         //Qual è l'intervallo che ci interessa???
-        
-        
+
+
         for (int ii = 10; ii < 210; ii += 25) {
             sprintf(tname, "x%d", ii);
             TProfile *a = sprofh->ProfileX(tname, ii, ii + 5);
             //a->SetLineColor(ii + 1);
             // a->SetLineWidth(7);
             a->GetXaxis()->SetTitle("tempo (samples)");
-        a->GetYaxis()->SetTitle("carica normalizzata");
-            
+            a->GetYaxis()->SetTitle("carica normalizzata");
+
             a->SetMarkerStyle(8);
             a->SetMarkerSize(0.4);
             a->SetMarkerColor(col++);
@@ -567,7 +568,7 @@ void timeDelay(const char * fileIN) {
             fitfunct->SetParameter(4, 1620);
             fitfunct->SetParameter(5, 220);
 
-            
+
             for (int k = 0; k < 1024; k++) {
                 histo_c->SetBinContent(k, ev.wave_array[CH][k]);
             }
@@ -590,7 +591,7 @@ void timeDelay(const char * fileIN) {
                 //            }
 
                 TH1F * temp = (TH1F*) histo_c->Clone("GrongoHist");
-            //    temp ->Rebin(16);
+                //    temp ->Rebin(16);
                 for (int k = 0; k < 1024.; k++) {
                     temp->SetBinContent(k, temp->GetBinContent(k));
                     //  printf("%f\n",temp->GetBinContent(k)  );
@@ -598,15 +599,15 @@ void timeDelay(const char * fileIN) {
                 //  printf("integ =%f\n", BaseIntegral);
 
                 temp->Fit(fitfunct, "NQ", "same", FittingStartBin(st.thresh[CH], histo_c), N_SAMPLES);
-//                temp->SetLineColor(CH + 2);
-//
-//
-//
-//                if (CH == 0) {
-//                    temp->Draw("");
-//                } else {
-//                    temp->Draw("same");
-//                }
+                //                temp->SetLineColor(CH + 2);
+                //
+                //
+                //
+                //                if (CH == 0) {
+                //                    temp->Draw("");
+                //                } else {
+                //                    temp->Draw("same");
+                //                }
 
 
                 //
@@ -621,19 +622,19 @@ void timeDelay(const char * fileIN) {
                  */
 
 
-//                TF1 *G1 = new TF1("G1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
-//
-//                G1->FixParameter(0, fitfunct->GetParameter(0));
-//                G1->FixParameter(1, fitfunct->GetParameter(1));
-//                G1->FixParameter(2, fitfunct->GetParameter(2));
-//                G1->FixParameter(3, fitfunct->GetParameter(3));
-//                G1->FixParameter(4, fitfunct->GetParameter(4));
-//                G1->FixParameter(5, fitfunct->GetParameter(5));
-//
-//
-//                G1->SetLineColor(CH + 2);
-//                G1->SetLineStyle(2);
-//                G1->Draw("same");
+                //                TF1 *G1 = new TF1("G1", "([0]*TMath::Exp(-[1]*(x-[3])) - [4]*TMath::Exp(-[2]*(x-[5])))", 0, N_SAMPLES);
+                //
+                //                G1->FixParameter(0, fitfunct->GetParameter(0));
+                //                G1->FixParameter(1, fitfunct->GetParameter(1));
+                //                G1->FixParameter(2, fitfunct->GetParameter(2));
+                //                G1->FixParameter(3, fitfunct->GetParameter(3));
+                //                G1->FixParameter(4, fitfunct->GetParameter(4));
+                //                G1->FixParameter(5, fitfunct->GetParameter(5));
+                //
+                //
+                //                G1->SetLineColor(CH + 2);
+                //                G1->SetLineStyle(2);
+                //                G1->Draw("same");
 
 
 
@@ -680,12 +681,12 @@ void timeDelay(const char * fileIN) {
                 
                 pos[CH] = (dope[2]*dope[5]-dope[1]*dope[3] + log(dope[2]*dope[4]/dope[0]/dope[1]))/(dope[2]-dope[1]);
                 
-                */
-                 
+                 */
+
                 //
-//                TLine *line = new TLine(pos[CH], -1000, pos[CH], 0);
-//                line->SetLineColor(CH + 2);
-//                line->Draw("same");
+                //                TLine *line = new TLine(pos[CH], -1000, pos[CH], 0);
+                //                line->SetLineColor(CH + 2);
+                //                line->Draw("same");
 
 
                 //
@@ -704,7 +705,7 @@ void timeDelay(const char * fileIN) {
         if (!isPineApple) {
             histo_pos->Fill(pos[1] - pos[0]);
             printf("Smear= %f\n", pos[1] - pos[0]);
-//            c->Write();
+            //            c->Write();
             if (pos[1] - pos[0]<-38 || pos[1] - pos[0] > 38) {
                 nCananas++;
 
@@ -722,15 +723,15 @@ void timeDelay(const char * fileIN) {
         ps->SetY1NDC(0.50);
         ps->SetY2NDC(0.90);
     }
-    
-    histo_pos->SetAxisRange(-25,25);
+
+    histo_pos->SetAxisRange(-25, 25);
     histo_pos->SetXTitle("Tempo (samples)");
     histo_pos->SetYTitle("Eventi");
     histo_pos->Draw();
     histo_pos->Write();
     //  histo_pos->SaveAs(imgOUT);
-    
-    
+
+
 
     printf("\nLollo ha avuto %d erezioni spiked e %d fellatio saturated. Would like a little more, say %d.\n", nAnanas, nBananas, nCananas);
     fOUT->Close();
@@ -833,5 +834,195 @@ void RawWave(const char * fileIN, const char *fileOUT, int PMTid) {
     FOut->Write();
 }
 
+void WaveProfileCosmic(const char* src_name) {
+
+
+
+    //TFile *f = (TFile*) gROOT->GetListOfFiles()->First();
+    TFile *f = TFile::Open(src_name);
+
+    char fileOUT[STR_LENGTH];
+    strcpy(fileOUT, appendToRootFilename(f->GetName(), "wave").c_str());
+    TFile *FOut = new TFile(fileOUT, "UPDATE");
+    int i, j;
+
+    TH1F *histo_ch1;
+    TTree* tset = (TTree*) f->Get("tset");
+    char tname [STR_LENGTH];
+    struct mySetting st;
+    mySetting_get(tset, &st);
+    mySetting_print(&st);
+
+    int CH;
+
+
+    Exotourbillion* Rieussec = new Exotourbillion();
+    for (i = 0; i < 1; i++) {
+        TCanvas *c41 = new TCanvas("Fish", PLOTS_TITLE, 640, 480);
+        //     for (i = 0; i < 1; i++) {
+        CH = i;
+
+
+        TTree* t1 = (TTree*) f->Get("t1");
+        TTree* tset = (TTree*) f->Get("tset");
+
+        int jentry;
+        struct myEvent temp;
+        int nentries = t1->GetEntries();
+
+        t1->SetBranchAddress("trigCH", &temp.trigCH);
+        t1->SetBranchAddress("wave_array", temp.wave_array);
+        t1->SetBranchAddress("time_array", temp.time_array);
+
+        float Integral, BaseIntegral, Max;
+        WaveForm Wave;
+
+        sprintf(tname, "wp%d", st.PmtID[i]);
+        TProfile2D * sprofh = new TProfile2D(tname, "Profile della waveform", N_SAMPLES / 5, 0, N_SAMPLES, 200 + 1, 0, 200);
+        // sprofh->SetBinEntries(200,1);
+        int totEventiQ[100] = {0};
+
+
+        //Ciclo sugli eventi
+        for (jentry = 0; jentry < nentries; jentry++) {
+            t1->GetEntry(jentry);
+
+            Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
+            Integral = Wave.Integral();
+            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
+            Integral -= BaseIntegral;
+
+            for (j = 0; j < N_SAMPLES; j++) {
+                int cQ = (int) (Integral / sprofh->GetYaxis()->GetBinWidth((j)));
+
+                if (cQ < 0 || cQ > 99) {
+                    //printf("\n\n%f\t%d\n\n\n",Integral,cQ);
+                    cQ = 99;
+                }
+
+                if ((Integral > 18) && (Integral < 24)) {
+                    sprofh->Fill(j, Integral, temp.wave_array[CH][j] / Integral);
+                    totEventiQ[cQ]++;
+                }
+            }
+
+
+
+            printf("%d/%d ", jentry, nentries);
+            printStatus((float) jentry / (float) nentries);
+
+        }
+
+        f = TFile::Open("data/cosmicbiketilde.root");
+        CH = 2;
+
+        t1 = (TTree*) f->Get("t1");
+        tset = (TTree*) f->Get("tset");
+
+        nentries = t1->GetEntries();
+
+        t1->SetBranchAddress("trigCH", &temp.trigCH);
+        t1->SetBranchAddress("wave_array", temp.wave_array);
+        t1->SetBranchAddress("time_array", temp.time_array);
+
+
+        //Ciclo sugli eventi
+        for (jentry = 0; jentry < nentries; jentry++) {
+            t1->GetEntry(jentry);
+
+            Wave.FillVec(N_SAMPLES, temp.time_array[CH], temp.wave_array[CH], -1);
+            Integral = Wave.Integral();
+            BaseIntegral = Wave.BoundIntegral(0, (N_SAMPLES - (int) ((st.delayns + BASE_SPAGO) * RATE)));
+            Integral -= BaseIntegral;
+
+            for (j = 0; j < N_SAMPLES; j++) {
+                int cQ = (int) (Integral / sprofh->GetYaxis()->GetBinWidth((j)));
+
+                if (cQ < 0 || cQ > 99) {
+                    //printf("\n\n%f\t%d\n\n\n",Integral,cQ);
+                    cQ = 99;
+                }
+
+                if ((Integral > 100)) {
+                    sprofh->Fill(j, Integral, temp.wave_array[CH][j] / Integral);
+                    totEventiQ[cQ]++;
+                }
+            }
+
+
+
+            printf("%d/%d ", jentry, nentries);
+            printStatus((float) jentry / (float) nentries);
+
+        }
+
+        printf("\nHo impiegato %lf\n\n", Rieussec->TotalUsedInk());
+
+
+
+        int col = 1;
+
+
+        sprofh->Write();
+
+        //Qual è l'intervallo che ci interessa???
+        gStyle->SetOptFit(1111);
+
+
+        sprintf(tname, "cesio");
+        TProfile *a = sprofh->ProfileX(tname, 18, 24);
+        //a->SetLineColor(ii + 1);
+        // a->SetLineWidth(7);
+        a->GetXaxis()->SetTitle("tempo (samples)");
+        a->GetYaxis()->SetTitle("carica normalizzata");
+
+        a->SetMarkerStyle(8);
+        a->SetMarkerSize(0.4);
+        a->SetMarkerColor(col++);
+        a->Draw("same");
+        sprintf(tname, "cosmicbike");
+
+        TProfile *b = sprofh->ProfileX(tname, 100, 200);
+        //a->SetLineColor(ii + 1);
+        // a->SetLineWidth(7);
+        b->GetXaxis()->SetTitle("tempo (samples)");
+        b->GetYaxis()->SetTitle("carica normalizzata");
+
+        b->SetMarkerStyle(8);
+        b->SetMarkerSize(0.4);
+        b->SetMarkerColor(col++);
+        b->Draw("same");
+
+        TPaveStats* ps = (TPaveStats *) a->GetListOfFunctions()->FindObject("stats");
+        if (ps != nullptr) {
+
+            ps->SetX1NDC(0.60);
+            ps->SetX2NDC(0.90);
+            ps->SetY1NDC(0.10);
+            ps->SetY2NDC(0.30);
+        }
+
+        //        TH1D* aa = sprofh->ProjectionX("px", 0, 10);
+        //        aa->SetLineColor(2);
+        //        aa->Draw( "same"     );
+
+
+        //sprofh->Draw("surf3"  );
+
+        c41->Write();
+        char tname22 [STR_LENGTH];
+        std::string myname = filenameFromPath((f->GetName()));
+
+        sprintf(tname22, "img/%s_wp%d.eps", myname.c_str(), st.PmtID[i]);
+
+        printf("nome: %s\n\n", tname22);
+        c41->SaveAs(tname22);
+        delete c41;
+    }
+
+
+    // FOut->Close();
+    // delete c41;
+}
 
 #endif
